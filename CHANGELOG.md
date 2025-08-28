@@ -1,4 +1,4 @@
-# Enjo changelog
+# Kanri changelog
 
 ## Next
 
