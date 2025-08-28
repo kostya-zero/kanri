@@ -2,6 +2,10 @@
 
 ## Next
 
+TBW
+
+## 0.8.0
+
 - When Kanri runs template commands, it will now add `KANRI_PROJECT` environment variable with the name of the project. So you can use it in your template commands, e.g. for initializing Go modules with `go mod init $KANRI_PROJECT`.
 - When you are running shell session with Kanri, it will add `KANRI_SESSION`, so you can use it in your shell scripts to check if you are running in Kanri session.
 - Added `always_accept` option to the configuration of autocomplete. If this option is set to `true`, Kanri will not ask for confirmation when you are trying to open or remove a project, and it will always accept the suggestion.
