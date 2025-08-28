@@ -1,6 +1,7 @@
 use anyhow::{Result, anyhow, bail};
 
 use crate::{
+    cli::RecentArgs,
     config::Config,
     platform,
     program::{LaunchOptions, launch_program},
@@ -33,6 +34,33 @@ pub fn handle_edit() -> Result<()> {
     };
 
     launch_program(launch_options).map_err(|e| anyhow!(e.to_string()))
+}
+
+pub fn handle_recent(args: RecentArgs) -> Result<()> {
+    let path = platform::config_file();
+    let mut config = Config::load(&path)?;
+
+    if !config.recent.enabled {
+        bail!("Recent feature is disabled in the configuration file.");
+    }
+
+    if args.clear {
+        if config.recent.recent_project.is_empty() {
+            bail!("Nothing to clear.");
+        }
+        config.recent.recent_project.clear();
+        config.save(path)?;
+        print_done("Cleared.");
+        return Ok(());
+    }
+
+    if config.recent.recent_project.is_empty() {
+        bail!("No recent project found.");
+    }
+
+    println!("{}", config.recent.recent_project);
+
+    Ok(())
 }
 
 pub fn handle_reset() -> Result<()> {

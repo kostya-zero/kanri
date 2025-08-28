@@ -78,6 +78,7 @@ fn main() {
         Commands::Config { command } => match command {
             ConfigCommands::Path => config::handle_path(),
             ConfigCommands::Edit => config::handle_edit(),
+            ConfigCommands::Recent(args) => config::handle_recent(args),
             ConfigCommands::Reset => config::handle_reset(),
         },
         Commands::Zen => root::handle_zen(),

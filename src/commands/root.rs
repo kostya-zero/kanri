@@ -60,7 +60,7 @@ pub fn handle_new(args: NewArgs) -> Result<()> {
             .to_string_lossy()
             .to_string();
         let total_commands = template.len() as i8;
-        let env_map = Vec::from([(String::from("ENJO_PROJECT"), name.clone())]);
+        let env_map = Vec::from([(String::from("KANRI_PROJECT"), name.clone())]);
         let started_time = Instant::now();
         for (idx, command) in template.iter().enumerate() {
             let current = idx as i8 + 1;
@@ -176,7 +176,7 @@ pub fn handle_open(args: OpenArgs) -> Result<()> {
     };
 
     if args.shell {
-        let env_map = Vec::from([(String::from("ENJO_SESSION"), "1".to_string())]);
+        let env_map = Vec::from([(String::from("KANRI_SESSION"), "1".to_string())]);
         launch_options.env = Some(env_map);
     }
 
