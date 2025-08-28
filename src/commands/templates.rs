@@ -21,7 +21,7 @@ pub fn handle_new() -> Result<()> {
         if command.is_empty() {
             break;
         }
-        commands.push(command.to_string());
+        commands.push(command);
     }
 
     ensure!(!commands.is_empty(), "No commands entered.");
@@ -64,7 +64,7 @@ pub fn handle_edit() -> Result<()> {
     }
 
     let mut editor_args = config.editor.args.clone();
-    editor_args.push(templates_path.to_str().unwrap().to_string());
+    editor_args.push(templates_path.to_string_lossy().to_string());
 
     let launch_options = LaunchOptions {
         program: editor.to_string(),
@@ -124,8 +124,8 @@ pub fn handle_remove(args: TemplatesRemoveArgs) -> Result<()> {
         .ok_or_else(|| anyhow!("Provide a name of template to delete."))?;
     let templates_path = platform::templates_file();
     let mut templates = Templates::load(&templates_path)?;
-    templates.remove_template(&name).map_err(|e| anyhow!(e))?;
-    templates.save(templates_path).map_err(|e| anyhow!(e))?;
+    templates.remove_template(&name)?;
+    templates.save(templates_path)?;
     print_done("Removed.");
     Ok(())
 }

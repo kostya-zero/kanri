@@ -114,9 +114,7 @@ pub fn handle_clone(args: CloneArgs) -> Result<()> {
         config.options.display_hidden,
     )?;
 
-    projects
-        .clone(&clone_options)
-        .map_err(|e| anyhow!(e.to_string()))?;
+    projects.clone(&clone_options)?;
 
     print_done("Cloned.");
     Ok(())

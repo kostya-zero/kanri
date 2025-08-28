@@ -5,6 +5,7 @@
 - When Enjo runs template commands, it will now add `ENJO_PROJECT` environment variable with the name of the project. So you can use it in your template commands, e.g. for initializing Go modules with `go mod init $ENJO_PROJECT`.
 - When you are running shell session with Enjo, it will add `ENJO_SESSION`, so you can use it in your shell scripts to check if you are running in Enjo session.
 - Added `always_accept` option to the configuration of autocomplete. If this option is set to `true`, Enjo will not ask for confirmation when you are trying to open or remove a project, and it will always accept the suggestion.
+- Added `templates path` command that returns the path to the templates file.
 - The output messages has been rewritten to be more concise.
 - When removing a project, the spinner will appear.
 - Added autocomplete support for `remove` subcommand.
