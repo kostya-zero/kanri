@@ -10,10 +10,6 @@ license = "MIT"
 version = "0.8.0-dev"
 edition = "2024"
 
-[[bin]]
-name = "kanri"
-path = "src/main.rs"
-
 [dependencies]
 anyhow = "1"
 clap = { version = "4.5.41", features = ["derive"] }

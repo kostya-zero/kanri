@@ -47,7 +47,6 @@ pub fn handle_new(args: NewArgs) -> Result<()> {
         let template = templates
             .get_template(&template_name)
             .ok_or_else(|| anyhow!("Template '{}' not found.", template_name))?;
-        let started_time = Instant::now();
 
         println!("Generating project from '{}' template...", &name);
 
@@ -61,7 +60,8 @@ pub fn handle_new(args: NewArgs) -> Result<()> {
             .to_string_lossy()
             .to_string();
         let total_commands = template.len() as i8;
-
+        let env_map = Vec::from([(String::from("ENJO_PROJECT"), name.clone())]);
+        let started_time = Instant::now();
         for (idx, command) in template.iter().enumerate() {
             let current = idx as i8 + 1;
             print_progress(command, current, total_commands);
@@ -69,15 +69,13 @@ pub fn handle_new(args: NewArgs) -> Result<()> {
             let mut args_vec = config.shell.args.clone();
             args_vec.push(command.clone());
 
-            let env_map = Vec::from([(String::from("ENJO_PROJECT"), name.clone())]);
-
             let launch_options = LaunchOptions {
                 program: program.to_string(),
                 args: args_vec,
                 cwd: Some(project_path.clone()),
                 fork_mode: false,
                 quiet: args.quiet,
-                env: Some(env_map),
+                env: Some(env_map.clone()),
             };
 
             if let Err(e) = launch_program(launch_options) {
@@ -90,7 +88,7 @@ pub fn handle_new(args: NewArgs) -> Result<()> {
         }
 
         let elapsed_time = started_time.elapsed().as_millis();
-        print_done(&format!("Generated in {elapsed_time} ms."));
+        print_done(&format!("Generated '{name}' in {elapsed_time} ms."));
     } else {
         print_done("Created.");
     }
