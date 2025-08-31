@@ -220,7 +220,7 @@ pub fn handle_list(args: ListArgs) -> Result<()> {
             println!("{project_name}");
         } else {
             let is_recent = if project_name == recent.as_str() {
-                "(recent)".white().bold()
+                "(recent)".dimmed()
             } else {
                 "".dimmed()
             };
