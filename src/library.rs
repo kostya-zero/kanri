@@ -1,6 +1,7 @@
 use std::{
-    borrow::Cow,
+    collections::HashSet,
     fs,
+    io::{Error, ErrorKind},
     path::{Path, PathBuf},
 };
 
@@ -28,14 +29,14 @@ pub enum LibraryError {
     #[error("Could not rename due to error: {0}")]
     FailedToRename(String),
 
-    #[error("A project with the same name already exists.")]
-    ProjectExists,
-
     #[error("This name of the project is not allowed.")]
     InvalidProjectName,
 
-    #[error("An unexpected I/O error occurred: {0}.")]
-    IoError(String),
+    #[error("An unexpected I/O error occurred: {source}.")]
+    IoError {
+        #[from]
+        source: std::io::Error,
+    },
 }
 
 const SYSTEM_DIRECTORIES: [&str; 6] = [
@@ -56,32 +57,22 @@ pub struct CloneOptions {
 
 #[derive(Debug)]
 pub struct Project {
-    name: Cow<'static, str>,
-    path: PathBuf,
+    pub name: String,
+    pub path: PathBuf,
 }
 
 impl Project {
     pub fn new(new_name: &str, new_path: PathBuf) -> Self {
         Self {
-            name: Cow::Owned(new_name.to_string()),
+            name: new_name.to_string(),
             path: new_path,
         }
     }
 
-    pub fn get_name(&self) -> &str {
-        &self.name
-    }
-
-    pub fn get_path(&self) -> &str {
-        self.path.to_str().unwrap_or_default()
-    }
-
     pub fn is_empty(&self) -> bool {
-        if let Ok(entries) = fs::read_dir(&self.path) {
-            entries.count() == 0
-        } else {
-            false
-        }
+        fs::read_dir(&self.path)
+            .map(|mut dir| dir.next().is_none())
+            .unwrap_or(false)
     }
 }
 
@@ -92,41 +83,42 @@ pub struct Library {
 }
 
 impl Library {
-    pub fn new(path: &PathBuf, display_hidden: bool) -> Result<Self, LibraryError> {
-        let base_path = PathBuf::from(path);
-        if !base_path.exists() || !base_path.is_dir() {
+    pub fn new(path: &Path, display_hidden: bool) -> Result<Self, LibraryError> {
+        if !path.is_dir() {
             return Err(LibraryError::InvalidPath);
         }
         let projects = Self::collect_projects(path, display_hidden)?;
 
         Ok(Self {
             projects,
-            base_path,
+            base_path: path.to_path_buf(),
         })
     }
 
     pub fn collect_projects(
-        path: &PathBuf,
+        path: &Path,
         display_hidden: bool,
     ) -> Result<Vec<Project>, LibraryError> {
-        let dir_entries = fs::read_dir(path).map_err(|e| LibraryError::IoError(e.to_string()))?;
+        let dir_entries = fs::read_dir(path)?;
 
-        // Pre-allocate with estimated capacity
-        let mut projects = Vec::with_capacity(10);
+        let mut projects: Vec<Project> = dir_entries
+            .filter_map(|entry_result| {
+                let entry = entry_result.ok()?;
+                let name = entry.file_name();
+                let name_string = name.to_string_lossy();
 
-        for entry in dir_entries {
-            let entry = entry.map_err(|e| LibraryError::IoError(e.to_string()))?;
-            let name = entry.file_name().to_string_lossy().into_owned();
-
-            if Self::is_valid_project(&entry, &name, display_hidden) {
-                projects.push(Project::new(&name, entry.path()));
-            }
-        }
+                if Self::is_valid_project(&entry, &name_string, display_hidden) {
+                    Some(Project::new(&name_string, entry.path()))
+                } else {
+                    None
+                }
+            })
+            .collect();
 
         // Check if .ignore is present in this directory
         if Path::new(path).join(".ignore").exists() {
             let paths = Self::get_ignored_paths(path)?;
-            projects.retain(|project| !paths.iter().any(|p| p == project.get_name()));
+            projects.retain(|project| !paths.contains(&project.name));
         }
 
         Ok(projects)
@@ -137,32 +129,35 @@ impl Library {
             return false;
         }
 
-        entry.file_type().map(|ft| ft.is_dir()).unwrap_or(false)
-            && !SYSTEM_DIRECTORIES.contains(&name)
+        entry.file_type().is_ok_and(|ft| ft.is_dir()) && !SYSTEM_DIRECTORIES.contains(&name)
     }
 
-    fn get_ignored_paths(base_path: &PathBuf) -> Result<Vec<String>, LibraryError> {
-        if !base_path.join(".ignore").exists() {
-            return Err(LibraryError::IoError(
-                "No .ignore file found in the specified path.".to_string(),
-            ));
+    fn get_ignored_paths(base_path: &Path) -> Result<HashSet<String>, LibraryError> {
+        let ignore_path = base_path.join(".ignore");
+        if !ignore_path.exists() {
+            return Err(LibraryError::IoError {
+                source: Error::new(ErrorKind::NotFound, "No .ignore file found"),
+            });
         }
 
-        let ignore_content = fs::read_to_string(Path::new(base_path).join(".ignore"))
-            .map_err(|e| LibraryError::IoError(e.to_string()))?;
+        let ignore_content = fs::read_to_string(ignore_path)?;
 
-        let paths = Vec::from_iter(ignore_content.lines().filter_map(|line| {
-            let trimmed = line.trim();
-            if !trimmed.is_empty() && !trimmed.starts_with('#') {
-                Some(trimmed.to_string().replace('/', ""))
-            } else {
-                None
-            }
-        }));
+        let paths: HashSet<String> = ignore_content
+            .lines()
+            .filter_map(|line| {
+                let trimmed = line.trim();
+                if !trimmed.is_empty() && !trimmed.starts_with('#') {
+                    Some(trimmed.to_string())
+                } else {
+                    None
+                }
+            })
+            .collect();
 
         Ok(paths)
     }
 
+    #[must_use = "result may indicate clone failure"]
     pub fn clone(&self, options: &CloneOptions) -> Result<(), LibraryError> {
         let mut args = vec!["clone".to_string(), options.remote.clone()];
 
@@ -190,11 +185,11 @@ impl Library {
     }
 
     pub fn create(&self, name: &str) -> Result<(), LibraryError> {
-        let path = &self.base_path.join(name);
+        let path = self.base_path.join(name);
         if path.exists() {
             return Err(LibraryError::AlreadyExists);
         }
-        fs::create_dir(path).map_err(|e| LibraryError::IoError(e.to_string()))
+        fs::create_dir(path).map_err(|e| LibraryError::IoError { source: e })
     }
 
     pub fn delete(&self, name: &str) -> Result<(), LibraryError> {
@@ -213,7 +208,7 @@ impl Library {
     }
 
     pub fn get_names(&self) -> Vec<&str> {
-        self.projects.iter().map(|p| p.get_name()).collect()
+        self.projects.iter().map(|p| p.name.as_str()).collect()
     }
 
     pub fn get(&self, name: &str) -> Result<&Project, LibraryError> {
@@ -233,15 +228,15 @@ impl Library {
         }
 
         if self.contains(new_name) {
-            return Err(LibraryError::ProjectExists);
+            return Err(LibraryError::AlreadyExists);
         }
 
         if SYSTEM_DIRECTORIES.contains(&new_name) {
             return Err(LibraryError::InvalidProjectName);
         }
 
-        let old_path = Path::new(&self.base_path).join(old_name);
-        let new_path = Path::new(&self.base_path).join(new_name);
+        let old_path = self.base_path.join(old_name);
+        let new_path = self.base_path.join(new_name);
 
         fs::rename(old_path, new_path)
             .map_err(|e| LibraryError::FailedToRename(e.kind().to_string()))?;

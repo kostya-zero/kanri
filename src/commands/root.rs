@@ -169,7 +169,7 @@ pub fn handle_open(args: OpenArgs) -> Result<()> {
     let mut launch_options = LaunchOptions {
         program: program.to_string(),
         args: launch_args,
-        cwd: Some(project.get_path().to_string()),
+        cwd: Some(project.path.to_string_lossy().into_owned()),
         fork_mode,
         quiet: false,
         env: None,
@@ -215,7 +215,7 @@ pub fn handle_list(args: ListArgs) -> Result<()> {
         print_title("Your projects");
     }
     for project in projects.get_vec().iter() {
-        let project_name = project.get_name();
+        let project_name = &project.name;
         if args.pure {
             println!("{project_name}");
         } else {
