@@ -95,6 +95,10 @@ pub struct OpenArgs {
     /// Open shell in this project.
     #[arg(short, long, action = ArgAction::SetTrue)]
     pub shell: bool,
+
+    /// Display the path to the project instead of opening it.
+    #[arg(short, long, action = ArgAction::SetTrue)]
+    pub path: bool,
 }
 
 #[derive(Args)]

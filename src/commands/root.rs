@@ -2,7 +2,7 @@ use std::{
     path::Path,
     time::{Duration, Instant},
 };
-
+use std::process::exit;
 use anyhow::{Result, anyhow, ensure};
 use colored::Colorize;
 
@@ -138,6 +138,11 @@ pub fn handle_open(args: OpenArgs) -> Result<()> {
     let project = projects
         .get(&name)
         .map_err(|_| anyhow!("Project not found."))?;
+
+    if args.path {
+        println!("{}", project.path.display());
+        exit(0);
+    }
 
     let (program, launch_args, fork_mode) = if args.shell {
         (&config.shell.program, Vec::<String>::new(), false)
