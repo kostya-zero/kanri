@@ -29,6 +29,35 @@ fn resolve_project_name(project_name: &str, config: &Config, projects: &Library)
     }
 }
 
+fn validate_project_name(name: &str) -> Result<()> {
+    if name.is_empty() {
+        return Err(anyhow!("Project name cannot be empty."))
+    }
+
+    if name.contains(['/', '\\', ':', '*', '?', '"', '<', '>', '|']) {
+        return Err(anyhow!("Project name contains invalid characters."))
+    }
+
+    if name == "." || name == ".." {
+        return Err(anyhow!("Project name cannot be '.' or '..'."))
+    }
+
+    // One more check for Windows
+    #[cfg(windows)]
+    {
+        let reserved = [
+            "CON", "PRN", "AUX", "NUL",
+            "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
+            "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9",
+        ];
+        if reserved.contains(&name.to_uppercase().as_str()) {
+            return Err(anyhow!("Project name cannot be a reserved name on Windows."))
+        }
+    }
+
+    Ok(())
+}
+
 pub fn handle_new(args: NewArgs) -> Result<()> {
     let config = Config::load(platform::config_file())?;
     let projects = Library::new(
@@ -39,6 +68,8 @@ pub fn handle_new(args: NewArgs) -> Result<()> {
     let name = args
         .name
         .ok_or_else(|| anyhow!("Provide a name for a new project."))?;
+
+    validate_project_name(&name)?;
 
     projects.create(&name)?;
 
@@ -60,7 +91,7 @@ pub fn handle_new(args: NewArgs) -> Result<()> {
             .to_string_lossy()
             .to_string();
         let total_commands = template.len() as i8;
-        let env_map = Vec::from([(String::from("KANRI_PROJECT"), name.clone())]);
+        let env_map = vec![(String::from("KANRI_PROJECT"), name.clone())];
         let started_time = Instant::now();
         for (idx, command) in template.iter().enumerate() {
             let current = idx as i8 + 1;
@@ -141,7 +172,7 @@ pub fn handle_open(args: OpenArgs) -> Result<()> {
 
     if args.path {
         println!("{}", project.path.display());
-        exit(0);
+        return Ok(());
     }
 
     let (program, launch_args, fork_mode) = if args.shell {
@@ -164,12 +195,6 @@ pub fn handle_open(args: OpenArgs) -> Result<()> {
         config.save(config_path)?;
     }
 
-    if args.shell {
-        println!(
-            "{}",
-            "======== SHELL SESSION STARTED ========".bold().white()
-        );
-    }
 
     let mut launch_options = LaunchOptions {
         program: program.to_string(),
@@ -183,6 +208,13 @@ pub fn handle_open(args: OpenArgs) -> Result<()> {
     if args.shell {
         let env_map = Vec::from([(String::from("KANRI_SESSION"), "1".to_string())]);
         launch_options.env = Some(env_map);
+    }
+
+    if args.shell {
+        println!(
+            "{}",
+            "======== STARTING SHELL SESSION ========".bold().white()
+        );
     }
 
     launch_program(launch_options)?;
@@ -249,6 +281,8 @@ pub fn handle_rename(args: RenameArgs) -> Result<()> {
     let new_name = args
         .new_name
         .ok_or_else(|| anyhow!("Provide a new name for a project."))?;
+
+    validate_project_name(&new_name)?;
 
     projects.rename(&old_name, &new_name)?;
     print_done("Renamed.");
