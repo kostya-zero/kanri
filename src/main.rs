@@ -42,6 +42,7 @@ fn print_version() {
 }
 
 fn main() {
+    colored::control::set_override(std::env::var("NO_COLOR").is_err());
     let cli = Cli::parse();
 
     if cli.version {
