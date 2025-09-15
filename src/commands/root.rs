@@ -1,10 +1,9 @@
+use anyhow::{Result, anyhow, ensure};
+use colored::Colorize;
 use std::{
     path::Path,
     time::{Duration, Instant},
 };
-use std::process::exit;
-use anyhow::{Result, anyhow, ensure};
-use colored::Colorize;
 
 use crate::{
     autocomplete,
@@ -31,27 +30,28 @@ fn resolve_project_name(project_name: &str, config: &Config, projects: &Library)
 
 fn validate_project_name(name: &str) -> Result<()> {
     if name.is_empty() {
-        return Err(anyhow!("Project name cannot be empty."))
+        return Err(anyhow!("Project name cannot be empty."));
     }
 
     if name.contains(['/', '\\', ':', '*', '?', '"', '<', '>', '|']) {
-        return Err(anyhow!("Project name contains invalid characters."))
+        return Err(anyhow!("Project name contains invalid characters."));
     }
 
     if name == "." || name == ".." {
-        return Err(anyhow!("Project name cannot be '.' or '..'."))
+        return Err(anyhow!("Project name cannot be '.' or '..'."));
     }
 
     // One more check for Windows
     #[cfg(windows)]
     {
         let reserved = [
-            "CON", "PRN", "AUX", "NUL",
-            "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
-            "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9",
+            "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7",
+            "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9",
         ];
         if reserved.contains(&name.to_uppercase().as_str()) {
-            return Err(anyhow!("Project name cannot be a reserved name on Windows."))
+            return Err(anyhow!(
+                "Project name cannot be a reserved name on Windows."
+            ));
         }
     }
 
@@ -195,7 +195,6 @@ pub fn handle_open(args: OpenArgs) -> Result<()> {
         config.save(config_path)?;
     }
 
-
     let mut launch_options = LaunchOptions {
         program: program.to_string(),
         args: launch_args,
@@ -257,7 +256,7 @@ pub fn handle_list(args: ListArgs) -> Result<()> {
             println!("{project_name}");
         } else {
             let is_recent = if project_name == recent.as_str() {
-                "(recent)".dimmed()
+                "(recent)".dimmed().normal()
             } else {
                 "".dimmed()
             };

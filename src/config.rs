@@ -97,13 +97,9 @@ impl Default for EditorOptions {
         let mut fork_mode = false;
 
         match new_editor.as_str() {
-            "code" | "code-insiders" | "codium" | "code-oss" | "windsurf" => {
+            "code" | "code-insiders" | "codium" | "code-oss" | "windsurf" | "zed" => {
                 new_args.push(".".to_string());
                 fork_mode = true;
-            }
-            "zed" => {
-                fork_mode = true;
-                new_args.push(".".to_string());
             }
             _ => {}
         }
@@ -128,11 +124,11 @@ impl Default for ShellOptions {
         let program = platform::default_shell().to_string();
         let args = match program.as_str() {
             "powershell.exe" | "powershell" | "pwsh.exe" | "pwsh" => {
-                vec!["-NoLogo".to_string(), "-Command".to_string()]
+                vec!["-NoLogo".into(), "-Command".into()]
             }
-            "cmd" | "cmd.exe" => vec!["/C".to_string()],
-            "zsh" | "bash" | "fish" | "sh" => vec!["-c".to_string()],
-            _ => vec!["-c".to_string()],
+            "cmd" | "cmd.exe" => vec!["/C".into()],
+            "zsh" | "bash" | "fish" | "sh" => vec!["-c".into()],
+            _ => vec!["-c".into()],
         };
         Self { program, args }
     }
