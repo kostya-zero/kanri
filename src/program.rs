@@ -52,56 +52,45 @@ pub fn launch_program(options: LaunchOptions) -> Result<(), ProgramError> {
     }
 
     if let Some(env) = options.env {
-        for (key, value) in env {
-            cmd.env(key, value);
-        }
+        cmd.envs(env);
     }
-
-    // Required for Windows because if user runs program inside a shell and presses Ctrl+C,
-    // user will lose control over the shell. I don't know why it happens, but it does.
-    // On Linux and macOS Ctrl+C works as expected.
-    #[cfg(windows)]
-    let _ = ctrlc::set_handler(|| {});
 
     if options.fork_mode {
         // In fork mode, we just spawn and don't wait for completion
-        let result = cmd.spawn();
-        if let Err(e) = result {
-            return match e.kind() {
-                ErrorKind::NotFound => {
-                    Err(ProgramError::ProgramNotFound(options.program.to_string()))
-                }
-                ErrorKind::PermissionDenied => Err(ProgramError::NoPermission),
-                ErrorKind::Interrupted => Err(ProgramError::ProcessInterrupted),
-                _ => Err(ProgramError::UnexpectedError(e.to_string())),
-            };
-        }
+        cmd.spawn().map_err(|e| match e.kind() {
+            ErrorKind::NotFound => {
+                ProgramError::ProgramNotFound(options.program.to_string())
+            }
+            ErrorKind::PermissionDenied => ProgramError::NoPermission,
+            ErrorKind::Interrupted => ProgramError::ProcessInterrupted,
+            _ => ProgramError::UnexpectedError(e.to_string()),
+        })?;
     } else {
-        // In blocking mode, we wait for completion and check exit status
-        let result = cmd.status();
-        match result {
-            Ok(status) => {
-                if !status.success() {
-                    // Handle non-zero exit codes
-                    if let Some(code) = status.code() {
-                        return Err(ProgramError::NonZeroExitCode(code));
-                    } else {
-                        // Process was terminated by signal (Unix only)
-                        return Err(ProgramError::ProcessInterrupted);
-                    }
+        // Required only for Windows because if user runs program inside a shell and presses Ctrl+C,
+        // user will lose control over the shell. I don't know why it happens, but it does.
+        // On Linux and macOS Ctrl+C works as expected.
+        #[cfg(windows)]
+        let _ = ctrlc::set_handler(|| {});
+
+        let status = cmd.status().map_err(|e| {
+            match e.kind() {
+                ErrorKind::NotFound => {
+                    ProgramError::ProgramNotFound(options.program.to_string())
                 }
+                ErrorKind::PermissionDenied => ProgramError::NoPermission,
+                ErrorKind::Interrupted => ProgramError::ProcessInterrupted,
+                _ => ProgramError::UnexpectedError(e.to_string()),
             }
-            Err(e) => {
-                return match e.kind() {
-                    ErrorKind::NotFound => {
-                        Err(ProgramError::ProgramNotFound(options.program.to_string()))
-                    }
-                    ErrorKind::PermissionDenied => Err(ProgramError::NoPermission),
-                    ErrorKind::Interrupted => Err(ProgramError::ProcessInterrupted),
-                    _ => Err(ProgramError::UnexpectedError(e.to_string())),
-                };
+        })?;
+
+        if !status.success() {
+            if let Some(code) = status.code() {
+                return Err(ProgramError::NonZeroExitCode(code));
+            } else {
+                return Err(ProgramError::ProcessInterrupted);
             }
         }
+
     }
 
     Ok(())
