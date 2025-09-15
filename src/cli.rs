@@ -7,7 +7,7 @@ use std::env;
     name = "kanri",
     about = env!("CARGO_PKG_DESCRIPTION"),
     version = env!("CARGO_PKG_VERSION"),
-    subcommand_required = false, 
+    subcommand_required = false,
     arg_required_else_help = false,
     disable_version_flag = true
 )]

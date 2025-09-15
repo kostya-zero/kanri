@@ -58,9 +58,7 @@ pub fn launch_program(options: LaunchOptions) -> Result<(), ProgramError> {
     if options.fork_mode {
         // In fork mode, we just spawn and don't wait for completion
         cmd.spawn().map_err(|e| match e.kind() {
-            ErrorKind::NotFound => {
-                ProgramError::ProgramNotFound(options.program.to_string())
-            }
+            ErrorKind::NotFound => ProgramError::ProgramNotFound(options.program.to_string()),
             ErrorKind::PermissionDenied => ProgramError::NoPermission,
             ErrorKind::Interrupted => ProgramError::ProcessInterrupted,
             _ => ProgramError::UnexpectedError(e.to_string()),
@@ -72,15 +70,11 @@ pub fn launch_program(options: LaunchOptions) -> Result<(), ProgramError> {
         #[cfg(windows)]
         let _ = ctrlc::set_handler(|| {});
 
-        let status = cmd.status().map_err(|e| {
-            match e.kind() {
-                ErrorKind::NotFound => {
-                    ProgramError::ProgramNotFound(options.program.to_string())
-                }
-                ErrorKind::PermissionDenied => ProgramError::NoPermission,
-                ErrorKind::Interrupted => ProgramError::ProcessInterrupted,
-                _ => ProgramError::UnexpectedError(e.to_string()),
-            }
+        let status = cmd.status().map_err(|e| match e.kind() {
+            ErrorKind::NotFound => ProgramError::ProgramNotFound(options.program.to_string()),
+            ErrorKind::PermissionDenied => ProgramError::NoPermission,
+            ErrorKind::Interrupted => ProgramError::ProcessInterrupted,
+            _ => ProgramError::UnexpectedError(e.to_string()),
         })?;
 
         if !status.success() {
@@ -90,7 +84,6 @@ pub fn launch_program(options: LaunchOptions) -> Result<(), ProgramError> {
                 return Err(ProgramError::ProcessInterrupted);
             }
         }
-
     }
 
     Ok(())
