@@ -113,7 +113,7 @@ pub fn handle_new(args: NewArgs) -> Result<()> {
                 print_error("Failed to apply template. Cleaning up...");
                 projects
                     .delete(&name)
-                    .map_err(|err| anyhow!("Additionally, cleanup failed: {}", err.to_string()))?;
+                    .map_err(|err| anyhow!("Additionally, cleanup failed: {}", err))?;
                 return Err(anyhow!("Template command '{}' failed: {}", command, e));
             }
         }
