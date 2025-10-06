@@ -65,7 +65,7 @@ pub fn launch_program(options: LaunchOptions) -> Result<(), ProgramError> {
         })?;
     } else {
         // Required only for Windows because if user runs program inside a shell and presses Ctrl+C,
-        // user will lose control over the shell. I don't know why it happens, but it does.
+        // user will lose control over the shell. I can't figure out why it is happening.
         // On Linux and macOS Ctrl+C works as expected.
         #[cfg(windows)]
         let _ = ctrlc::set_handler(|| {});
@@ -78,10 +78,10 @@ pub fn launch_program(options: LaunchOptions) -> Result<(), ProgramError> {
         })?;
 
         if !status.success() {
-            if let Some(code) = status.code() {
-                return Err(ProgramError::NonZeroExitCode(code));
+            return if let Some(code) = status.code() {
+                Err(ProgramError::NonZeroExitCode(code))
             } else {
-                return Err(ProgramError::ProcessInterrupted);
+                Err(ProgramError::ProcessInterrupted)
             }
         }
     }

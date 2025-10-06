@@ -20,7 +20,7 @@ pub enum ConfigError {
     #[error("Error parsing configuration file: {0}.")]
     BadConfiguration(String),
 
-    #[error("File system error occured: {0}.")]
+    #[error("File system error occurred: {0}.")]
     FileSystemError(#[from] std::io::Error),
 }
 

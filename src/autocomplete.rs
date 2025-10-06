@@ -28,8 +28,8 @@ pub fn suggest_completion(word: &str, words_list: Vec<&str>) -> CompletionResult
         return CompletionResult::Found;
     }
 
-    if let Some(similiar) = words_list.iter().find(|entry| entry.starts_with(word)) {
-        CompletionResult::FoundSimilar(similiar.to_string())
+    if let Some(similar) = words_list.iter().find(|entry| entry.starts_with(word)) {
+        CompletionResult::FoundSimilar(similar.to_string())
     } else {
         CompletionResult::Nothing
     }

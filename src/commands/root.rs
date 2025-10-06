@@ -236,6 +236,8 @@ pub fn handle_open(args: OpenArgs) -> Result<()> {
 
 pub fn handle_list(args: ListArgs) -> Result<()> {
     let config = Config::load(platform::config_file())?;
+
+    // If include_ignored is true
     let projects = Library::new(
         &config.options.projects_directory,
         config.options.display_hidden,
@@ -251,16 +253,15 @@ pub fn handle_list(args: ListArgs) -> Result<()> {
         print_title("Your projects");
     }
     for project in projects.get_vec().iter() {
-        let project_name = &project.name;
         if args.pure {
-            println!("{project_name}");
+            println!("{}", project.name);
         } else {
-            let is_recent = if project_name == recent.as_str() {
+            let is_recent = if project.name == recent.as_str() {
                 "(recent)".dimmed().normal()
             } else {
                 "".dimmed()
             };
-            println!(" {project_name} {is_recent}");
+            println!(" {} {is_recent}", project.name);
         }
     }
 
