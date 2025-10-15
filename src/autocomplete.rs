@@ -28,7 +28,11 @@ pub fn suggest_completion(word: &str, words_list: Vec<&str>) -> CompletionResult
         return CompletionResult::Found;
     }
 
-    if let Some(similar) = words_list.iter().find(|entry| entry.starts_with(word)) {
+    let word_lowercase = word.to_lowercase();
+    if let Some(similar) = words_list
+        .iter()
+        .find(|entry| entry.to_lowercase().starts_with(&word_lowercase))
+    {
         CompletionResult::FoundSimilar(similar.to_string())
     } else {
         CompletionResult::Nothing

@@ -236,8 +236,6 @@ pub fn handle_open(args: OpenArgs) -> Result<()> {
 
 pub fn handle_list(args: ListArgs) -> Result<()> {
     let config = Config::load(platform::config_file())?;
-
-    // If include_ignored is true
     let projects = Library::new(
         &config.options.projects_directory,
         config.options.display_hidden,
