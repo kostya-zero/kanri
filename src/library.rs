@@ -9,6 +9,7 @@ use crate::program::{LaunchOptions, launch_program};
 use anyhow::Result;
 use thiserror::Error;
 
+/// Represents errors that can occur in the Library operations.
 #[derive(Debug, Error)]
 pub enum LibraryError {
     #[error("Project with the same name already exists.")]
@@ -48,6 +49,7 @@ const SYSTEM_DIRECTORIES: [&str; 6] = [
     ".Trash-1000",
 ];
 
+/// An options struct for cloning a repository using Git.
 #[derive(Debug, Clone, Default)]
 pub struct CloneOptions {
     pub remote: String,
@@ -55,6 +57,7 @@ pub struct CloneOptions {
     pub name: Option<String>,
 }
 
+/// An abstraction representing a project in the library.
 #[derive(Debug)]
 pub struct Project {
     pub name: String,
@@ -62,6 +65,7 @@ pub struct Project {
 }
 
 impl Project {
+    /// Makes a new Project instance.
     pub fn new(new_name: &str, new_path: PathBuf) -> Self {
         Self {
             name: new_name.to_string(),
@@ -69,6 +73,7 @@ impl Project {
         }
     }
 
+    /// Checks if the project directory is empty.
     pub fn is_empty(&self) -> bool {
         fs::read_dir(&self.path)
             .map(|mut dir| dir.next().is_none())
@@ -76,6 +81,7 @@ impl Project {
     }
 }
 
+/// The Library struct manages a collection of projects in a specified directory.
 #[derive(Debug)]
 pub struct Library {
     projects: Vec<Project>,
@@ -83,6 +89,7 @@ pub struct Library {
 }
 
 impl Library {
+    /// Makes a new Library instance.
     pub fn new(path: &Path, display_hidden: bool) -> Result<Self, LibraryError> {
         if !path.is_dir() {
             return Err(LibraryError::InvalidPath);
@@ -95,6 +102,7 @@ impl Library {
         })
     }
 
+    /// Collects projects from the specified directory path.
     pub fn collect_projects(
         path: &Path,
         display_hidden: bool,
@@ -124,6 +132,7 @@ impl Library {
         Ok(projects)
     }
 
+    /// Checks if a directory entry is a valid project.
     fn is_valid_project(entry: &fs::DirEntry, name: &str, display_hidden: bool) -> bool {
         if !display_hidden && name.starts_with('.') {
             return false;
@@ -132,6 +141,7 @@ impl Library {
         entry.file_type().is_ok_and(|ft| ft.is_dir()) && !SYSTEM_DIRECTORIES.contains(&name)
     }
 
+    /// Gets ignored paths from a .ignore file in the base path.
     fn get_ignored_paths(base_path: &Path) -> Result<HashSet<String>, LibraryError> {
         let ignore_path = base_path.join(".ignore");
         if !ignore_path.exists() {
@@ -157,6 +167,7 @@ impl Library {
         Ok(paths)
     }
 
+    /// Clones a Git repository into the library.
     #[must_use = "result may indicate clone failure"]
     pub fn clone(&self, options: &CloneOptions) -> Result<(), LibraryError> {
         let mut args = vec!["clone".to_string(), options.remote.clone()];
@@ -184,6 +195,7 @@ impl Library {
         launch_program(launch_options).map_err(|_| LibraryError::CloneFailed)
     }
 
+    /// Creates a new project directory in the library.
     pub fn create(&self, name: &str) -> Result<(), LibraryError> {
         let path = self.base_path.join(name);
         if path.exists() {
@@ -192,6 +204,7 @@ impl Library {
         fs::create_dir(path).map_err(|e| LibraryError::IoError { source: e })
     }
 
+    /// Deletes a project directory from the library.
     pub fn delete(&self, name: &str) -> Result<(), LibraryError> {
         match fs::remove_dir_all(self.base_path.join(name)) {
             Ok(_) => Ok(()),
@@ -199,18 +212,22 @@ impl Library {
         }
     }
 
+    /// Checks if a project with the given name exists in the library.
     pub fn contains(&self, name: &str) -> bool {
         self.projects.iter().any(|x| x.name == *name)
     }
 
+    /// Returns a slice of all projects in the library.
     pub fn get_vec(&self) -> &[Project] {
         &self.projects
     }
 
+    /// Returns a vector of all project names in the library.
     pub fn get_names(&self) -> Vec<&str> {
         self.projects.iter().map(|p| p.name.as_str()).collect()
     }
 
+    /// Retrieves a project by name.
     pub fn get(&self, name: &str) -> Result<&Project, LibraryError> {
         self.projects
             .iter()
@@ -218,10 +235,12 @@ impl Library {
             .ok_or(LibraryError::ProjectNotFound)
     }
 
+    /// Checks if the library has no projects.
     pub fn is_empty(&self) -> bool {
         self.projects.is_empty()
     }
 
+    /// Renames a project in the library.
     pub fn rename(&self, old_name: &str, new_name: &str) -> Result<(), LibraryError> {
         if !self.contains(old_name) {
             return Err(LibraryError::ProjectNotFound);
