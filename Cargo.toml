@@ -7,7 +7,7 @@ homepage = "https://github.com/kostya-zero/kanri"
 keywords = ["workspace", "projects", "manager", "cli"]
 readme = "README.md"
 license = "MIT"
-version = "0.8.1-dev"
+version = "0.8.1"
 edition = "2024"
 
 [dependencies]
@@ -15,7 +15,6 @@ anyhow = "1"
 clap = { version = "4.5.41", features = ["derive"] }
 colored = "3.0.0"
 dialoguer = "0.12.0"
-dirs-next = "=2.0.0"
 indicatif = "0.18.0"
 serde = { version = "1.0.219", features = ["derive"] }
 serde_json = "1.0.141"
