@@ -82,7 +82,7 @@ pub fn launch_program(options: LaunchOptions) -> Result<(), ProgramError> {
                 Err(ProgramError::NonZeroExitCode(code))
             } else {
                 Err(ProgramError::ProcessInterrupted)
-            }
+            };
         }
     }
 
