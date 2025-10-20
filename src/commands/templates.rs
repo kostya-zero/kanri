@@ -3,7 +3,7 @@ use anyhow::{Result, anyhow, bail, ensure};
 use crate::{
     cli::{TemplatesInfoArgs, TemplatesListArgs, TemplatesRemoveArgs},
     config::Config,
-    platform,
+    platform::{self, config_file},
     program::{LaunchOptions, launch_program},
     templates::Templates,
     terminal::{ask_dialog, ask_string_dialog, print_done, print_title},
@@ -57,7 +57,8 @@ pub fn handle_list(args: TemplatesListArgs) -> Result<()> {
 
 pub fn handle_edit() -> Result<()> {
     let templates_path = platform::templates_file();
-    let config = Config::load(&templates_path)?;
+    let config_path = platform::config_file();
+    let config = Config::load(&config_path)?;
     let editor = &config.editor.program;
     if editor.is_empty() {
         bail!("Editor program name is not set in the configuration file.");

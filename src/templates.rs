@@ -81,7 +81,7 @@ impl Templates {
 
     pub fn save(&self, path: impl AsRef<Path>) -> Result<(), TemplatesError> {
         let content =
-            serde_json::to_string(self).map_err(|_| TemplatesError::SerializationError)?;
+            serde_json::to_string_pretty(self).map_err(|_| TemplatesError::SerializationError)?;
         fs::write(path, content).map_err(|_| TemplatesError::FileSystemError)
     }
 }
