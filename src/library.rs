@@ -196,20 +196,25 @@ impl Library {
     }
 
     /// Creates a new project directory in the library.
-    pub fn create(&self, name: &str) -> Result<(), LibraryError> {
+    pub fn create(&mut self, name: &str) -> Result<(), LibraryError> {
         let path = self.base_path.join(name);
         if path.exists() {
             return Err(LibraryError::AlreadyExists);
         }
-        fs::create_dir(path).map_err(|e| LibraryError::IoError { source: e })
+        fs::create_dir(&path).map_err(|e| LibraryError::IoError { source: e })?;
+
+        self.projects.push(Project {
+            name: name.to_string(),
+            path,
+        });
+        Ok(())
     }
 
     /// Deletes a project directory from the library.
-    pub fn delete(&self, name: &str) -> Result<(), LibraryError> {
-        match fs::remove_dir_all(self.base_path.join(name)) {
-            Ok(_) => Ok(()),
-            Err(_) => Err(LibraryError::FileSystemError),
-        }
+    pub fn delete(&mut self, name: &str) -> Result<(), LibraryError> {
+        fs::remove_dir_all(self.base_path.join(name)).map_err(|_| LibraryError::FileSystemError)?;
+        self.projects.retain(|p| p.name != name);
+        Ok(())
     }
 
     /// Checks if a project with the given name exists in the library.
@@ -241,7 +246,7 @@ impl Library {
     }
 
     /// Renames a project in the library.
-    pub fn rename(&self, old_name: &str, new_name: &str) -> Result<(), LibraryError> {
+    pub fn rename(&mut self, old_name: &str, new_name: &str) -> Result<(), LibraryError> {
         if !self.contains(old_name) {
             return Err(LibraryError::ProjectNotFound);
         }
@@ -257,8 +262,14 @@ impl Library {
         let old_path = self.base_path.join(old_name);
         let new_path = self.base_path.join(new_name);
 
-        fs::rename(old_path, new_path)
+        fs::rename(old_path, &new_path)
             .map_err(|e| LibraryError::FailedToRename(e.kind().to_string()))?;
+
+        if let Some(project) = self.projects.iter_mut().find(|p| p.name == old_name) {
+            project.name = new_name.to_string();
+            project.path = new_path;
+        }
+
         Ok(())
     }
 }

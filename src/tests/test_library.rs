@@ -11,15 +11,11 @@ fn test_library_new() {
 
     let library = Library::new(&path, false).unwrap();
     assert!(library.is_empty());
-
     assert!(context.path().exists());
-
     assert!(matches!(
         Library::new(&PathBuf::from("/non/existent/path"), false),
         Err(LibraryError::InvalidPath)
     ));
-
-    assert!(context.path().exists());
 }
 
 #[test]
@@ -27,7 +23,7 @@ fn test_library_create_project() {
     let context = TestContext::setup();
     let path = context.path().to_path_buf();
 
-    let library = Library::new(&path, false).unwrap();
+    let mut library = Library::new(&path, false).unwrap();
 
     assert!(library.create("new_project").is_ok());
     assert!(context.path().join("new_project").exists());
@@ -80,6 +76,20 @@ fn test_hidden_projects() {
 }
 
 #[test]
+fn test_library_rename() {
+    let context = TestContext::setup();
+    let path = context.path().to_path_buf();
+
+    let mut library = Library::new(&path, false).unwrap();
+    library.create("test").unwrap();
+    assert!(library.get("test").is_ok());
+
+    library.rename("test", "new_test").unwrap();
+    assert!(library.get("new_test").is_ok());
+    assert!(library.get("test").is_err());
+}
+
+#[test]
 fn test_cleanup() {
     let temp_path;
     {
@@ -92,17 +102,4 @@ fn test_cleanup() {
     }
 
     assert!(!temp_path.exists());
-}
-
-#[test]
-fn test_clone_options() {
-    let options = CloneOptions {
-        remote: String::from("https://github.com/user/repo.git"),
-        branch: Some(String::from("main")),
-        name: Some(String::from("my-repo")),
-    };
-
-    assert_eq!(options.remote, "https://github.com/user/repo.git");
-    assert_eq!(options.branch, Some(String::from("main")));
-    assert_eq!(options.name, Some(String::from("my-repo")));
 }

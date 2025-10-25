@@ -60,7 +60,7 @@ fn validate_project_name(name: &str) -> Result<()> {
 
 pub fn handle_new(args: NewArgs) -> Result<()> {
     let config = Config::load(platform::config_file())?;
-    let projects = Library::new(
+    let mut projects = Library::new(
         &config.options.projects_directory,
         config.options.display_hidden,
     )?;
@@ -268,7 +268,7 @@ pub fn handle_list(args: ListArgs) -> Result<()> {
 
 pub fn handle_rename(args: RenameArgs) -> Result<()> {
     let config = Config::load(platform::config_file())?;
-    let projects = Library::new(
+    let mut projects = Library::new(
         &config.options.projects_directory,
         config.options.display_hidden,
     )?;
@@ -289,7 +289,7 @@ pub fn handle_rename(args: RenameArgs) -> Result<()> {
 
 pub fn handle_remove(args: RemoveArgs) -> Result<()> {
     let config = Config::load(platform::config_file())?;
-    let projects = Library::new(
+    let mut projects = Library::new(
         &config.options.projects_directory,
         config.options.display_hidden,
     )?;
