@@ -2,12 +2,14 @@ use anyhow::{Result, anyhow, ensure};
 use colored::Colorize;
 use std::{
     path::Path,
+    process::exit,
     time::{Duration, Instant},
 };
 
 use crate::{
     autocomplete,
-    cli::{CloneArgs, ListArgs, NewArgs, OpenArgs, RemoveArgs, RenameArgs},
+    backup::{Backup, load_backup, save_backup},
+    cli::{BackupArgs, CloneArgs, ImportArgs, ListArgs, NewArgs, OpenArgs, RemoveArgs, RenameArgs},
     config::Config,
     library::{CloneOptions, Library},
     platform,
@@ -320,6 +322,32 @@ pub fn handle_remove(args: RemoveArgs) -> Result<()> {
     spinner.finish_and_clear();
 
     print_done("Removed.");
+    Ok(())
+}
+
+pub fn handle_backup(args: BackupArgs) -> Result<()> {
+    let config = Config::load(platform::config_file())?;
+    let templates = Templates::load(platform::templates_file())?;
+
+    let backup_file_path = args.output_file.unwrap_or("kanri_backup.json".to_string());
+
+    let backup = Backup { config, templates };
+    save_backup(&backup_file_path, backup)?;
+    print_done(format!("Backup saved to `{backup_file_path}`.").as_str());
+    Ok(())
+}
+
+pub fn handle_import(args: ImportArgs) -> Result<()> {
+    if args.file.is_none() {
+        print_error("Specify a path where the backup file is located.");
+        exit(1);
+    }
+
+    let backup = load_backup(args.file.unwrap())?;
+
+    backup.config.save(platform::config_file())?;
+    backup.templates.save(platform::templates_file())?;
+    print_done("Backup has been imported.");
     Ok(())
 }
 

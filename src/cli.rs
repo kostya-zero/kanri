@@ -1,4 +1,4 @@
-﻿use clap::{ArgAction, Args, Parser, Subcommand};
+use clap::{ArgAction, Args, Parser, Subcommand};
 use std::env;
 
 /// Yet another manager for your projects.
@@ -54,6 +54,12 @@ pub enum Commands {
         #[command(subcommand)]
         command: ConfigCommands,
     },
+
+    /// Backup configuration and templates into a file.
+    Backup(BackupArgs),
+
+    /// Import the configuration and templates from backup file. Will overwrite the current ones.
+    Import(ImportArgs),
 
     /// Display the Zen of Kanri.
     Zen,
@@ -194,4 +200,16 @@ pub struct RecentArgs {
     /// Clear the recent project.
     #[arg(short, long, action = ArgAction::SetTrue)]
     pub clear: bool,
+}
+
+#[derive(Args)]
+pub struct BackupArgs {
+    /// The path where to write backup file.
+    pub output_file: Option<String>,
+}
+
+#[derive(Args)]
+pub struct ImportArgs {
+    /// The path to the backup file.
+    pub file: Option<String>,
 }

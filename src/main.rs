@@ -82,6 +82,8 @@ fn main() {
             ConfigCommands::Recent(args) => config::handle_recent(args),
             ConfigCommands::Reset => config::handle_reset(),
         },
+        Commands::Backup(args) => root::handle_backup(args),
+        Commands::Import(args) => root::handle_import(args),
         Commands::Zen => root::handle_zen(),
     };
 
