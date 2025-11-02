@@ -58,13 +58,14 @@ pub fn handle_list(args: TemplatesListArgs) -> Result<()> {
 pub fn handle_edit() -> Result<()> {
     let config_path = platform::config_file();
     let config = Config::load(&config_path)?;
-    let editor = &config.editor.program;
+    let profile = config.get_profile(&config.options.current_profile)?;
+    let editor = profile.editor.clone();
     if editor.is_empty() {
         bail!("Editor program name is not set in the configuration file.");
     }
 
     let templates_path = platform::templates_file();
-    let mut editor_args = config.editor.args.clone();
+    let mut editor_args = profile.editor_args.clone();
     editor_args.push(templates_path.to_string_lossy().to_string());
 
     let launch_options = LaunchOptions {

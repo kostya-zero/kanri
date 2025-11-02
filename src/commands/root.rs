@@ -81,9 +81,11 @@ pub fn handle_new(args: NewArgs) -> Result<()> {
             .get_template(&template_name)
             .ok_or_else(|| anyhow!("Template '{}' not found.", template_name))?;
 
+        let profile = config.get_profile(&config.options.current_profile)?;
+
         println!("Generating project from '{}' template...", &name);
 
-        let program = &config.shell.program;
+        let program = &profile.shell;
         ensure!(
             !program.is_empty(),
             "Shell is not configured in the configuration file."
@@ -99,7 +101,7 @@ pub fn handle_new(args: NewArgs) -> Result<()> {
             let current = idx as i8 + 1;
             print_progress(command, current, total_commands);
 
-            let mut args_vec = config.shell.args.clone();
+            let mut args_vec = profile.shell_args.clone();
             args_vec.push(command.clone());
 
             let launch_options = LaunchOptions {
@@ -177,13 +179,15 @@ pub fn handle_open(args: OpenArgs) -> Result<()> {
         return Ok(());
     }
 
+    let profile = config.get_profile(&config.options.current_profile)?;
+
     let (program, launch_args, fork_mode) = if args.shell {
-        (&config.shell.program, Vec::<String>::new(), false)
+        (&profile.shell, Vec::<String>::new(), false)
     } else {
         (
-            &config.editor.program,
-            config.editor.args.clone(),
-            config.editor.fork_mode,
+            &profile.editor,
+            profile.editor_args.clone(),
+            profile.editor_fork_mode,
         )
     };
 
@@ -191,11 +195,6 @@ pub fn handle_open(args: OpenArgs) -> Result<()> {
         !program.is_empty(),
         "Required program is not specified in configuration file."
     );
-
-    if config.recent.enabled && name != config.recent.recent_project {
-        config.recent.recent_project = name.clone();
-        config.save(config_path)?;
-    }
 
     let mut launch_options = LaunchOptions {
         program: program.to_string(),
@@ -225,6 +224,11 @@ pub fn handle_open(args: OpenArgs) -> Result<()> {
             "{}",
             "========  SHELL SESSION ENDED  ========".bold().white()
         );
+    }
+
+    if config.recent.enabled && name != config.recent.recent_project {
+        config.recent.recent_project = name.clone();
+        config.save(config_path)?;
     }
 
     if fork_mode {

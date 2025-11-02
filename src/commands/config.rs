@@ -16,16 +16,17 @@ pub fn handle_path() -> Result<()> {
 pub fn handle_edit() -> Result<()> {
     let path = platform::config_file();
     let config = Config::load(&path)?;
-    let editor = &config.editor.program;
+    let profile = config.get_profile(&config.options.current_profile)?;
+    let editor = profile.editor.clone();
     if editor.is_empty() {
         bail!("Editor program name is not set in the configuration file.");
     }
 
-    let mut editor_args = config.editor.args.clone();
+    let mut editor_args = profile.editor_args.clone();
     editor_args.push(path.to_str().unwrap().to_string());
 
     let launch_options = LaunchOptions {
-        program: editor.to_string(),
+        program: editor,
         args: editor_args,
         fork_mode: false,
         quiet: false,

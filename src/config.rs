@@ -1,4 +1,5 @@
 use crate::platform;
+use indexmap::{IndexMap, indexmap};
 use serde::{Deserialize, Serialize};
 use std::{
     fs,
@@ -20,24 +21,84 @@ pub enum ConfigError {
     #[error("Error parsing configuration file: {0}.")]
     BadConfiguration(String),
 
+    #[error("Profile '{0}' was not found.")]
+    ProfileNotFound(String),
+
     #[error("File system error occurred: {0}.")]
     FileSystemError(#[from] std::io::Error),
 }
 
-#[derive(Deserialize, Serialize, Default, Clone)]
+#[derive(Deserialize, Serialize, Clone)]
 #[serde(default, deny_unknown_fields)]
 pub struct Config {
+    pub version: String,
     pub options: GeneralOptions,
-    pub editor: EditorOptions,
-    pub shell: ShellOptions,
+    pub profiles: IndexMap<String, Profile>,
     pub recent: RecentOptions,
     pub autocomplete: AutocompleteOptions,
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        // Getting default editor
+        let editor = platform::default_editor().to_string();
+        let mut editor_args: Vec<String> = Vec::new();
+        let mut editor_fork_mode = false;
+
+        match editor.as_str() {
+            "code" | "code-insiders" | "codium" | "code-oss" | "windsurf" | "zed" => {
+                editor_args.push(".".to_string());
+                editor_fork_mode = true;
+            }
+            _ => {}
+        }
+
+        // Getting default shell
+        let shell = platform::default_shell().to_string();
+        let shell_args = match shell.as_str() {
+            "powershell.exe" | "powershell" | "pwsh.exe" | "pwsh" => {
+                vec!["-NoLogo".into(), "-Command".into()]
+            }
+            "cmd" | "cmd.exe" => vec!["/C".into()],
+            "zsh" | "bash" | "fish" | "sh" => vec!["-c".into()],
+            _ => vec!["-c".into()],
+        };
+
+        let profiles = indexmap! {
+            String::from("default") => Profile {
+                editor,
+                editor_args,
+                editor_fork_mode,
+                shell,
+                shell_args
+            }
+        };
+
+        Self {
+            version: "1".to_string(),
+            options: GeneralOptions::default(),
+            profiles,
+            recent: RecentOptions::default(),
+            autocomplete: AutocompleteOptions::default(),
+        }
+    }
+}
+
+#[derive(Deserialize, Serialize, Default, Clone)]
+#[serde(default, deny_unknown_fields)]
+pub struct Profile {
+    pub editor: String,
+    pub editor_args: Vec<String>,
+    pub editor_fork_mode: bool,
+    pub shell: String,
+    pub shell_args: Vec<String>,
 }
 
 #[derive(Deserialize, Serialize, Clone)]
 #[serde(default, deny_unknown_fields)]
 pub struct GeneralOptions {
     pub projects_directory: PathBuf,
+    pub current_profile: String,
     pub display_hidden: bool,
 }
 
@@ -77,60 +138,9 @@ impl Default for GeneralOptions {
     fn default() -> Self {
         Self {
             projects_directory: platform::default_projects_dir(),
+            current_profile: "default".to_string(),
             display_hidden: false,
         }
-    }
-}
-
-#[derive(Deserialize, Serialize, Clone)]
-#[serde(default, deny_unknown_fields)]
-pub struct EditorOptions {
-    pub program: String,
-    pub fork_mode: bool,
-    pub args: Vec<String>,
-}
-
-impl Default for EditorOptions {
-    fn default() -> Self {
-        let new_editor = platform::default_editor().to_string();
-        let mut new_args: Vec<String> = Vec::new();
-        let mut fork_mode = false;
-
-        match new_editor.as_str() {
-            "code" | "code-insiders" | "codium" | "code-oss" | "windsurf" | "zed" => {
-                new_args.push(".".to_string());
-                fork_mode = true;
-            }
-            _ => {}
-        }
-
-        Self {
-            program: new_editor,
-            fork_mode,
-            args: new_args,
-        }
-    }
-}
-
-#[derive(Deserialize, Serialize, Clone)]
-#[serde(default, deny_unknown_fields)]
-pub struct ShellOptions {
-    pub program: String,
-    pub args: Vec<String>,
-}
-
-impl Default for ShellOptions {
-    fn default() -> Self {
-        let program = platform::default_shell().to_string();
-        let args = match program.as_str() {
-            "powershell.exe" | "powershell" | "pwsh.exe" | "pwsh" => {
-                vec!["-NoLogo".into(), "-Command".into()]
-            }
-            "cmd" | "cmd.exe" => vec!["/C".into()],
-            "zsh" | "bash" | "fish" | "sh" => vec!["-c".into()],
-            _ => vec!["-c".into()],
-        };
-        Self { program, args }
     }
 }
 
@@ -148,6 +158,14 @@ impl Config {
         }
         let content = toml::to_string(self).map_err(|_| ConfigError::FormatFailed)?;
         fs::write(path, content).map_err(|_| ConfigError::WriteFailed)
+    }
+
+    pub fn get_profile(&self, name: &str) -> Result<&Profile, ConfigError> {
+        if let Some(p) = self.profiles.get(name) {
+            Ok(p)
+        } else {
+            Err(ConfigError::ProfileNotFound(name.to_string()))
+        }
     }
 
     pub fn reset(&mut self) {
