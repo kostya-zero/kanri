@@ -2,7 +2,19 @@
 
 ## Next
 
-TBW
+- **Backups**. Kanri will be able to create backups of your configuration and templates files, and restore them if needed.
+- **Profiles**. You can create multiple profiles with diffrent configurations, and switch between them. Each profile will have its own editor, shell and options for them.
+
+## 0.8.2
+
+- Fixed an issue where the `kanri templates edit` command used the templates file path instead of the configuration file path to load user's settings.
+
+## 0.8.1
+
+- Optimized the algorithm for `.ignore` file.
+- Added `--path` option to the `open` command to print path instead of launching editor/shell. Usefull for integrations with other software.
+- Added support for `NO_COLOR` environment variable.
+- Removed underlines for titles.
 
 ## 0.8.0
 

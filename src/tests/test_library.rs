@@ -1,5 +1,5 @@
 use crate::{
-    library::{CloneOptions, Library, LibraryError},
+    library::{Library, LibraryError},
     tests::TestContext,
 };
 use std::{fs, path::PathBuf};
