@@ -2,7 +2,6 @@ use anyhow::{Result, bail};
 
 use crate::{
     cli::{ProfilesInfoArgs, ProfilesRemoveArgs, ProfilesSetArgs},
-    commands::profiles,
     config::{Config, Profile},
     platform,
     terminal::{ask_dialog, ask_string_dialog, print_done, print_title},

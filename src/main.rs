@@ -82,7 +82,7 @@ fn main() {
             ConfigCommands::Recent(args) => config::handle_recent(args),
             ConfigCommands::Reset => config::handle_reset(),
         },
-        Commands::Profile { command } => match command {
+        Commands::Profiles { command } => match command {
             ProfilesCommands::New => profiles::handle_new(),
             ProfilesCommands::Set(args) => profiles::handle_set(args),
             ProfilesCommands::Info(args) => profiles::handle_info(args),
