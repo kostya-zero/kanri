@@ -3,8 +3,8 @@ use std::process::exit;
 use anyhow::{Result, anyhow};
 use clap::Parser;
 use kanri::{
-    cli::{Cli, Commands, ConfigCommands, TemplatesCommands},
-    commands::{config, root, templates},
+    cli::{Cli, Commands, ConfigCommands, ProfilesCommands, TemplatesCommands},
+    commands::{config, profiles, root, templates},
     config::Config,
     platform,
     templates::Templates,
@@ -81,6 +81,12 @@ fn main() {
             ConfigCommands::Edit => config::handle_edit(),
             ConfigCommands::Recent(args) => config::handle_recent(args),
             ConfigCommands::Reset => config::handle_reset(),
+        },
+        Commands::Profile { command } => match command {
+            ProfilesCommands::New => profiles::handle_new(),
+            ProfilesCommands::Set(args) => profiles::handle_set(args),
+            ProfilesCommands::List => profiles::handle_list(),
+            ProfilesCommands::Remove(args) => profiles::handle_remove(args),
         },
         Commands::Backup(args) => root::handle_backup(args),
         Commands::Import(args) => root::handle_import(args),

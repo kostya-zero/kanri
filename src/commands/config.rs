@@ -67,7 +67,7 @@ pub fn handle_recent(args: RecentArgs) -> Result<()> {
 pub fn handle_reset() -> Result<()> {
     let path = platform::config_file();
     let mut config = Config::load(&path)?;
-    if ask_dialog("Reset your current configuration?", false) {
+    if ask_dialog("Reset your current configuration?", false, true) {
         config.reset();
         config.save(path)?;
         print_done("Reset.");

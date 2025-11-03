@@ -313,7 +313,7 @@ pub fn handle_remove(args: RemoveArgs) -> Result<()> {
 
     if !project.is_empty()
         && !args.force
-        && !ask_dialog("The project is not empty. Continue?", false)
+        && !ask_dialog("The project is not empty. Continue?", false, false)
     {
         print_done("Canceled.");
         return Ok(());

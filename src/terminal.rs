@@ -32,21 +32,21 @@ fn get_dialog_theme() -> impl Theme {
     }
 }
 
-pub fn ask_dialog(question: &str, default: bool) -> bool {
+pub fn ask_dialog(question: &str, default: bool, report: bool) -> bool {
     Confirm::with_theme(&get_dialog_theme())
         .with_prompt(question)
         .default(default)
         .show_default(true)
-        .report(false)
+        .report(report)
         .interact()
         .unwrap()
 }
 
-pub fn ask_string_dialog(question: &str) -> String {
+pub fn ask_string_dialog(question: &str, report: bool) -> String {
     Input::<String>::with_theme(&get_dialog_theme())
         .with_prompt(question)
         .default(String::new())
-        .report(false)
+        .report(report)
         .interact_text()
         .unwrap()
 }

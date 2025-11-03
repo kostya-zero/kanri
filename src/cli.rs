@@ -55,6 +55,12 @@ pub enum Commands {
         command: ConfigCommands,
     },
 
+    /// Manage your profiles.
+    Profile {
+        #[command(subcommand)]
+        command: ProfilesCommands,
+    },
+
     /// Backup configuration and templates into a file.
     Backup(BackupArgs),
 
@@ -193,6 +199,33 @@ pub enum ConfigCommands {
 
     /// Reset your configuration.
     Reset,
+}
+
+#[derive(Subcommand)]
+pub enum ProfilesCommands {
+    /// Create new profile.
+    New,
+
+    /// Set profile as default.
+    Set(ProfilesSetArgs),
+
+    /// List all available profiles.
+    List,
+
+    /// Remove profile.
+    Remove(ProfilesRemoveArgs),
+}
+
+#[derive(Args)]
+pub struct ProfilesSetArgs {
+    /// Name of profile to set as current.
+    pub name: String,
+}
+
+#[derive(Args)]
+pub struct ProfilesRemoveArgs {
+    /// Name of profile to remove.
+    pub name: String,
 }
 
 #[derive(Args)]

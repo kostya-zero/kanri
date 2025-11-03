@@ -10,14 +10,14 @@ use crate::{
 };
 
 pub fn handle_new() -> Result<()> {
-    let name = ask_string_dialog("Name of new template?");
+    let name = ask_string_dialog("Name of new template?", true);
     if name.is_empty() {
         bail!("Incorrect name for a template.");
     }
 
     let mut commands: Vec<String> = Vec::new();
     loop {
-        let command = ask_string_dialog("Enter a command (press enter to finish):");
+        let command = ask_string_dialog("Enter a command (press enter to finish):", false);
         if command.is_empty() {
             break;
         }
@@ -110,7 +110,7 @@ pub fn handle_info(args: TemplatesInfoArgs) -> Result<()> {
 pub fn handle_clear() -> Result<()> {
     let templates_path = platform::templates_file();
     let mut templates = Templates::load(&templates_path)?;
-    if ask_dialog("Clear all templates?", false) {
+    if ask_dialog("Clear all templates?", false, true) {
         templates.clear();
         templates.save(templates_path)?;
         print_done("Cleared.");

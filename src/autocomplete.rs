@@ -16,7 +16,7 @@ pub fn autocomplete(word: &str, words_list: Vec<&str>, config: &Config) -> Optio
             if config.autocomplete.always_accept {
                 return Some(name);
             }
-            let answer = ask_dialog(&format!("Did you mean '{name}'?"), true);
+            let answer = ask_dialog(&format!("Did you mean '{name}'?"), true, false);
             if answer { Some(name) } else { None }
         }
         CompletionResult::Nothing => None,
