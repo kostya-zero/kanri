@@ -56,7 +56,7 @@ pub enum Commands {
     },
 
     /// Manage your profiles.
-    Profile {
+    Profiles {
         #[command(subcommand)]
         command: ProfilesCommands,
     },
