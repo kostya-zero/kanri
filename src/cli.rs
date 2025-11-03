@@ -209,6 +209,9 @@ pub enum ProfilesCommands {
     /// Set profile as default.
     Set(ProfilesSetArgs),
 
+    /// Get infomation about profile.
+    Info(ProfilesInfoArgs),
+
     /// List all available profiles.
     List,
 
@@ -219,6 +222,12 @@ pub enum ProfilesCommands {
 #[derive(Args)]
 pub struct ProfilesSetArgs {
     /// Name of profile to set as current.
+    pub name: String,
+}
+
+#[derive(Args)]
+pub struct ProfilesInfoArgs {
+    /// Name of profile to get information about.
     pub name: String,
 }
 

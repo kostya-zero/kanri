@@ -1,7 +1,8 @@
 use anyhow::{Result, bail};
 
 use crate::{
-    cli::{ProfilesRemoveArgs, ProfilesSetArgs},
+    cli::{ProfilesInfoArgs, ProfilesRemoveArgs, ProfilesSetArgs},
+    commands::profiles,
     config::{Config, Profile},
     platform,
     terminal::{ask_dialog, ask_string_dialog, print_done, print_title},
@@ -100,6 +101,17 @@ pub fn handle_list() -> Result<()> {
         println!(" {i}");
     }
 
+    Ok(())
+}
+
+pub fn handle_info(args: ProfilesInfoArgs) -> Result<()> {
+    let config = Config::load(platform::config_file())?;
+    let profile = config.get_profile(&args.name)?;
+
+    print_title("Profile");
+    // There should be a better way to display it.
+    println!(" Editor: {}", profile.editor);
+    println!(" Shell: {}", profile.shell);
     Ok(())
 }
 
