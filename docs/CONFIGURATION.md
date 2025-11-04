@@ -28,14 +28,12 @@ Kanri generates the configuration based on your environment settings, such as th
 projects_directory = '/home/user'
 display_hidden = false
 
-[editor]
-program = "nvim"
-fork_mode = false
-args = []
-
-[shell]
-program = "bash"
-args = ["-c"]
+[profiles.default]
+editor = "code"
+editor_args = ["."]
+editor_fork_mode = true
+shell = "bash"
+shell_args = ["-c"]
 
 [recent]
 enabled = true
@@ -65,16 +63,10 @@ This section details the configuration parameters available in the `config.toml`
 - `projects_directory` - Path to the directory containing your projects. By default, it uses the path to the user's home directory.
 - `display_hidden` - Controls whether hidden directories are displayed. By default, set to `false`.
 
-### `editor`
+### `profiles`
 
-- `program` - The name of the executable to be used as an editor to open projects and the configuration file. You can specify it as the name of an executable (e.g., `nvim`) or as an absolute path to the executable (e.g., `/usr/bin/nvim`).
-- `fork_mode` - Determines whether the editor should run as a separate process. Set this to `true` if you want Kanri to launch the editor and immediately return control to the terminal (useful for GUI editors).
-- `args` - Arguments to be passed to the editor. By default, this field is empty, but for _VS Code_, _VS Codium_, _Windsurf_, and _Zed_, it will contain a dot (`.`) to open the current directory.
+Read more in [docs/PROFILES.md](PROFILE.md).
 
-### `shell`
-
-- `program` - Name of the executable that will be used as a shell to open projects. You can set it as the name of an executable (e.g., `bash`) or as an absolute path to the executable (e.g., `/usr/bin/bash`).
-- `args` - Arguments to be passed to run commands using the shell. By default, this field is set to value determined by user's and `EDITOR` variable.
 
 ### `recent`
 
