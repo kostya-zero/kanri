@@ -24,7 +24,7 @@ The `current_profile` option under `[options]` selects which profile Kanri uses 
 
 Use the `kanri profiles` subcommands to create and maintain profiles without editing the configuration file manually:
 
-- `kanri profiles new`: interactive prompts ask for the profile name, editor, shell, and whether to fork the editor. Kanri pre-populates sensible defaults for Code-family editors and common shells.【F:src/commands/profiles.rs†L10-L61】
+- `kanri profiles new`: interactive prompts ask for the profile name, editor, shell, and whether to fork the editor. Kanri pre-populates sensible defaults for Code-family editors and common shells.
 - `kanri profiles list`: prints the names of all configured profiles so you can confirm what is available.
 - `kanri profiles info <name>`: shows the editor and shell assigned to a specific profile.
 - `kanri profiles set <name>`: marks a profile as the current one by updating the configuration’s `current_profile` field.
