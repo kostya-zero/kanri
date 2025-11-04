@@ -4,6 +4,8 @@
 
 - **Backups**. Kanri will be able to create backups of your configuration and templates files, and restore them if needed.
 - **Profiles**. You can create multiple profiles with diffrent configurations, and switch between them. Each profile will have its own editor, shell and options for them.
+- Some dialogs now shows user's selection.
+- Added initial support for configuration migration (users from 0.8.2 and below should migrate manually).
 
 ## 0.8.2
 
