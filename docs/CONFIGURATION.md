@@ -67,7 +67,6 @@ This section details the configuration parameters available in the `config.toml`
 
 Read more in [docs/PROFILES.md](PROFILE.md).
 
-
 ### `recent`
 
 - `enabled` - Controls whether the recent projects feature is enabled. By default, set to `true`.

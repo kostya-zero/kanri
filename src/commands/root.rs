@@ -246,6 +246,7 @@ pub fn handle_list(args: ListArgs) -> Result<()> {
         &config.options.projects_directory,
         config.options.display_hidden,
     )?;
+
     if projects.is_empty() {
         println!("No projects found.");
         return Ok(());
@@ -261,7 +262,7 @@ pub fn handle_list(args: ListArgs) -> Result<()> {
             println!("{}", project.name);
         } else {
             let is_recent = if project.name == recent.as_str() {
-                "(recent)".dimmed().normal()
+                "(recent)".dimmed()
             } else {
                 "".dimmed()
             };
