@@ -1,5 +1,4 @@
 use std::{
-    clone,
     collections::HashSet,
     fs,
     io::{Error, ErrorKind},
