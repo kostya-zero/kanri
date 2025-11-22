@@ -1,4 +1,5 @@
 use std::{
+    clone,
     collections::HashSet,
     fs,
     io::{Error, ErrorKind},
@@ -59,7 +60,7 @@ pub struct CloneOptions {
 }
 
 /// An abstraction representing a project in the library.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Project {
     pub name: String,
     pub path: PathBuf,
@@ -248,11 +249,11 @@ impl Library {
 
     /// Renames a project in the library.
     pub fn rename(&mut self, old_name: &str, new_name: &str) -> Result<(), LibraryError> {
-        if !self.contains(old_name) {
+        if !self.projects.contains_key(old_name) {
             return Err(LibraryError::ProjectNotFound);
         }
 
-        if self.contains(new_name) {
+        if self.projects.contains_key(new_name) {
             return Err(LibraryError::AlreadyExists);
         }
 
@@ -266,10 +267,14 @@ impl Library {
         fs::rename(old_path, &new_path)
             .map_err(|e| LibraryError::FailedToRename(e.kind().to_string()))?;
 
-        if let Some(project) = self.projects.iter_mut().find(|p| p.0 == old_name) {
-            project.1.name = new_name.to_string();
-            project.1.path = new_path;
-        }
+        // If first check have passed, then we can unwrap safely.
+        let mut old_project = self.projects.get(old_name).cloned().unwrap();
+
+        // Using swap_remove because I dont think it will matter not only in tests.
+        self.projects.swap_remove(old_name);
+        old_project.name = new_name.to_string();
+        old_project.path = new_path;
+        self.projects.insert(new_name.to_string(), old_project);
 
         Ok(())
     }
