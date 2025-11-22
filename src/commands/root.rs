@@ -24,7 +24,11 @@ fn resolve_project_name(project_name: &str, config: &Config, projects: &Library)
     if project_name == "-" && config.recent.enabled {
         Some(config.recent.recent_project.clone())
     } else if config.autocomplete.enabled {
-        autocomplete::autocomplete(project_name, projects.get_names(), config)
+        autocomplete::autocomplete(
+            project_name,
+            projects.get_names().iter().map(|k| k.as_str()).collect(),
+            config,
+        )
     } else {
         Some(project_name.to_string())
     }

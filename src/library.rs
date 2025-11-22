@@ -7,6 +7,7 @@ use std::{
 
 use crate::program::{LaunchOptions, launch_program};
 use anyhow::Result;
+use indexmap::IndexMap;
 use thiserror::Error;
 
 /// Represents errors that can occur in the Library operations.
@@ -84,7 +85,7 @@ impl Project {
 /// The Library struct manages a collection of projects in a specified directory.
 #[derive(Debug)]
 pub struct Library {
-    projects: Vec<Project>,
+    projects: IndexMap<String, Project>,
     base_path: PathBuf,
 }
 
@@ -106,27 +107,27 @@ impl Library {
     pub fn collect_projects(
         path: &Path,
         display_hidden: bool,
-    ) -> Result<Vec<Project>, LibraryError> {
+    ) -> Result<IndexMap<String, Project>, LibraryError> {
         let dir_entries = fs::read_dir(path)?;
+        let mut projects: IndexMap<String, Project> = IndexMap::new();
 
-        let mut projects: Vec<Project> = dir_entries
-            .filter_map(|entry_result| {
-                let entry = entry_result.ok()?;
-                let name = entry.file_name();
-                let name_string = name.to_string_lossy();
+        for entry_result in dir_entries {
+            let entry = entry_result.unwrap();
+            let name = entry.file_name();
+            let name_string = name.to_string_lossy();
 
-                if Self::is_valid_project(&entry, &name_string, display_hidden) {
-                    Some(Project::new(&name_string, entry.path()))
-                } else {
-                    None
-                }
-            })
-            .collect();
+            if Self::is_valid_project(&entry, &name_string, display_hidden) {
+                projects.insert(
+                    name_string.to_string(),
+                    Project::new(&name_string, entry.path()),
+                );
+            }
+        }
 
         // Check if .ignore is present in this directory
-        if Path::new(path).join(".ignore").exists() {
+        if path.join(".ignore").exists() {
             let paths = Self::get_ignored_paths(path)?;
-            projects.retain(|project| !paths.contains(&project.name));
+            projects.retain(|k, _| !paths.contains(k));
         }
 
         Ok(projects)
@@ -203,41 +204,41 @@ impl Library {
         }
         fs::create_dir(&path).map_err(|e| LibraryError::IoError { source: e })?;
 
-        self.projects.push(Project {
-            name: name.to_string(),
-            path,
-        });
+        self.projects.insert(
+            name.to_string(),
+            Project {
+                name: name.to_string(),
+                path,
+            },
+        );
         Ok(())
     }
 
     /// Deletes a project directory from the library.
     pub fn delete(&mut self, name: &str) -> Result<(), LibraryError> {
         fs::remove_dir_all(self.base_path.join(name)).map_err(|_| LibraryError::FileSystemError)?;
-        self.projects.retain(|p| p.name != name);
+        self.projects.retain(|k, _| k != name);
         Ok(())
     }
 
     /// Checks if a project with the given name exists in the library.
     pub fn contains(&self, name: &str) -> bool {
-        self.projects.iter().any(|x| x.name == *name)
+        self.projects.contains_key(name)
     }
 
     /// Returns a slice of all projects in the library.
-    pub fn get_vec(&self) -> &[Project] {
-        &self.projects
+    pub fn get_vec(&self) -> Vec<&Project> {
+        self.projects.iter().map(|p| p.1).collect()
     }
 
     /// Returns a vector of all project names in the library.
-    pub fn get_names(&self) -> Vec<&str> {
-        self.projects.iter().map(|p| p.name.as_str()).collect()
+    pub fn get_names(&self) -> Vec<&String> {
+        self.projects.keys().collect()
     }
 
     /// Retrieves a project by name.
     pub fn get(&self, name: &str) -> Result<&Project, LibraryError> {
-        self.projects
-            .iter()
-            .find(|x| x.name == name)
-            .ok_or(LibraryError::ProjectNotFound)
+        self.projects.get(name).ok_or(LibraryError::ProjectNotFound)
     }
 
     /// Checks if the library has no projects.
@@ -265,9 +266,9 @@ impl Library {
         fs::rename(old_path, &new_path)
             .map_err(|e| LibraryError::FailedToRename(e.kind().to_string()))?;
 
-        if let Some(project) = self.projects.iter_mut().find(|p| p.name == old_name) {
-            project.name = new_name.to_string();
-            project.path = new_path;
+        if let Some(project) = self.projects.iter_mut().find(|p| p.0 == old_name) {
+            project.1.name = new_name.to_string();
+            project.1.path = new_path;
         }
 
         Ok(())
