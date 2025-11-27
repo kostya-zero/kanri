@@ -2,13 +2,15 @@
 
 ## Next
 
-TBW
+- Kanri will launch editor to create a new template instead of using dialog.
+- Improved performance for Library.
+- Command `templates info` has been renamed to `templates get`.
 
-## 0.9.0 
+## 0.9.0
 
 - **Backups**. Kanri will be able to create backups of your configuration and templates files, and restore them if needed.
-- **Profiles**. You can create multiple profiles with diffrent configurations, and switch between them. Each profile will have its own editor, shell and options for them.
-- Some dialogs now shows user's selection.
+- **Profiles**. You can create multiple profiles with different configurations, and switch between them. Each profile will have its own editor, shell and options for them.
+- Some dialogues now shows user's selection.
 - Added initial support for configuration migration (users from 0.8.2 and below should migrate manually).
 
 ## 0.8.2
@@ -18,7 +20,7 @@ TBW
 ## 0.8.1
 
 - Optimized the algorithm for `.ignore` file.
-- Added `--path` option to the `open` command to print path instead of launching editor/shell. Usefull for integrations with other software.
+- Added `--path` option to the `open` command to print path instead of launching editor/shell. Useful for integrations with other software.
 - Added support for `NO_COLOR` environment variable.
 - Removed underlines for titles.
 
