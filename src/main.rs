@@ -31,14 +31,16 @@ fn check_env() -> Result<()> {
     Ok(())
 }
 
-fn print_version() {
-    let mode = if cfg!(debug_assertions) {
-        "debug"
-    } else {
-        "release"
-    };
+const KANRI_BUILD_MODE: &str = if cfg!(debug_assertions) {
+    "debug"
+} else {
+    "release"
+};
 
-    println!("kanri {} {mode}", env!("CARGO_PKG_VERSION"));
+const KANRI_VERSION: &str = env!("CARGO_PKG_VERSION");
+
+fn print_version() {
+    println!("kanri {KANRI_VERSION} {KANRI_BUILD_MODE}");
 }
 
 fn main() {
@@ -68,11 +70,11 @@ fn main() {
         Commands::Rename(args) => root::handle_rename(args),
         Commands::Remove(args) => root::handle_remove(args),
         Commands::Templates { command } => match command {
-            TemplatesCommands::New => templates::handle_new(),
+            TemplatesCommands::New(args) => templates::handle_new(args),
             TemplatesCommands::List(args) => templates::handle_list(args),
             TemplatesCommands::Edit => templates::handle_edit(),
             TemplatesCommands::Path => templates::handle_path(),
-            TemplatesCommands::Info(args) => templates::handle_info(args),
+            TemplatesCommands::Get(args) => templates::handle_get(args),
             TemplatesCommands::Clear => templates::handle_clear(),
             TemplatesCommands::Remove(args) => templates::handle_remove(args),
         },

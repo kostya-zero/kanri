@@ -142,7 +142,7 @@ pub struct RemoveArgs {
 #[derive(Subcommand)]
 pub enum TemplatesCommands {
     /// Create new template.
-    New,
+    New(TemplatesNewArgs),
 
     /// List available templates.
     List(TemplatesListArgs),
@@ -157,10 +157,15 @@ pub enum TemplatesCommands {
     Path,
 
     /// View information about template.
-    Info(TemplatesInfoArgs),
+    Get(TemplatesGetArgs),
 
     /// Remove template.
     Remove(TemplatesRemoveArgs),
+}
+
+#[derive(Args)]
+pub struct TemplatesNewArgs {
+    pub name: Option<String>,
 }
 
 #[derive(Args)]
@@ -171,7 +176,7 @@ pub struct TemplatesListArgs {
 }
 
 #[derive(Args)]
-pub struct TemplatesInfoArgs {
+pub struct TemplatesGetArgs {
     /// Name of the template.
     pub name: Option<String>,
 

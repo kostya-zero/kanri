@@ -1,27 +1,49 @@
 use anyhow::{Result, anyhow, bail, ensure};
+use std::{fs, io::Write};
+use tempfile::NamedTempFile;
 
 use crate::{
-    cli::{TemplatesInfoArgs, TemplatesListArgs, TemplatesRemoveArgs},
+    cli::{TemplatesGetArgs, TemplatesListArgs, TemplatesNewArgs, TemplatesRemoveArgs},
     config::Config,
     platform,
     program::{LaunchOptions, launch_program},
     templates::Templates,
-    terminal::{ask_dialog, ask_string_dialog, print_done, print_title},
+    terminal::{ask_dialog, print_done, print_title},
 };
 
-pub fn handle_new() -> Result<()> {
-    let name = ask_string_dialog("Name of new template?", true);
-    if name.is_empty() {
-        bail!("Incorrect name for a template.");
-    }
+pub fn handle_new(args: TemplatesNewArgs) -> Result<()> {
+    ensure!(args.name.is_some(), "Provide a name for template.");
+    let name = args.name.unwrap();
+    let mut file = NamedTempFile::new()?;
+    writeln!(
+        file,
+        "# Write your command here. They will be added to template."
+    )?;
+    let file_path = file.path().to_str().unwrap();
 
+    let config = Config::load(platform::config_file())?;
+    let profile = config.get_profile(&config.options.current_profile)?;
+    let launch_options = LaunchOptions {
+        program: profile.editor.clone(),
+        args: vec![file_path.to_string()],
+        cwd: None,
+        fork_mode: false,
+        quiet: false,
+        env: None,
+    };
+
+    println!("The editor will launch with opened file.");
+    launch_program(launch_options)?;
+
+    let content = fs::read_to_string(file_path)?;
     let mut commands: Vec<String> = Vec::new();
-    loop {
-        let command = ask_string_dialog("Enter a command (press enter to finish):", false);
-        if command.is_empty() {
-            break;
+
+    for line in content.lines() {
+        if line.starts_with("#") {
+            continue;
         }
-        commands.push(command);
+
+        commands.push(line.to_string());
     }
 
     ensure!(!commands.is_empty(), "No commands entered.");
@@ -85,7 +107,7 @@ pub fn handle_path() -> Result<()> {
     Ok(())
 }
 
-pub fn handle_info(args: TemplatesInfoArgs) -> Result<()> {
+pub fn handle_get(args: TemplatesGetArgs) -> Result<()> {
     let name = args
         .name
         .ok_or_else(|| anyhow!("Provide a name of the template."))?;
