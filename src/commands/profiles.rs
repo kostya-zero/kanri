@@ -98,7 +98,14 @@ pub fn handle_list() -> Result<()> {
 
     print_title("Your profiles");
     for i in profiles {
-        println!(" {i}");
+        println!(
+            " {i} {}",
+            if config.options.current_profile == *i {
+                "(current)".dimmed()
+            } else {
+                "".into()
+            }
+        );
     }
 
     Ok(())
