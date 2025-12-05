@@ -1,4 +1,5 @@
 use anyhow::{Result, bail};
+use colored::Colorize;
 
 use crate::{
     cli::{ProfilesInfoArgs, ProfilesRemoveArgs, ProfilesSetArgs},
@@ -109,8 +110,8 @@ pub fn handle_info(args: ProfilesInfoArgs) -> Result<()> {
 
     print_title("Profile");
     // There should be a better way to display it.
-    println!(" Editor: {}", profile.editor);
-    println!(" Shell: {}", profile.shell);
+    println!(" {}: {}", "Editor".bold(), profile.editor);
+    println!(" {}: {}", "Shell".bold(), profile.shell);
     Ok(())
 }
 
