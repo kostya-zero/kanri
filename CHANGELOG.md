@@ -5,6 +5,8 @@
 - Kanri will launch editor to create a new template instead of using dialog.
 - Improved performance for Library.
 - Command `templates info` has been renamed to `templates get`.
+- Command `profiles info` has been renamed to `profiles get`.
+- Current profile will be marked in the `profiles list` command.
 
 ## 0.9.0
 
