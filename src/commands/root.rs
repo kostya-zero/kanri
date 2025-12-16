@@ -1,8 +1,7 @@
-use anyhow::{Result, anyhow, ensure};
+use anyhow::{Result, anyhow, bail, ensure};
 use colored::Colorize;
 use std::{
     path::Path,
-    process::exit,
     time::{Duration, Instant},
 };
 
@@ -98,11 +97,11 @@ pub fn handle_new(args: NewArgs) -> Result<()> {
             .join(&name)
             .to_string_lossy()
             .to_string();
-        let total_commands = template.len() as i8;
+        let total_commands = template.len() as u8;
         let env_map = vec![(String::from("KANRI_PROJECT"), name.clone())];
         let started_time = Instant::now();
         for (idx, command) in template.iter().enumerate() {
-            let current = idx as i8 + 1;
+            let current = idx as u8 + 1;
             print_progress(command, current, total_commands);
 
             let mut args_vec = profile.shell_args.clone();
@@ -231,7 +230,7 @@ pub fn handle_open(args: OpenArgs) -> Result<()> {
     }
 
     if config.recent.enabled && name != config.recent.recent_project {
-        config.recent.recent_project = name.clone();
+        config.recent.recent_project = name;
         config.save(config_path)?;
     }
 
@@ -348,8 +347,7 @@ pub fn handle_backup(args: BackupArgs) -> Result<()> {
 
 pub fn handle_import(args: ImportArgs) -> Result<()> {
     if args.file.is_none() {
-        print_error("Specify a path where the backup file is located.");
-        exit(1);
+        bail!("Specify a path where the backup file is located.");
     }
 
     let backup = load_backup(args.file.unwrap())?;

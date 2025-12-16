@@ -23,7 +23,7 @@ pub fn handle_edit() -> Result<()> {
     }
 
     let mut editor_args = profile.editor_args.clone();
-    editor_args.push(path.to_str().unwrap().to_string());
+    editor_args.push(path.to_string_lossy().to_string());
 
     let launch_options = LaunchOptions {
         program: editor,

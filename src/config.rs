@@ -151,8 +151,7 @@ impl Default for GeneralOptions {
 impl Config {
     pub fn load(path: impl AsRef<Path>) -> Result<Self, ConfigError> {
         let content = fs::read_to_string(&path).map_err(|_| ConfigError::FileNotFound)?;
-        toml::from_str::<Config>(&content)
-            .map_err(|e| ConfigError::BadConfiguration(format!("{e}")))
+        toml::from_str::<Config>(&content).map_err(|e| ConfigError::BadConfiguration(e.to_string()))
     }
 
     pub fn save(&self, path: impl AsRef<Path>) -> Result<(), ConfigError> {

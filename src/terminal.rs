@@ -14,7 +14,7 @@ pub fn print_error(msg: &str) {
     eprintln!(" {}: {}", "Error".red().bold(), msg);
 }
 
-pub fn print_progress(msg: &str, current: i8, total: i8) {
+pub fn print_progress(msg: &str, current: u8, total: u8) {
     println!("{} {}", format!("[{current}/{total}]").white().bold(), msg);
 }
 

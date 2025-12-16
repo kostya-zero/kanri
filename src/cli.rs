@@ -215,7 +215,7 @@ pub enum ProfilesCommands {
     Set(ProfilesSetArgs),
 
     /// Get infomation about profile.
-    Info(ProfilesInfoArgs),
+    Get(ProfilesGetArgs),
 
     /// List all available profiles.
     List,
@@ -231,7 +231,7 @@ pub struct ProfilesSetArgs {
 }
 
 #[derive(Args)]
-pub struct ProfilesInfoArgs {
+pub struct ProfilesGetArgs {
     /// Name of profile to get information about.
     pub name: String,
 }

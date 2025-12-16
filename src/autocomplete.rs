@@ -8,7 +8,7 @@ pub enum CompletionResult {
 }
 
 pub fn autocomplete(word: &str, words_list: Vec<&str>, config: &Config) -> Option<String> {
-    let suggested = suggest_completion(word, words_list.clone());
+    let suggested = suggest_completion(word, words_list);
 
     match suggested {
         CompletionResult::Found => Some(word.to_string()),

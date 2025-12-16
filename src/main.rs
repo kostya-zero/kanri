@@ -87,7 +87,7 @@ fn main() {
         Commands::Profiles { command } => match command {
             ProfilesCommands::New => profiles::handle_new(),
             ProfilesCommands::Set(args) => profiles::handle_set(args),
-            ProfilesCommands::Info(args) => profiles::handle_info(args),
+            ProfilesCommands::Get(args) => profiles::handle_info(args),
             ProfilesCommands::List => profiles::handle_list(),
             ProfilesCommands::Remove(args) => profiles::handle_remove(args),
         },

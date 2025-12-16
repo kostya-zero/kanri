@@ -2,7 +2,7 @@ use anyhow::{Result, bail};
 use colored::Colorize;
 
 use crate::{
-    cli::{ProfilesInfoArgs, ProfilesRemoveArgs, ProfilesSetArgs},
+    cli::{ProfilesGetArgs, ProfilesRemoveArgs, ProfilesSetArgs},
     config::{Config, Profile},
     platform,
     terminal::{ask_dialog, ask_string_dialog, print_done, print_title},
@@ -111,7 +111,7 @@ pub fn handle_list() -> Result<()> {
     Ok(())
 }
 
-pub fn handle_info(args: ProfilesInfoArgs) -> Result<()> {
+pub fn handle_get(args: ProfilesGetArgs) -> Result<()> {
     let config = Config::load(platform::config_file())?;
     let profile = config.get_profile(&args.name)?;
 
@@ -134,10 +134,10 @@ pub fn handle_remove(args: ProfilesRemoveArgs) -> Result<()> {
 
     if !confirmation {
         println!("Aborted");
-        return Ok(());
+    } else {
+        config.profiles.shift_remove(&args.name).unwrap();
+        print_done("Removed.");
     }
 
-    config.profiles.shift_remove(&args.name).unwrap();
-    print_done("Removed.");
     Ok(())
 }
