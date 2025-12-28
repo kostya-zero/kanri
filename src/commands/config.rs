@@ -5,7 +5,7 @@ use crate::{
     config::Config,
     platform,
     program::{LaunchOptions, launch_program},
-    terminal::{ask_dialog, print_done},
+    terminal::ask_dialog,
 };
 
 pub fn handle_path() -> Result<()> {
@@ -19,14 +19,14 @@ pub fn handle_edit() -> Result<()> {
     let profile = config.get_profile(&config.options.current_profile)?;
     let editor = profile.editor.clone();
     if editor.is_empty() {
-        bail!("Editor program name is not set in the configuration file.");
+        bail!("editor program name is not set in the configuration file.");
     }
 
     let mut editor_args = profile.editor_args.clone();
     editor_args.push(path.to_string_lossy().to_string());
 
     let launch_options = LaunchOptions {
-        program: editor,
+        program: &editor,
         args: editor_args,
         fork_mode: false,
         quiet: false,
@@ -42,21 +42,21 @@ pub fn handle_recent(args: RecentArgs) -> Result<()> {
     let mut config = Config::load(&path)?;
 
     if !config.recent.enabled {
-        bail!("Recent feature is disabled in the configuration file.");
+        bail!("recent feature is disabled in the configuration file.");
     }
 
     if args.clear {
         if config.recent.recent_project.is_empty() {
-            bail!("Nothing to clear.");
+            bail!("nothing to clear.");
         }
         config.recent.recent_project.clear();
         config.save(path)?;
-        print_done("Cleared.");
+        println!("Cleared recent project record.");
         return Ok(());
     }
 
     if config.recent.recent_project.is_empty() {
-        bail!("No recent project found.");
+        bail!("no recent project found.");
     }
 
     println!("{}", config.recent.recent_project);
@@ -70,9 +70,9 @@ pub fn handle_reset() -> Result<()> {
     if ask_dialog("Reset your current configuration?", false, true) {
         config.reset();
         config.save(path)?;
-        print_done("Reset.");
+        println!("Configuration has been reseted.");
     } else {
-        print_done("Aborted.");
+        println!("Aborted.");
     }
     Ok(())
 }

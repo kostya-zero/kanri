@@ -5,7 +5,7 @@ use crate::{
     cli::{ProfilesGetArgs, ProfilesRemoveArgs, ProfilesSetArgs},
     config::{Config, Profile},
     platform,
-    terminal::{ask_dialog, ask_string_dialog, print_done, print_title},
+    terminal::{ask_dialog, ask_string_dialog, print_title},
 };
 
 pub fn handle_new() -> Result<()> {
@@ -15,13 +15,13 @@ pub fn handle_new() -> Result<()> {
     let profile_name = ask_string_dialog("Name for new profile?", true);
 
     if config.is_profile_exist(&profile_name) {
-        bail!("Profile with the same name already exists.")
+        bail!("profile with the same name already exists.")
     }
 
     let mut editor = ask_string_dialog("Which editor you want to assign (program name)?", true);
 
     if editor.is_empty() {
-        bail!("Editor name is empty.")
+        bail!("editor name is empty.")
     }
 
     let editor_fork_mode: bool;
@@ -46,7 +46,7 @@ pub fn handle_new() -> Result<()> {
     let shell = ask_string_dialog("Which shell you want to assign (program name)?", true);
 
     if shell.is_empty() {
-        bail!("Shell name is empty.")
+        bail!("shell name is empty.")
     }
 
     let mut shell_args: Vec<String> = Vec::with_capacity(3);
@@ -72,7 +72,7 @@ pub fn handle_new() -> Result<()> {
     config.profiles.insert(profile_name, profile);
     config.save(config_path)?;
 
-    print_done("Your profile has been saved. You can edit it in your configuration file.");
+    println!("Your profile has been saved. You can edit it in your configuration file.");
     Ok(())
 }
 
@@ -81,13 +81,13 @@ pub fn handle_set(args: ProfilesSetArgs) -> Result<()> {
     let mut config = Config::load(&config_path)?;
 
     if !config.is_profile_exist(&args.name) {
-        bail!("Profile {} not found.", args.name)
+        bail!("profile {} not found.", args.name)
     }
 
     config.options.current_profile = args.name.clone();
     config.save(config_path)?;
 
-    print_done(&format!("Switched current profile to {}", args.name));
+    println!("Switched current profile to '{}'.", args.name);
 
     Ok(())
 }
@@ -127,7 +127,7 @@ pub fn handle_remove(args: ProfilesRemoveArgs) -> Result<()> {
     let mut config = Config::load(&config_path)?;
 
     if !config.is_profile_exist(&args.name) {
-        bail!("Profile {} not found.", args.name)
+        bail!("profile {} not found.", args.name)
     }
 
     let confirmation = ask_dialog("Do you want to delete this profile?", false, false);
@@ -136,7 +136,7 @@ pub fn handle_remove(args: ProfilesRemoveArgs) -> Result<()> {
         println!("Aborted");
     } else {
         config.profiles.shift_remove(&args.name).unwrap();
-        print_done("Removed.");
+        println!("Profile has been removed.");
     }
 
     Ok(())

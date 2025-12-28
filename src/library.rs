@@ -13,28 +13,28 @@ use thiserror::Error;
 /// Represents errors that can occur in the Library operations.
 #[derive(Debug, Error)]
 pub enum LibraryError {
-    #[error("Project with the same name already exists.")]
+    #[error("project with the same name already exists.")]
     AlreadyExists,
 
-    #[error("Project not found.")]
+    #[error("project not found.")]
     ProjectNotFound,
 
-    #[error("Invalid path to the projects directory.")]
+    #[error("invalid path to the projects directory.")]
     InvalidPath,
 
-    #[error("File system error occurred.")]
+    #[error("file system error occurred.")]
     FileSystemError,
 
-    #[error("Failed to clone repository.")]
+    #[error("failed to clone repository.")]
     CloneFailed,
 
-    #[error("Could not rename due to error: {0}")]
+    #[error("could not rename due to error: {0}")]
     FailedToRename(String),
 
-    #[error("This name of the project is not allowed.")]
+    #[error("this name of the project is not allowed.")]
     InvalidProjectName,
 
-    #[error("An unexpected I/O error occurred: {source}.")]
+    #[error("an unexpected I/O error occurred: {source}.")]
     IoError {
         #[from]
         source: std::io::Error,
@@ -182,12 +182,10 @@ impl Library {
             args.push(branch.to_owned());
         }
 
-        let cwd = self.base_path.to_str().unwrap();
-
         let launch_options = LaunchOptions {
-            program: "git".to_string(),
+            program: "git",
             args,
-            cwd: Some(cwd.to_string()),
+            cwd: Some(&self.base_path),
             fork_mode: false,
             quiet: false,
             env: None,

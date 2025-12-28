@@ -8,22 +8,22 @@ pub struct Templates(HashMap<String, Vec<String>>);
 
 #[derive(Debug, Error, Deserialize)]
 pub enum TemplatesError {
-    #[error("Template with the same name already exists.")]
+    #[error("template with the same name already exists.")]
     AlreadyExists,
 
-    #[error("Template not found.")]
+    #[error("template not found.")]
     TemplateNotFound,
 
-    #[error("File system error occurred.")]
+    #[error("file system error occurred.")]
     FileSystemError,
 
-    #[error("Failed to serialize templates data.")]
+    #[error("failed to serialize templates data.")]
     SerializationError,
 
-    #[error("Failed to deserialize templates data.")]
+    #[error("failed to deserialize templates data.")]
     DeserializationError,
 
-    #[error("Commands in the template are empty.")]
+    #[error("commands in the template are empty.")]
     CommandsAreEmpty,
 }
 

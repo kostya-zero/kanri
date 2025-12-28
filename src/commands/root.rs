@@ -1,9 +1,6 @@
 use anyhow::{Result, anyhow, bail, ensure};
 use colored::Colorize;
-use std::{
-    path::Path,
-    time::{Duration, Instant},
-};
+use std::time::{Duration, Instant};
 
 use crate::{
     autocomplete,
@@ -14,9 +11,7 @@ use crate::{
     platform,
     program::{LaunchOptions, launch_program},
     templates::Templates,
-    terminal::{
-        ask_dialog, generate_progress, print_done, print_error, print_progress, print_title,
-    },
+    terminal::{ask_dialog, generate_progress, print_error, print_progress, print_title},
 };
 
 fn resolve_project_name(project_name: &str, config: &Config, projects: &Library) -> Option<String> {
@@ -35,15 +30,15 @@ fn resolve_project_name(project_name: &str, config: &Config, projects: &Library)
 
 fn validate_project_name(name: &str) -> Result<()> {
     if name.is_empty() {
-        return Err(anyhow!("Project name cannot be empty."));
+        return Err(anyhow!("project name cannot be empty."));
     }
 
     if name.contains(['/', '\\', ':', '*', '?', '"', '<', '>', '|']) {
-        return Err(anyhow!("Project name contains invalid characters."));
+        return Err(anyhow!("project name contains invalid characters."));
     }
 
     if name == "." || name == ".." {
-        return Err(anyhow!("Project name cannot be '.' or '..'."));
+        return Err(anyhow!("project name cannot be '.' or '..'."));
     }
 
     // One more check for Windows
@@ -55,7 +50,7 @@ fn validate_project_name(name: &str) -> Result<()> {
         ];
         if reserved.contains(&name.to_uppercase().as_str()) {
             return Err(anyhow!(
-                "Project name cannot be a reserved name on Windows."
+                "project name cannot be a reserved name on Windows."
             ));
         }
     }
@@ -65,70 +60,63 @@ fn validate_project_name(name: &str) -> Result<()> {
 
 pub fn handle_new(args: NewArgs) -> Result<()> {
     let config = Config::load(platform::config_file())?;
-    let mut projects = Library::new(
-        &config.options.projects_directory,
-        config.options.display_hidden,
-    )?;
+    let projects_dir = &config.options.projects_directory;
+    let mut projects = Library::new(projects_dir, config.options.display_hidden)?;
 
-    let name = args
-        .name
-        .ok_or_else(|| anyhow!("Provide a name for a new project."))?;
-
-    validate_project_name(&name)?;
-
-    projects.create(&name)?;
+    validate_project_name(&args.name)?;
+    projects.create(&args.name)?;
 
     if let Some(template_name) = args.template {
         let templates = Templates::load(platform::templates_file())?;
         let template = templates
             .get_template(&template_name)
-            .ok_or_else(|| anyhow!("Template '{}' not found.", template_name))?;
+            .ok_or_else(|| anyhow!("template '{template_name}' not found."))?;
 
         let profile = config.get_profile(&config.options.current_profile)?;
-
-        println!("Generating project from '{}' template...", &name);
-
         let program = &profile.shell;
         ensure!(
             !program.is_empty(),
-            "Shell is not configured in the configuration file."
+            "shell is not configured in the configuration file."
         );
-        let project_path = Path::new(&config.options.projects_directory)
-            .join(&name)
-            .to_string_lossy()
-            .to_string();
-        let total_commands = template.len() as u8;
-        let env_map = vec![(String::from("KANRI_PROJECT"), name.clone())];
+
+        println!(
+            "Generating project '{}' from '{}' template...",
+            &args.name, &template_name
+        );
+
+        let project_path = projects_dir.join(&args.name);
+        let total_commands = template.len();
+        let env_map = vec![(String::from("KANRI_PROJECT"), args.name.clone())];
         let started_time = Instant::now();
         for (idx, command) in template.iter().enumerate() {
-            let current = idx as u8 + 1;
+            let current = idx + 1;
             print_progress(command, current, total_commands);
 
             let mut args_vec = profile.shell_args.clone();
             args_vec.push(command.clone());
 
             let launch_options = LaunchOptions {
-                program: program.to_string(),
+                program,
                 args: args_vec,
-                cwd: Some(project_path.clone()),
+                cwd: Some(&project_path),
                 fork_mode: false,
                 quiet: args.quiet,
                 env: Some(env_map.clone()),
             };
 
             if let Err(e) = launch_program(launch_options) {
-                print_error("Failed to apply template. Cleaning up...");
+                print_error("failed to apply template. Cleaning up...");
                 projects
-                    .delete(&name)
-                    .map_err(|err| anyhow!("Additionally, cleanup failed: {}", err))?;
-                return Err(anyhow!("Template command '{}' failed: {}", command, e));
+                    .delete(&args.name)
+                    .map_err(|err| anyhow!("additionally, cleanup failed: {}", err))?;
+                return Err(anyhow!("template command '{}' failed: {}", command, e));
             }
         }
 
         let elapsed_time = started_time.elapsed().as_millis();
-        print_done(&format!("Generated '{name}' in {elapsed_time} ms."));
+        println!("Generated '{}' in {elapsed_time} ms.", args.name);
     } else {
-        print_done("Created.");
+        println!("Created.");
     }
 
     Ok(())
@@ -137,12 +125,8 @@ pub fn handle_new(args: NewArgs) -> Result<()> {
 pub fn handle_clone(args: CloneArgs) -> Result<()> {
     let config = Config::load(platform::config_file())?;
 
-    let remote = args
-        .remote
-        .ok_or_else(|| anyhow!("You need to provide a remote URL."))?;
-
     let clone_options = CloneOptions {
-        remote,
+        remote: args.remote,
         name: args.name,
         branch: args.branch,
     };
@@ -154,7 +138,7 @@ pub fn handle_clone(args: CloneArgs) -> Result<()> {
 
     projects.clone(&clone_options)?;
 
-    print_done("Cloned.");
+    println!("Repository has been cloned.");
     Ok(())
 }
 
@@ -168,17 +152,17 @@ pub fn handle_open(args: OpenArgs) -> Result<()> {
 
     let project_name = args
         .name
-        .ok_or_else(|| anyhow!("Project name is required."))?;
+        .ok_or_else(|| anyhow!("project name is required."))?;
 
     let name = resolve_project_name(&project_name, &config, &projects)
-        .ok_or_else(|| anyhow!("Project not found."))?;
+        .ok_or_else(|| anyhow!("project not found."))?;
 
     let project = projects
         .get(&name)
-        .map_err(|_| anyhow!("Project not found."))?;
+        .map_err(|_| anyhow!("project not found."))?;
 
     if args.path {
-        println!("{}", project.path.display());
+        println!("{}", project.path.to_string_lossy());
         return Ok(());
     }
 
@@ -196,13 +180,13 @@ pub fn handle_open(args: OpenArgs) -> Result<()> {
 
     ensure!(
         !program.is_empty(),
-        "Required program is not specified in configuration file."
+        "required program is not specified in configuration file."
     );
 
     let mut launch_options = LaunchOptions {
-        program: program.to_string(),
+        program,
         args: launch_args,
-        cwd: Some(project.path.to_string_lossy().into_owned()),
+        cwd: Some(&project.path),
         fork_mode,
         quiet: false,
         env: None,
@@ -236,7 +220,7 @@ pub fn handle_open(args: OpenArgs) -> Result<()> {
 
     if fork_mode {
         // Because only editor could be launched in fork mode.
-        print_done("Editor launched.");
+        println!("Editor launched.");
         return Ok(());
     }
 
@@ -285,15 +269,15 @@ pub fn handle_rename(args: RenameArgs) -> Result<()> {
 
     let old_name = args
         .old_name
-        .ok_or_else(|| anyhow!("Provide a project name to rename."))?;
+        .ok_or_else(|| anyhow!("provide a project name to rename."))?;
     let new_name = args
         .new_name
-        .ok_or_else(|| anyhow!("Provide a new name for a project."))?;
+        .ok_or_else(|| anyhow!("provide a new name for a project."))?;
 
     validate_project_name(&new_name)?;
 
     projects.rename(&old_name, &new_name)?;
-    print_done("Renamed.");
+    println!("Project '{old_name}' has been renamed to '{new_name}'.");
     Ok(())
 }
 
@@ -306,20 +290,20 @@ pub fn handle_remove(args: RemoveArgs) -> Result<()> {
 
     let name = args
         .name
-        .ok_or_else(|| anyhow!("Provide a name of project to remove."))?;
+        .ok_or_else(|| anyhow!("provide a name of project to remove."))?;
 
     let project_name = resolve_project_name(&name, &config, &projects)
-        .ok_or_else(|| anyhow!("Project not found."))?;
+        .ok_or_else(|| anyhow!("project not found."))?;
 
     let project = projects
         .get(&project_name)
-        .map_err(|_| anyhow!("Project not found."))?;
+        .map_err(|_| anyhow!("project not found."))?;
 
     if !project.is_empty()
         && !args.force
         && !ask_dialog("The project is not empty. Continue?", false, false)
     {
-        print_done("Canceled.");
+        println!("Canceled.");
         return Ok(());
     }
 
@@ -329,7 +313,7 @@ pub fn handle_remove(args: RemoveArgs) -> Result<()> {
     projects.delete(&project_name)?;
     spinner.finish_and_clear();
 
-    print_done("Removed.");
+    println!("Project '{project_name}' has been removed.");
     Ok(())
 }
 
@@ -341,20 +325,20 @@ pub fn handle_backup(args: BackupArgs) -> Result<()> {
 
     let backup = Backup { config, templates };
     save_backup(&backup_file_path, backup)?;
-    print_done(format!("Backup saved to `{backup_file_path}`.").as_str());
+    println!("Backup saved to `{backup_file_path}`.");
     Ok(())
 }
 
 pub fn handle_import(args: ImportArgs) -> Result<()> {
     if args.file.is_none() {
-        bail!("Specify a path where the backup file is located.");
+        bail!("ppecify a path where the backup file is located.");
     }
 
     let backup = load_backup(args.file.unwrap())?;
 
     backup.config.save(platform::config_file())?;
     backup.templates.save(platform::templates_file())?;
-    print_done("Backup has been imported.");
+    println!("Backup has been imported.");
     Ok(())
 }
 

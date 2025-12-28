@@ -1,40 +1,41 @@
 use anyhow::Result;
 use std::{
     io::ErrorKind,
+    path::PathBuf,
     process::{Command, Stdio},
 };
 use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum ProgramError {
-    #[error("Failed to launch program: {0}")]
+    #[error("failed to launch program: {0}")]
     ProgramNotFound(String),
 
-    #[error("Process was interrupted")]
+    #[error("process was interrupted")]
     ProcessInterrupted,
 
-    #[error("No permission to execute the program")]
+    #[error("no permission to execute the program")]
     NoPermission,
 
-    #[error("Program exited with non-zero status: {0}")]
+    #[error("program exited with non-zero status: {0}")]
     NonZeroExitCode(i32),
 
-    #[error("An unexpected error occurred: {0}")]
+    #[error("an unexpected error occurred: {0}")]
     UnexpectedError(String),
 }
 
 #[derive(Debug, Clone, Default)]
-pub struct LaunchOptions {
-    pub program: String,
+pub struct LaunchOptions<'a> {
+    pub program: &'a str,
     pub args: Vec<String>,
-    pub cwd: Option<String>,
+    pub cwd: Option<&'a PathBuf>,
     pub fork_mode: bool,
     pub quiet: bool,
     pub env: Option<Vec<(String, String)>>,
 }
 
 pub fn launch_program(options: LaunchOptions) -> Result<(), ProgramError> {
-    let mut cmd = Command::new(&options.program);
+    let mut cmd = Command::new(options.program);
 
     if options.quiet {
         cmd.stdin(Stdio::null())

@@ -74,7 +74,7 @@ pub enum Commands {
 #[derive(Args)]
 pub struct NewArgs {
     /// Name for a new project.
-    pub name: Option<String>,
+    pub name: String,
 
     /// Template to use for a new project.
     #[arg(short, long)]
@@ -88,7 +88,7 @@ pub struct NewArgs {
 #[derive(Args)]
 pub struct CloneArgs {
     /// URL of repository to clone.
-    pub remote: Option<String>,
+    pub remote: String,
 
     /// Directory name for the cloned repository.
     #[arg(short, long)]

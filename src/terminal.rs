@@ -6,16 +6,12 @@ use dialoguer::{
 };
 use indicatif::ProgressBar;
 
-pub fn print_done(msg: &str) {
-    println!(" {} {}", "✓".bold().green(), msg)
-}
-
 pub fn print_error(msg: &str) {
-    eprintln!(" {}: {}", "Error".red().bold(), msg);
+    eprintln!("{}: {}", "error".bright_red().bold(), msg);
 }
 
-pub fn print_progress(msg: &str, current: u8, total: u8) {
-    println!("{} {}", format!("[{current}/{total}]").white().bold(), msg);
+pub fn print_progress(msg: &str, current: usize, total: usize) {
+    println!("{} {}", format!("[{current}/{total}]").dimmed(), msg);
 }
 
 pub fn print_title(msg: &str) {

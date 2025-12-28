@@ -9,22 +9,22 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum ConfigError {
-    #[error("Failed to write configuration file.")]
+    #[error("failed to write configuration file.")]
     WriteFailed,
 
-    #[error("Failed to format configuration to TOML.")]
+    #[error("failed to format configuration to TOML.")]
     FormatFailed,
 
-    #[error("Cannot find configuration file.")]
+    #[error("cannot find configuration file.")]
     FileNotFound,
 
-    #[error("Error parsing configuration file: {0}.")]
+    #[error("configuration bad syntax: {0}.")]
     BadConfiguration(String),
 
-    #[error("Profile '{0}' was not found.")]
+    #[error("profile '{0}' was not found.")]
     ProfileNotFound(String),
 
-    #[error("File system error occurred: {0}.")]
+    #[error("file system error occurred: {0}.")]
     FileSystemError(#[from] std::io::Error),
 }
 
