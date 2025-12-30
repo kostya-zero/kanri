@@ -102,7 +102,7 @@ pub struct CloneArgs {
 #[derive(Args)]
 pub struct OpenArgs {
     /// Name of the project to open.
-    pub name: Option<String>,
+    pub name: String,
 
     /// Open shell in this project.
     #[arg(short, long, action = ArgAction::SetTrue)]
@@ -123,16 +123,16 @@ pub struct ListArgs {
 #[derive(Args)]
 pub struct RenameArgs {
     /// Old project name.
-    pub old_name: Option<String>,
+    pub old_name: String,
 
     /// New project name.
-    pub new_name: Option<String>,
+    pub new_name: String,
 }
 
 #[derive(Args)]
 pub struct RemoveArgs {
     /// Name of the project to remove.
-    pub name: Option<String>,
+    pub name: String,
 
     /// Force remove without confirmation
     #[arg(short, long, action = ArgAction::SetTrue)]
@@ -178,7 +178,7 @@ pub struct TemplatesListArgs {
 #[derive(Args)]
 pub struct TemplatesGetArgs {
     /// Name of the template.
-    pub name: Option<String>,
+    pub name: String,
 
     /// Display list without styling
     #[arg(short, long, action = ArgAction::SetTrue)]
@@ -188,7 +188,7 @@ pub struct TemplatesGetArgs {
 #[derive(Args)]
 pub struct TemplatesRemoveArgs {
     /// Name of the template to remove.
-    pub name: Option<String>,
+    pub name: String,
 }
 
 #[derive(Subcommand)]

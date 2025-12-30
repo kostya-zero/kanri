@@ -108,12 +108,8 @@ pub fn handle_path() -> Result<()> {
 }
 
 pub fn handle_get(args: TemplatesGetArgs) -> Result<()> {
-    let name = args
-        .name
-        .ok_or_else(|| anyhow!("provide a name of the template."))?;
-
     let templates = Templates::load(platform::templates_file())?;
-    match templates.get_template(&name) {
+    match templates.get_template(&args.name) {
         Some(template) => {
             if !args.pure {
                 print_title("Commands of this template");
@@ -143,12 +139,9 @@ pub fn handle_clear() -> Result<()> {
 }
 
 pub fn handle_remove(args: TemplatesRemoveArgs) -> Result<()> {
-    let name = args
-        .name
-        .ok_or_else(|| anyhow!("provide a name of template to delete."))?;
     let templates_path = platform::templates_file();
     let mut templates = Templates::load(&templates_path)?;
-    templates.remove_template(&name)?;
+    templates.remove_template(&args.name)?;
     templates.save(templates_path)?;
     println!("Template has been removed.");
     Ok(())

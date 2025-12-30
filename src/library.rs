@@ -5,7 +5,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use crate::program::{LaunchOptions, launch_program};
+use crate::program::{launch_program, LaunchOptions};
 use anyhow::Result;
 use indexmap::IndexMap;
 use thiserror::Error;

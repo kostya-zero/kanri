@@ -150,11 +150,7 @@ pub fn handle_open(args: OpenArgs) -> Result<()> {
         config.options.display_hidden,
     )?;
 
-    let project_name = args
-        .name
-        .ok_or_else(|| anyhow!("project name is required."))?;
-
-    let name = resolve_project_name(&project_name, &config, &projects)
+    let name = resolve_project_name(&args.name, &config, &projects)
         .ok_or_else(|| anyhow!("project not found."))?;
 
     let project = projects
@@ -267,17 +263,13 @@ pub fn handle_rename(args: RenameArgs) -> Result<()> {
         config.options.display_hidden,
     )?;
 
-    let old_name = args
-        .old_name
-        .ok_or_else(|| anyhow!("provide a project name to rename."))?;
-    let new_name = args
-        .new_name
-        .ok_or_else(|| anyhow!("provide a new name for a project."))?;
+    validate_project_name(&args.new_name)?;
 
-    validate_project_name(&new_name)?;
-
-    projects.rename(&old_name, &new_name)?;
-    println!("Project '{old_name}' has been renamed to '{new_name}'.");
+    projects.rename(&args.old_name, &args.new_name)?;
+    println!(
+        "Project '{}' has been renamed to '{}'.",
+        args.old_name, args.new_name
+    );
     Ok(())
 }
 
@@ -288,11 +280,7 @@ pub fn handle_remove(args: RemoveArgs) -> Result<()> {
         config.options.display_hidden,
     )?;
 
-    let name = args
-        .name
-        .ok_or_else(|| anyhow!("provide a name of project to remove."))?;
-
-    let project_name = resolve_project_name(&name, &config, &projects)
+    let project_name = resolve_project_name(&args.name, &config, &projects)
         .ok_or_else(|| anyhow!("project not found."))?;
 
     let project = projects
