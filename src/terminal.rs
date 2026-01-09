@@ -7,11 +7,15 @@ use dialoguer::{
 use indicatif::ProgressBar;
 
 pub fn print_error(msg: &str) {
-    eprintln!("{}: {}", "error".bright_red().bold(), msg);
+    eprintln!(" {}: {msg}", "Error".bright_red().bold());
+}
+
+pub fn print_done(msg: &str) {
+    println!(" {} {msg}", "✓".bold().bright_green())
 }
 
 pub fn print_progress(msg: &str, current: usize, total: usize) {
-    println!("{} {}", format!("[{current}/{total}]").dimmed(), msg);
+    println!("{} {msg}", format!("[{current}/{total}]").dimmed());
 }
 
 pub fn print_title(msg: &str) {
@@ -21,7 +25,7 @@ pub fn print_title(msg: &str) {
 fn get_dialog_theme() -> impl Theme {
     ColorfulTheme {
         prompt_prefix: style(" ?".to_string()).for_stdout().cyan(),
-        success_prefix: style(" ✔".to_string()).for_stdout().green(),
+        success_prefix: style(" ✓".to_string()).for_stdout().green(),
         error_prefix: style(" ✘".to_string()).for_stderr().red(),
         defaults_style: Style::new().for_stdout().dim().white(),
         ..Default::default()

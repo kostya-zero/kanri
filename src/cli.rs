@@ -258,5 +258,5 @@ pub struct BackupArgs {
 #[derive(Args)]
 pub struct ImportArgs {
     /// The path to the backup file.
-    pub file: Option<String>,
+    pub file: String,
 }

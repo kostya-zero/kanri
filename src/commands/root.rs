@@ -1,4 +1,4 @@
-use anyhow::{Result, anyhow, bail, ensure};
+use anyhow::{Result, anyhow, ensure};
 use colored::Colorize;
 use std::time::{Duration, Instant};
 
@@ -11,7 +11,9 @@ use crate::{
     platform,
     program::{LaunchOptions, launch_program},
     templates::Templates,
-    terminal::{ask_dialog, generate_progress, print_error, print_progress, print_title},
+    terminal::{
+        ask_dialog, generate_progress, print_done, print_error, print_progress, print_title,
+    },
 };
 
 fn resolve_project_name(project_name: &str, config: &Config, projects: &Library) -> Option<String> {
@@ -48,7 +50,7 @@ fn validate_project_name(name: &str) -> Result<()> {
             "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7",
             "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9",
         ];
-        if reserved.contains(&name.to_uppercase().as_str()) {
+        if reserved.iter().any(|r| name.eq_ignore_ascii_case(r)) {
             return Err(anyhow!(
                 "project name cannot be a reserved name on Windows."
             ));
@@ -114,9 +116,9 @@ pub fn handle_new(args: NewArgs) -> Result<()> {
         }
 
         let elapsed_time = started_time.elapsed().as_millis();
-        println!("Generated '{}' in {elapsed_time} ms.", args.name);
+        print_done(&format!("Generated '{}' in {elapsed_time} ms.", args.name));
     } else {
-        println!("Created.");
+        print_done("Created.");
     }
 
     Ok(())
@@ -138,7 +140,7 @@ pub fn handle_clone(args: CloneArgs) -> Result<()> {
 
     projects.clone(&clone_options)?;
 
-    println!("Repository has been cloned.");
+    print_done("Repository has been cloned.");
     Ok(())
 }
 
@@ -216,7 +218,7 @@ pub fn handle_open(args: OpenArgs) -> Result<()> {
 
     if fork_mode {
         // Because only editor could be launched in fork mode.
-        println!("Editor launched.");
+        print_done("Editor launched.");
         return Ok(());
     }
 
@@ -266,10 +268,10 @@ pub fn handle_rename(args: RenameArgs) -> Result<()> {
     validate_project_name(&args.new_name)?;
 
     projects.rename(&args.old_name, &args.new_name)?;
-    println!(
+    print_done(&format!(
         "Project '{}' has been renamed to '{}'.",
         args.old_name, args.new_name
-    );
+    ));
     Ok(())
 }
 
@@ -291,7 +293,7 @@ pub fn handle_remove(args: RemoveArgs) -> Result<()> {
         && !args.force
         && !ask_dialog("The project is not empty. Continue?", false, false)
     {
-        println!("Canceled.");
+        print_done("Canceled.");
         return Ok(());
     }
 
@@ -301,7 +303,7 @@ pub fn handle_remove(args: RemoveArgs) -> Result<()> {
     projects.delete(&project_name)?;
     spinner.finish_and_clear();
 
-    println!("Project '{project_name}' has been removed.");
+    print_done(&format!("Project '{project_name}' has been removed."));
     Ok(())
 }
 
@@ -313,20 +315,16 @@ pub fn handle_backup(args: BackupArgs) -> Result<()> {
 
     let backup = Backup { config, templates };
     save_backup(&backup_file_path, backup)?;
-    println!("Backup saved to `{backup_file_path}`.");
+    print_done(&format!("Backup saved to `{backup_file_path}`."));
     Ok(())
 }
 
 pub fn handle_import(args: ImportArgs) -> Result<()> {
-    if args.file.is_none() {
-        bail!("ppecify a path where the backup file is located.");
-    }
-
-    let backup = load_backup(args.file.unwrap())?;
+    let backup = load_backup(args.file)?;
 
     backup.config.save(platform::config_file())?;
     backup.templates.save(platform::templates_file())?;
-    println!("Backup has been imported.");
+    print_done("Backup has been imported.");
     Ok(())
 }
 

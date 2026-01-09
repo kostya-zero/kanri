@@ -5,7 +5,7 @@ use crate::{
     cli::{ProfilesGetArgs, ProfilesRemoveArgs, ProfilesSetArgs},
     config::{Config, Profile},
     platform,
-    terminal::{ask_dialog, ask_string_dialog, print_title},
+    terminal::{ask_dialog, ask_string_dialog, print_done, print_title},
 };
 
 pub fn handle_new() -> Result<()> {
@@ -72,7 +72,7 @@ pub fn handle_new() -> Result<()> {
     config.profiles.insert(profile_name, profile);
     config.save(config_path)?;
 
-    println!("Your profile has been saved. You can edit it in your configuration file.");
+    print_done("Your profile has been saved. You can edit it in your configuration file.");
     Ok(())
 }
 
@@ -87,7 +87,7 @@ pub fn handle_set(args: ProfilesSetArgs) -> Result<()> {
     config.options.current_profile = args.name.clone();
     config.save(config_path)?;
 
-    println!("Switched current profile to '{}'.", args.name);
+    print_done(&format!("Switched current profile to '{}'.", args.name));
 
     Ok(())
 }
@@ -133,10 +133,10 @@ pub fn handle_remove(args: ProfilesRemoveArgs) -> Result<()> {
     let confirmation = ask_dialog("Do you want to delete this profile?", false, false);
 
     if !confirmation {
-        println!("Aborted");
+        print_done("Aborted");
     } else {
         config.profiles.shift_remove(&args.name).unwrap();
-        println!("Profile has been removed.");
+        print_done("Profile has been removed.");
     }
 
     Ok(())

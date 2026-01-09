@@ -8,7 +8,7 @@ use crate::{
     platform,
     program::{LaunchOptions, launch_program},
     templates::Templates,
-    terminal::{ask_dialog, print_title},
+    terminal::{ask_dialog, print_done, print_title},
 };
 
 pub fn handle_new(args: TemplatesNewArgs) -> Result<()> {
@@ -53,7 +53,7 @@ pub fn handle_new(args: TemplatesNewArgs) -> Result<()> {
     let mut templates = Templates::load(&templates_path)?;
     templates.add_template(&name, commands)?;
     if templates.save(templates_path).is_ok() {
-        println!("Template has been created.");
+        print_done("Template has been created.");
     } else {
         bail!("failed to save templates.");
     }
@@ -131,9 +131,9 @@ pub fn handle_clear() -> Result<()> {
     if ask_dialog("Clear all templates?", false, true) {
         templates.clear();
         templates.save(templates_path)?;
-        println!("Templates storage has been cleared.");
+        print_done("Templates storage has been cleared.");
     } else {
-        println!("Aborted.");
+        print_done("Aborted.");
     }
     Ok(())
 }
@@ -143,6 +143,6 @@ pub fn handle_remove(args: TemplatesRemoveArgs) -> Result<()> {
     let mut templates = Templates::load(&templates_path)?;
     templates.remove_template(&args.name)?;
     templates.save(templates_path)?;
-    println!("Template has been removed.");
+    print_done("Template has been removed.");
     Ok(())
 }

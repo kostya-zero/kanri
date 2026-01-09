@@ -5,7 +5,7 @@ use crate::{
     config::Config,
     platform,
     program::{LaunchOptions, launch_program},
-    terminal::ask_dialog,
+    terminal::{ask_dialog, print_done},
 };
 
 pub fn handle_path() -> Result<()> {
@@ -70,9 +70,9 @@ pub fn handle_reset() -> Result<()> {
     if ask_dialog("Reset your current configuration?", false, true) {
         config.reset();
         config.save(path)?;
-        println!("Configuration has been reseted.");
+        print_done("Configuration has been reseted.");
     } else {
-        println!("Aborted.");
+        print_done("Aborted.");
     }
     Ok(())
 }
