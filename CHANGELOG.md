@@ -7,6 +7,7 @@
 - Command `templates info` has been renamed to `templates get`.
 - Command `profiles info` has been renamed to `profiles get`.
 - Current profile will be marked in the `profiles list` command.
+- The `remove` subcommand will always require confirmation before removing the project.
 
 ## 0.9.0
 

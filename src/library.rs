@@ -5,7 +5,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use crate::program::{launch_program, LaunchOptions};
+use crate::program::{LaunchOptions, launch_program};
 use anyhow::Result;
 use indexmap::IndexMap;
 use thiserror::Error;
@@ -31,7 +31,7 @@ pub enum LibraryError {
     #[error("could not rename due to error: {0}")]
     FailedToRename(String),
 
-    #[error("this name of the project is not allowed.")]
+    #[error("this name is not allowed.")]
     InvalidProjectName,
 
     #[error("an unexpected I/O error occurred: {source}.")]
@@ -63,23 +63,6 @@ pub struct CloneOptions {
 pub struct Project {
     pub name: String,
     pub path: PathBuf,
-}
-
-impl Project {
-    /// Makes a new Project instance.
-    pub fn new(new_name: &str, new_path: PathBuf) -> Self {
-        Self {
-            name: new_name.to_string(),
-            path: new_path,
-        }
-    }
-
-    /// Checks if the project directory is empty.
-    pub fn is_empty(&self) -> bool {
-        fs::read_dir(&self.path)
-            .map(|mut dir| dir.next().is_none())
-            .unwrap_or(false)
-    }
 }
 
 /// The Library struct manages a collection of projects in a specified directory.
@@ -119,7 +102,10 @@ impl Library {
             if Self::is_valid_project(&entry, &name_string, display_hidden) {
                 projects.insert(
                     name_string.to_string(),
-                    Project::new(&name_string, entry.path()),
+                    Project {
+                        name: name_string.to_string(),
+                        path: entry.path(),
+                    },
                 );
             }
         }

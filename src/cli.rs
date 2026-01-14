@@ -134,9 +134,9 @@ pub struct RemoveArgs {
     /// Name of the project to remove.
     pub name: String,
 
-    /// Force remove without confirmation
+    /// Confirm the removal.
     #[arg(short, long, action = ArgAction::SetTrue)]
-    pub force: bool,
+    pub yes: bool,
 }
 
 #[derive(Subcommand)]

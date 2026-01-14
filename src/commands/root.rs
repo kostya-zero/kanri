@@ -285,13 +285,12 @@ pub fn handle_remove(args: RemoveArgs) -> Result<()> {
     let project_name = resolve_project_name(&args.name, &config, &projects)
         .ok_or_else(|| anyhow!("project not found."))?;
 
-    let project = projects
-        .get(&project_name)
-        .map_err(|_| anyhow!("project not found."))?;
-
-    if !project.is_empty()
-        && !args.force
-        && !ask_dialog("The project is not empty. Continue?", false, false)
+    if !args.yes
+        && !ask_dialog(
+            &format!("Do you want to delete '{}'?", project_name),
+            false,
+            false,
+        )
     {
         print_done("Canceled.");
         return Ok(());
