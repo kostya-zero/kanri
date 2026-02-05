@@ -2,6 +2,10 @@
 
 ## Next
 
+TBW
+
+## 0.10.0
+
 - Kanri will launch editor to create a new template instead of using dialog.
 - Improved performance for Library.
 - Command `templates info` has been renamed to `templates get`.
