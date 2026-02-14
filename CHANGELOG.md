@@ -4,6 +4,11 @@
 
 TBW
 
+## 0.10.1
+
+- Added `--skip-autocomplete` for `open` subcommand to forcibly disable autocomplete. Usable for integrations that cant properly handle `stdin`.
+- Added `-` to the list of invalid project names for `new` command.
+
 ## 0.10.0
 
 - Kanri will launch editor to create a new template instead of using dialog.

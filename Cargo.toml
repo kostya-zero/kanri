@@ -7,7 +7,7 @@ homepage = "https://github.com/kostya-zero/kanri"
 keywords = ["workspace", "projects", "manager", "cli"]
 readme = "README.md"
 license = "MIT"
-version = "0.10.0"
+version = "0.10.1"
 edition = "2024"
 
 [dependencies]
@@ -21,7 +21,7 @@ serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.145"
 thiserror = "2.0.17"
 tempfile = "3.20.0"
-toml = "0.9.8"
+toml = "1.0.1"
 
 [target.'cfg(windows)'.dependencies]
 ctrlc = "3.4.7"
