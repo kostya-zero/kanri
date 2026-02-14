@@ -54,7 +54,7 @@ const SYSTEM_DIRECTORIES: [&str; 6] = [
 ];
 
 /// An options struct for cloning a repository using Git.
-#[derive(Debug, Clone, Default)]
+#[derive(Clone, Default)]
 pub struct CloneOptions {
     pub remote: String,
     pub branch: Option<String>,
@@ -62,7 +62,6 @@ pub struct CloneOptions {
 }
 
 /// The Library struct manages a collection of projects in a specified directory.
-#[derive(Debug)]
 pub struct Library {
     projects: IndexMap<String, PathBuf>,
     base_path: PathBuf,

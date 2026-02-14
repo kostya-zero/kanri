@@ -1,6 +1,6 @@
 use crate::{config::Config, terminal::ask_dialog};
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Eq, PartialEq)]
 pub enum CompletionResult {
     Found,
     FoundSimilar(String),
