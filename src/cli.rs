@@ -111,6 +111,10 @@ pub struct OpenArgs {
     /// Display the path to the project instead of opening it.
     #[arg(short, long, action = ArgAction::SetTrue)]
     pub path: bool,
+
+    /// Disable autocomplete. Usable for integrations.
+    #[arg(short, long, action = ArgAction::SetTrue)]
+    pub skip_autocomplete: bool,
 }
 
 #[derive(Args)]

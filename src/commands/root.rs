@@ -16,10 +16,15 @@ use crate::{
     },
 };
 
-fn resolve_project_name(project_name: &str, config: &Config, projects: &Library) -> Option<String> {
+fn resolve_project_name(
+    project_name: &str,
+    config: &Config,
+    projects: &Library,
+    skip: bool,
+) -> Option<String> {
     if project_name == "-" && config.recent.enabled {
         Some(config.recent.recent_project.clone())
-    } else if config.autocomplete.enabled {
+    } else if config.autocomplete.enabled && !skip {
         autocomplete::autocomplete(
             project_name,
             projects.get_names().iter().map(|k| k.as_str()).collect(),
@@ -152,7 +157,7 @@ pub fn handle_open(args: OpenArgs) -> Result<()> {
         config.options.display_hidden,
     )?;
 
-    let name = resolve_project_name(&args.name, &config, &projects)
+    let name = resolve_project_name(&args.name, &config, &projects, args.skip_autocomplete)
         .ok_or_else(|| anyhow!("project not found."))?;
 
     let project = projects
@@ -282,7 +287,7 @@ pub fn handle_remove(args: RemoveArgs) -> Result<()> {
         config.options.display_hidden,
     )?;
 
-    let project_name = resolve_project_name(&args.name, &config, &projects)
+    let project_name = resolve_project_name(&args.name, &config, &projects, false)
         .ok_or_else(|| anyhow!("project not found."))?;
 
     if !args.yes
