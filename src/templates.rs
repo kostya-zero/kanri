@@ -10,22 +10,22 @@ pub struct Templates(HashMap<String, Vec<String>>);
 /// An error that can happen in Templates struct methods.
 #[derive(Debug, Error, Deserialize)]
 pub enum TemplatesError {
-    #[error("template with the same name already exists.")]
+    #[error("This name is already taken.")]
     AlreadyExists,
 
-    #[error("template not found.")]
+    #[error("Template not found.")]
     TemplateNotFound,
 
-    #[error("file system error occurred.")]
+    #[error("File system error occurred.")]
     FileSystemError,
 
-    #[error("failed to serialize templates data.")]
+    #[error("Failed to serialize templates data.")]
     SerializationError,
 
-    #[error("failed to deserialize templates data.")]
+    #[error("Failed to deserialize templates data.")]
     DeserializationError,
 
-    #[error("commands in the template are empty.")]
+    #[error("Commands in the template are empty.")]
     CommandsAreEmpty,
 }
 

@@ -15,13 +15,13 @@ pub fn handle_new() -> Result<()> {
     let profile_name = ask_string_dialog("Name for new profile?", true);
 
     if config.is_profile_exist(&profile_name) {
-        bail!("profile with the same name already exists.")
+        bail!("Profile with the same name already exists.")
     }
 
     let mut editor = ask_string_dialog("Which editor you want to assign (program name)?", true);
 
     if editor.is_empty() {
-        bail!("editor name is empty.")
+        bail!("Editor name is empty.")
     }
 
     let editor_fork_mode: bool;
@@ -46,7 +46,7 @@ pub fn handle_new() -> Result<()> {
     let shell = ask_string_dialog("Which shell you want to assign (program name)?", true);
 
     if shell.is_empty() {
-        bail!("shell name is empty.")
+        bail!("Shell name is empty.")
     }
 
     let mut shell_args: Vec<String> = Vec::with_capacity(3);
@@ -81,7 +81,7 @@ pub fn handle_set(args: ProfilesSetArgs) -> Result<()> {
     let mut config = Config::load(&config_path)?;
 
     if !config.is_profile_exist(&args.name) {
-        bail!("profile {} not found.", args.name)
+        bail!("Profile {} not found.", args.name)
     }
 
     config.options.current_profile = args.name.clone();
@@ -127,7 +127,7 @@ pub fn handle_remove(args: ProfilesRemoveArgs) -> Result<()> {
     let mut config = Config::load(&config_path)?;
 
     if !config.is_profile_exist(&args.name) {
-        bail!("profile {} not found.", args.name)
+        bail!("Profile {} not found.", args.name)
     }
 
     let confirmation = ask_dialog("Do you want to delete this profile?", false, false);

@@ -8,19 +8,19 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum ProgramError {
-    #[error("failed to launch program: {0}")]
+    #[error("Program not found: {0}")]
     ProgramNotFound(String),
 
-    #[error("process was interrupted")]
+    #[error("Program was interrupted")]
     ProcessInterrupted,
 
-    #[error("no permission to execute the program")]
+    #[error("You dont have permission to run this program.")]
     NoPermission,
 
-    #[error("program exited with non-zero status: {0}")]
+    #[error("Program exited with non-zero status: {0}")]
     NonZeroExitCode(i32),
 
-    #[error("an unexpected error occurred: {0}")]
+    #[error("An unexpected error occurred: {0}")]
     UnexpectedError(String),
 }
 

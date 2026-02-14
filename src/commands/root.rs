@@ -150,7 +150,7 @@ pub fn handle_open(args: OpenArgs) -> Result<()> {
 
     ensure!(
         !program.is_empty(),
-        "required program is not specified in configuration file."
+        "Required program is not specified in configuration file."
     );
 
     let mut launch_options = LaunchOptions {
@@ -255,7 +255,7 @@ pub fn handle_remove(args: RemoveArgs) -> Result<()> {
     )?;
 
     let project_name = resolve_project_name(&args.name, &config, &projects, false)
-        .ok_or_else(|| anyhow!("project not found."))?;
+        .ok_or_else(|| anyhow!("Project not found."))?;
 
     if !args.yes
         && !ask_dialog(

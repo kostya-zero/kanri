@@ -67,7 +67,7 @@ pub fn validate_project_name(name: &str) -> Result<()> {
     }
 
     if IGNORED_NAMES.iter().any(|r| name.eq_ignore_ascii_case(r)) {
-        return Err(anyhow!("Invalid name for a project."));
+        return Err(anyhow!("This name is not allowed."));
     }
 
     // One more check for Windows

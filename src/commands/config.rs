@@ -19,7 +19,7 @@ pub fn handle_edit() -> Result<()> {
     let profile = config.get_profile(&config.options.current_profile)?;
     let editor = profile.editor.clone();
     if editor.is_empty() {
-        bail!("editor program name is not set in the configuration file.");
+        bail!("Editor program name is not set in the configuration file.");
     }
 
     let mut editor_args = profile.editor_args.clone();
@@ -42,12 +42,12 @@ pub fn handle_recent(args: RecentArgs) -> Result<()> {
     let mut config = Config::load(&path)?;
 
     if !config.recent.enabled {
-        bail!("recent feature is disabled in the configuration file.");
+        bail!("Recent feature is disabled in the configuration file.");
     }
 
     if args.clear {
         if config.recent.recent_project.is_empty() {
-            bail!("nothing to clear.");
+            bail!("Nothing to clear.");
         }
         config.recent.recent_project.clear();
         config.save(path)?;
@@ -56,7 +56,7 @@ pub fn handle_recent(args: RecentArgs) -> Result<()> {
     }
 
     if config.recent.recent_project.is_empty() {
-        bail!("no recent project found.");
+        bail!("No recent project found.");
     }
 
     println!("{}", config.recent.recent_project);

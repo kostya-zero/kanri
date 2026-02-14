@@ -12,7 +12,7 @@ use crate::{
 };
 
 pub fn handle_new(args: TemplatesNewArgs) -> Result<()> {
-    ensure!(args.name.is_some(), "provide a name for template.");
+    ensure!(args.name.is_some(), "Provide a name for template.");
     let name = args.name.unwrap();
     let mut file = NamedTempFile::new()?;
     writeln!(
@@ -46,7 +46,7 @@ pub fn handle_new(args: TemplatesNewArgs) -> Result<()> {
         commands.push(line.to_string());
     }
 
-    ensure!(!commands.is_empty(), "no commands entered.");
+    ensure!(!commands.is_empty(), "No commands entered.");
 
     println!("Creating template...");
     let templates_path = platform::templates_file();
@@ -55,7 +55,7 @@ pub fn handle_new(args: TemplatesNewArgs) -> Result<()> {
     if templates.save(templates_path).is_ok() {
         print_done("Template has been created.");
     } else {
-        bail!("failed to save templates.");
+        bail!("Failed to save templates.");
     }
     Ok(())
 }
@@ -83,7 +83,7 @@ pub fn handle_edit() -> Result<()> {
     let profile = config.get_profile(&config.options.current_profile)?;
     let editor = profile.editor.clone();
     if editor.is_empty() {
-        bail!("editor program name is not set in the configuration file.");
+        bail!("Editor program name is not set in the configuration file.");
     }
 
     let templates_path = platform::templates_file();

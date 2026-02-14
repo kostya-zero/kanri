@@ -8,19 +8,19 @@ use crate::{config::Config, templates::Templates};
 
 #[derive(Debug, Error)]
 pub enum BackupError {
-    #[error("failed to write backup file.")]
+    #[error("Failed to write backup file.")]
     WriteFailed,
 
-    #[error("failed to format backup to JSON.")]
+    #[error("Failed to format backup to JSON.")]
     FormatFailed,
 
-    #[error("cannot find backup file.")]
+    #[error("Cannot find backup file.")]
     FileNotFound,
 
-    #[error("error parsing backup file: {0}.")]
+    #[error("Error parsing backup file: {0}.")]
     BadConfiguration(String),
 
-    #[error("file system error occurred: {0}.")]
+    #[error("File system error occurred: {0}.")]
     FileSystemError(#[from] std::io::Error),
 }
 
