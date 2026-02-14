@@ -44,8 +44,8 @@ fn validate_project_name(name: &str) -> Result<()> {
         return Err(anyhow!("project name contains invalid characters."));
     }
 
-    if name == "." || name == ".." {
-        return Err(anyhow!("project name cannot be '.' or '..'."));
+    if name == "." || name == ".." || name == "-" {
+        return Err(anyhow!("project name cannot be '.', '..' or '-'."));
     }
 
     // One more check for Windows
