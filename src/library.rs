@@ -6,7 +6,7 @@ use std::{
 };
 
 use crate::program::{LaunchOptions, ProgramError, launch_program};
-use anyhow::Result;
+use anyhow::{Result, anyhow};
 use indexmap::IndexMap;
 use thiserror::Error;
 
@@ -37,6 +37,9 @@ pub enum LibraryError {
     #[error("This name is not allowed.")]
     InvalidProjectName,
 
+    #[error("{0}")]
+    CustomError(String),
+
     #[error("An unexpected I/O error occurred: {source}.")]
     IoError {
         #[from]
@@ -44,14 +47,45 @@ pub enum LibraryError {
     },
 }
 
-const SYSTEM_DIRECTORIES: [&str; 6] = [
+const IGNORED_NAMES: [&str; 7] = [
     ".",
     "..",
     "$RECYCLE.BIN",
     "System Volume Information",
     "msdownld.tmp",
     ".Trash-1000",
+    "-",
 ];
+
+pub fn validate_project_name(name: &str) -> Result<()> {
+    if name.is_empty() {
+        return Err(anyhow!("Project name cannot be empty."));
+    }
+
+    if name.contains(['/', '\\', ':', '*', '?', '"', '<', '>', '|']) {
+        return Err(anyhow!("Project name contains invalid characters."));
+    }
+
+    if IGNORED_NAMES.iter().any(|r| name.eq_ignore_ascii_case(r)) {
+        return Err(anyhow!("Invalid name for a project."));
+    }
+
+    // One more check for Windows
+    #[cfg(windows)]
+    {
+        let reserved = [
+            "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7",
+            "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9",
+        ];
+        if reserved.iter().any(|r| name.eq_ignore_ascii_case(r)) {
+            return Err(anyhow!(
+                "Project name cannot be a reserved name on Windows."
+            ));
+        }
+    }
+
+    Ok(())
+}
 
 /// An options struct for cloning a repository using Git.
 #[derive(Clone, Default)]
@@ -129,7 +163,7 @@ impl Library {
             return false;
         }
 
-        entry.file_type().is_ok_and(|ft| ft.is_dir()) && !SYSTEM_DIRECTORIES.contains(&name)
+        entry.file_type().is_ok_and(|ft| ft.is_dir()) && !IGNORED_NAMES.contains(&name)
     }
 
     /// Gets ignored paths from a .ignore file in the base path.
@@ -184,6 +218,8 @@ impl Library {
         if path.exists() {
             return Err(LibraryError::AlreadyExists);
         }
+
+        validate_project_name(name).map_err(|e| LibraryError::CustomError(e.to_string()))?;
 
         match fs::create_dir(&path) {
             Ok(()) => {}
@@ -240,9 +276,7 @@ impl Library {
             return Err(LibraryError::AlreadyExists);
         }
 
-        if SYSTEM_DIRECTORIES.contains(&new_name) {
-            return Err(LibraryError::InvalidProjectName);
-        }
+        validate_project_name(new_name).map_err(|e| LibraryError::CustomError(e.to_string()))?;
 
         let old_path = self.base_path.join(old_name);
         let new_path = self.base_path.join(new_name);

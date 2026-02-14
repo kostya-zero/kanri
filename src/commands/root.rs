@@ -7,7 +7,7 @@ use crate::{
     backup::{Backup, load_backup, save_backup},
     cli::{BackupArgs, CloneArgs, ImportArgs, ListArgs, NewArgs, OpenArgs, RemoveArgs, RenameArgs},
     config::Config,
-    library::{CloneOptions, Library},
+    library::{CloneOptions, Library, validate_project_name},
     platform,
     program::{LaunchOptions, launch_program},
     templates::Templates,
@@ -33,42 +33,11 @@ fn resolve_project_name(
     }
 }
 
-fn validate_project_name(name: &str) -> Result<()> {
-    if name.is_empty() {
-        return Err(anyhow!("Project name cannot be empty."));
-    }
-
-    if name.contains(['/', '\\', ':', '*', '?', '"', '<', '>', '|']) {
-        return Err(anyhow!("Project name contains invalid characters."));
-    }
-
-    if name == "." || name == ".." || name == "-" {
-        return Err(anyhow!("Invalid name for a project."));
-    }
-
-    // One more check for Windows
-    #[cfg(windows)]
-    {
-        let reserved = [
-            "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7",
-            "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9",
-        ];
-        if reserved.iter().any(|r| name.eq_ignore_ascii_case(r)) {
-            return Err(anyhow!(
-                "Project name cannot be a reserved name on Windows."
-            ));
-        }
-    }
-
-    Ok(())
-}
-
 pub fn handle_new(args: NewArgs) -> Result<()> {
     let config = Config::load(platform::config_file())?;
     let projects_dir = &config.options.projects_directory;
     let mut projects = Library::new(projects_dir, config.options.display_hidden)?;
 
-    validate_project_name(&args.name)?;
     projects.create(&args.name)?;
 
     if let Some(template_name) = args.template {
