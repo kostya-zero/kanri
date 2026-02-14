@@ -14,10 +14,6 @@ pub fn print_done(msg: &str) {
     println!(" {} {msg}", "✓".bold().bright_green())
 }
 
-pub fn print_progress(msg: &str, current: usize, total: usize) {
-    println!("{} {msg}", format!("[{current}/{total}]").dimmed());
-}
-
 pub fn print_title(msg: &str) {
     println!("{}:", msg.bold());
 }

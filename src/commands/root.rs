@@ -11,9 +11,7 @@ use crate::{
     platform,
     program::{LaunchOptions, launch_program},
     templates::Templates,
-    terminal::{
-        ask_dialog, generate_progress, print_done, print_error, print_progress, print_title,
-    },
+    terminal::{ask_dialog, generate_progress, print_done, print_error, print_title},
 };
 
 fn resolve_project_name(
@@ -37,15 +35,15 @@ fn resolve_project_name(
 
 fn validate_project_name(name: &str) -> Result<()> {
     if name.is_empty() {
-        return Err(anyhow!("project name cannot be empty."));
+        return Err(anyhow!("Project name cannot be empty."));
     }
 
     if name.contains(['/', '\\', ':', '*', '?', '"', '<', '>', '|']) {
-        return Err(anyhow!("project name contains invalid characters."));
+        return Err(anyhow!("Project name contains invalid characters."));
     }
 
     if name == "." || name == ".." || name == "-" {
-        return Err(anyhow!("project name cannot be '.', '..' or '-'."));
+        return Err(anyhow!("Invalid name for a project."));
     }
 
     // One more check for Windows
@@ -57,7 +55,7 @@ fn validate_project_name(name: &str) -> Result<()> {
         ];
         if reserved.iter().any(|r| name.eq_ignore_ascii_case(r)) {
             return Err(anyhow!(
-                "project name cannot be a reserved name on Windows."
+                "Project name cannot be a reserved name on Windows."
             ));
         }
     }
@@ -77,7 +75,7 @@ pub fn handle_new(args: NewArgs) -> Result<()> {
         let templates = Templates::load(platform::templates_file())?;
         let template = templates
             .get_template(&template_name)
-            .ok_or_else(|| anyhow!("template '{template_name}' not found."))?;
+            .ok_or_else(|| anyhow!("Template '{template_name}' not found."))?;
 
         let profile = config.get_profile(&config.options.current_profile)?;
         let program = &profile.shell;
@@ -92,12 +90,10 @@ pub fn handle_new(args: NewArgs) -> Result<()> {
         );
 
         let project_path = projects_dir.join(&args.name);
-        let total_commands = template.len();
         let env_map = vec![(String::from("KANRI_PROJECT"), args.name.clone())];
         let started_time = Instant::now();
-        for (idx, command) in template.iter().enumerate() {
-            let current = idx + 1;
-            print_progress(command, current, total_commands);
+        for command in template {
+            println!("{} {}", "=>>".bright_blue().bold(), command.bold().white());
 
             let mut args_vec = profile.shell_args.clone();
             args_vec.push(command.clone());
@@ -160,12 +156,14 @@ pub fn handle_open(args: OpenArgs) -> Result<()> {
     let name = resolve_project_name(&args.name, &config, &projects, args.skip_autocomplete)
         .ok_or_else(|| anyhow!("project not found."))?;
 
-    let project = projects
-        .get(&name)
-        .map_err(|_| anyhow!("project not found."))?;
+    let project = projects.get(&name);
+    if project.is_none() {
+        print_error("Project not found.");
+    }
+    let path = project.unwrap();
 
     if args.path {
-        println!("{}", project.path.to_string_lossy());
+        println!("{}", path.to_string_lossy());
         return Ok(());
     }
 
@@ -189,7 +187,7 @@ pub fn handle_open(args: OpenArgs) -> Result<()> {
     let mut launch_options = LaunchOptions {
         program,
         args: launch_args,
-        cwd: Some(&project.path),
+        cwd: Some(path),
         fork_mode,
         quiet: false,
         env: None,
@@ -247,16 +245,16 @@ pub fn handle_list(args: ListArgs) -> Result<()> {
     if !args.pure {
         print_title("Your projects");
     }
-    for project in projects.get_vec().iter() {
+    for name in projects.get_names() {
         if args.pure {
-            println!("{}", project.name);
+            println!("{}", name);
         } else {
-            let is_recent = if project.name == recent.as_str() {
+            let is_recent = if name == recent.as_str() {
                 "(recent)".dimmed()
             } else {
                 "".dimmed()
             };
-            println!(" {} {is_recent}", project.name);
+            println!(" {} {is_recent}", name);
         }
     }
 

@@ -3,9 +3,11 @@ use std::{collections::HashMap, fs, path::Path};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
+/// Templates sturct represents a store of users templates.
 #[derive(Deserialize, Serialize, Clone, Default)]
 pub struct Templates(HashMap<String, Vec<String>>);
 
+/// An error that can happen in Templates struct methods.
 #[derive(Debug, Error, Deserialize)]
 pub enum TemplatesError {
     #[error("template with the same name already exists.")]
@@ -28,6 +30,7 @@ pub enum TemplatesError {
 }
 
 impl Templates {
+    /// Creates an empty instance.
     pub fn new() -> Self {
         Self(HashMap::new())
     }

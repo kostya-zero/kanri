@@ -1,11 +1,11 @@
 use std::{
     collections::HashSet,
     fs,
-    io::{Error, ErrorKind},
+    io::ErrorKind,
     path::{Path, PathBuf},
 };
 
-use crate::program::{LaunchOptions, launch_program};
+use crate::program::{LaunchOptions, ProgramError, launch_program};
 use anyhow::Result;
 use indexmap::IndexMap;
 use thiserror::Error;
@@ -13,28 +13,31 @@ use thiserror::Error;
 /// Represents errors that can occur in the Library operations.
 #[derive(Debug, Error)]
 pub enum LibraryError {
-    #[error("project with the same name already exists.")]
+    #[error("Name is already taken.")]
     AlreadyExists,
 
-    #[error("project not found.")]
+    #[error("Directory with projects is not found.")]
+    DirectoryNotFound,
+
+    #[error("Not enough permission to access directory with projects.")]
+    PermissionDenied,
+
+    #[error("Provided path is not a directory.")]
+    NotADirectory,
+
+    #[error("Project not found.")]
     ProjectNotFound,
 
-    #[error("invalid path to the projects directory.")]
+    #[error("Invalid path to the projects directory.")]
     InvalidPath,
 
-    #[error("file system error occurred.")]
-    FileSystemError,
+    #[error("Failed to clone repository: {source}.")]
+    CloneFailed { source: ProgramError },
 
-    #[error("failed to clone repository.")]
-    CloneFailed,
-
-    #[error("could not rename due to error: {0}")]
-    FailedToRename(String),
-
-    #[error("this name is not allowed.")]
+    #[error("This name is not allowed.")]
     InvalidProjectName,
 
-    #[error("an unexpected I/O error occurred: {source}.")]
+    #[error("An unexpected I/O error occurred: {source}.")]
     IoError {
         #[from]
         source: std::io::Error,
@@ -58,17 +61,10 @@ pub struct CloneOptions {
     pub name: Option<String>,
 }
 
-/// An abstraction representing a project in the library.
-#[derive(Debug, Clone)]
-pub struct Project {
-    pub name: String,
-    pub path: PathBuf,
-}
-
 /// The Library struct manages a collection of projects in a specified directory.
 #[derive(Debug)]
 pub struct Library {
-    projects: IndexMap<String, Project>,
+    projects: IndexMap<String, PathBuf>,
     base_path: PathBuf,
 }
 
@@ -90,23 +86,32 @@ impl Library {
     pub fn collect_projects(
         path: &Path,
         display_hidden: bool,
-    ) -> Result<IndexMap<String, Project>, LibraryError> {
-        let dir_entries = fs::read_dir(path)?;
-        let mut projects: IndexMap<String, Project> = IndexMap::new();
+    ) -> Result<IndexMap<String, PathBuf>, LibraryError> {
+        let dir_entries = match fs::read_dir(path) {
+            Ok(d) => d,
+            Err(e) => match e.kind() {
+                ErrorKind::NotFound => return Err(LibraryError::DirectoryNotFound),
+                ErrorKind::PermissionDenied => return Err(LibraryError::PermissionDenied),
+                ErrorKind::NotADirectory => return Err(LibraryError::NotADirectory),
+                _ => return Err(LibraryError::IoError { source: e }),
+            },
+        };
+
+        let mut projects: IndexMap<String, PathBuf> = IndexMap::new();
 
         for entry_result in dir_entries {
-            let entry = entry_result.unwrap();
+            let entry = match entry_result {
+                Ok(entry) => entry,
+                Err(e) => match e.kind() {
+                    ErrorKind::PermissionDenied => return Err(LibraryError::PermissionDenied),
+                    _ => return Err(LibraryError::IoError { source: e }),
+                },
+            };
             let name = entry.file_name();
             let name_string = name.to_string_lossy();
 
             if Self::is_valid_project(&entry, &name_string, display_hidden) {
-                projects.insert(
-                    name_string.to_string(),
-                    Project {
-                        name: name_string.to_string(),
-                        path: entry.path(),
-                    },
-                );
+                projects.insert(name_string.to_string(), entry.path());
             }
         }
 
@@ -131,12 +136,6 @@ impl Library {
     /// Gets ignored paths from a .ignore file in the base path.
     fn get_ignored_paths(base_path: &Path) -> Result<HashSet<String>, LibraryError> {
         let ignore_path = base_path.join(".ignore");
-        if !ignore_path.exists() {
-            return Err(LibraryError::IoError {
-                source: Error::new(ErrorKind::NotFound, "No .ignore file found"),
-            });
-        }
-
         let ignore_content = fs::read_to_string(ignore_path)?;
 
         let paths: HashSet<String> = ignore_content
@@ -177,7 +176,7 @@ impl Library {
             env: None,
         };
 
-        launch_program(launch_options).map_err(|_| LibraryError::CloneFailed)
+        launch_program(launch_options).map_err(|e| LibraryError::CloneFailed { source: e })
     }
 
     /// Creates a new project directory in the library.
@@ -186,21 +185,23 @@ impl Library {
         if path.exists() {
             return Err(LibraryError::AlreadyExists);
         }
-        fs::create_dir(&path).map_err(|e| LibraryError::IoError { source: e })?;
 
-        self.projects.insert(
-            name.to_string(),
-            Project {
-                name: name.to_string(),
-                path,
+        match fs::create_dir(&path) {
+            Ok(()) => {}
+            Err(e) => match e.kind() {
+                ErrorKind::AlreadyExists => return Err(LibraryError::AlreadyExists),
+                ErrorKind::PermissionDenied => return Err(LibraryError::PermissionDenied),
+                _ => return Err(LibraryError::IoError { source: e }),
             },
-        );
+        };
+
+        self.projects.insert(name.to_string(), path);
         Ok(())
     }
 
     /// Deletes a project directory from the library.
     pub fn delete(&mut self, name: &str) -> Result<(), LibraryError> {
-        fs::remove_dir_all(self.base_path.join(name)).map_err(|_| LibraryError::FileSystemError)?;
+        fs::remove_dir_all(self.base_path.join(name))?;
         self.projects.retain(|k, _| k != name);
         Ok(())
     }
@@ -210,19 +211,19 @@ impl Library {
         self.projects.contains_key(name)
     }
 
-    /// Returns a slice of all projects in the library.
-    pub fn get_vec(&self) -> Vec<&Project> {
-        self.projects.iter().map(|p| p.1).collect()
-    }
-
     /// Returns a vector of all project names in the library.
     pub fn get_names(&self) -> Vec<&String> {
         self.projects.keys().collect()
     }
 
     /// Retrieves a project by name.
-    pub fn get(&self, name: &str) -> Result<&Project, LibraryError> {
-        self.projects.get(name).ok_or(LibraryError::ProjectNotFound)
+    pub fn get(&self, name: &str) -> Option<&PathBuf> {
+        self.projects.get(name)
+    }
+
+    /// Returns a reference to a map of all projects in the library.
+    pub fn get_all(&self) -> &IndexMap<String, PathBuf> {
+        &self.projects
     }
 
     /// Checks if the library has no projects.
@@ -247,17 +248,17 @@ impl Library {
         let old_path = self.base_path.join(old_name);
         let new_path = self.base_path.join(new_name);
 
-        fs::rename(old_path, &new_path)
-            .map_err(|e| LibraryError::FailedToRename(e.kind().to_string()))?;
-
-        // If first check have passed, then we can unwrap safely.
-        let mut old_project = self.projects.get(old_name).cloned().unwrap();
+        match fs::rename(old_path, &new_path) {
+            Ok(()) => {}
+            Err(e) => match e.kind() {
+                ErrorKind::PermissionDenied => return Err(LibraryError::PermissionDenied),
+                _ => return Err(LibraryError::IoError { source: e }),
+            },
+        };
 
         // Using swap_remove because I dont think it will matter not only in tests.
         self.projects.swap_remove(old_name);
-        old_project.name = new_name.to_string();
-        old_project.path = new_path;
-        self.projects.insert(new_name.to_string(), old_project);
+        self.projects.insert(new_name.to_string(), new_path);
 
         Ok(())
     }

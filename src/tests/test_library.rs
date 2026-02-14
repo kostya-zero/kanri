@@ -54,8 +54,8 @@ fn test_library_get() {
     fs::create_dir(context.path().join("test_project")).unwrap();
 
     let library = Library::new(&path, false).unwrap();
-    assert!(library.get("test_project").is_ok());
-    assert!(library.get("non_existent_project").is_err());
+    assert!(library.get("test_project").is_some());
+    assert!(library.get("non_existent_project").is_none());
 }
 
 #[test]
@@ -82,11 +82,11 @@ fn test_library_rename() {
 
     let mut library = Library::new(&path, false).unwrap();
     library.create("test").unwrap();
-    assert!(library.get("test").is_ok());
+    assert!(library.get("test").is_some());
 
     library.rename("test", "new_test").unwrap();
-    assert!(library.get("new_test").is_ok());
-    assert!(library.get("test").is_err());
+    assert!(library.get("new_test").is_some());
+    assert!(library.get("test").is_none());
 }
 
 #[test]
