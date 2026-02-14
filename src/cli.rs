@@ -113,7 +113,7 @@ pub struct OpenArgs {
     pub path: bool,
 
     /// Disable autocomplete. Usable for integrations.
-    #[arg(short, long, action = ArgAction::SetTrue)]
+    #[arg(long, action = ArgAction::SetTrue)]
     pub skip_autocomplete: bool,
 }
 
