@@ -224,7 +224,7 @@ pub fn handle_list(args: ListArgs) -> Result<()> {
             } else {
                 "".dimmed()
             };
-            println!(" {} {is_recent}", name);
+            println!("  {} {is_recent}", name);
         }
     }
 

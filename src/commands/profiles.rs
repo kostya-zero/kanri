@@ -99,7 +99,7 @@ pub fn handle_list() -> Result<()> {
     print_title("Your profiles");
     for i in profiles {
         println!(
-            " {i} {}",
+            "  {i} {}",
             if config.options.current_profile == *i {
                 "(current)".dimmed()
             } else {
@@ -117,8 +117,8 @@ pub fn handle_get(args: ProfilesGetArgs) -> Result<()> {
 
     print_title("Profile");
     // There should be a better way to display it.
-    println!(" {}: {}", "Editor".bold(), profile.editor);
-    println!(" {}: {}", "Shell".bold(), profile.shell);
+    println!("  {}: {}", "Editor".bold(), profile.editor);
+    println!("  {}: {}", "Shell".bold(), profile.shell);
     Ok(())
 }
 

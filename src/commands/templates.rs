@@ -72,7 +72,7 @@ pub fn handle_list(args: TemplatesListArgs) -> Result<()> {
     }
 
     for template in templates.list_templates().iter() {
-        println!("{}{template}", if args.pure { "" } else { " " })
+        println!("{}{template}", if args.pure { "" } else { "  " })
     }
     Ok(())
 }
@@ -115,7 +115,7 @@ pub fn handle_get(args: TemplatesGetArgs) -> Result<()> {
                 print_title("Commands of this template");
             }
             for command in template.iter() {
-                println!("{}{command}", if args.pure { "" } else { " " });
+                println!("{}{command}", if args.pure { "" } else { "  " });
             }
         }
         None => {
