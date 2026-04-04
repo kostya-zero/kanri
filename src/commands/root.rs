@@ -26,11 +26,8 @@ fn resolve_project_name(
     if project_name == "-" && config.recent.enabled {
         Some(config.recent.recent_project.clone())
     } else if config.autocomplete.enabled && !skip {
-        autocomplete::autocomplete(
-            project_name,
-            projects.get_names().iter().map(|k| k.as_str()).collect(),
-            config,
-        )
+        let projects_list: Vec<&str> = projects.get_names().iter().map(|i| i.as_str()).collect();
+        autocomplete::autocomplete(project_name, &projects_list, config)
     } else {
         Some(project_name.to_string())
     }

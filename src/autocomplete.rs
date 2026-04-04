@@ -7,7 +7,7 @@ pub enum CompletionResult {
     Nothing,
 }
 
-pub fn autocomplete(word: &str, words_list: Vec<&str>, config: &Config) -> Option<String> {
+pub fn autocomplete(word: &str, words_list: &[&str], config: &Config) -> Option<String> {
     let suggested = suggest_completion(word, words_list);
 
     match suggested {
@@ -23,7 +23,7 @@ pub fn autocomplete(word: &str, words_list: Vec<&str>, config: &Config) -> Optio
     }
 }
 
-pub fn suggest_completion(word: &str, words_list: Vec<&str>) -> CompletionResult {
+pub fn suggest_completion(word: &str, words_list: &[&str]) -> CompletionResult {
     if words_list.contains(&word) {
         return CompletionResult::Found;
     }
