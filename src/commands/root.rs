@@ -1,6 +1,9 @@
 use anyhow::{Result, anyhow, ensure};
 use colored::Colorize;
-use std::time::{Duration, Instant};
+use std::{
+    process::exit,
+    time::{Duration, Instant},
+};
 
 use crate::{
     autocomplete,
@@ -128,6 +131,7 @@ pub fn handle_open(args: OpenArgs) -> Result<()> {
     let project = projects.get(&name);
     if project.is_none() {
         print_error("Project not found.");
+        exit(1);
     }
     let path = project.unwrap();
 
