@@ -27,7 +27,7 @@ pub fn handle_new(args: TemplatesNewArgs) -> Result<()> {
         program: &profile.editor,
         args: vec![file_path.to_string()],
         cwd: None,
-        fork_mode: false,
+        fork_mode: profile.editor_fork_mode,
         quiet: false,
         env: None,
     };

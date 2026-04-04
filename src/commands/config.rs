@@ -28,7 +28,7 @@ pub fn handle_edit() -> Result<()> {
     let launch_options = LaunchOptions {
         program: &editor,
         args: editor_args,
-        fork_mode: false,
+        fork_mode: profile.editor_fork_mode,
         quiet: false,
         cwd: None,
         env: None,
