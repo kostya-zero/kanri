@@ -3,6 +3,7 @@ use indexmap::{IndexMap, indexmap};
 use serde::{Deserialize, Serialize};
 use std::{
     fs,
+    io::ErrorKind,
     path::{Path, PathBuf},
 };
 use thiserror::Error;
@@ -14,6 +15,18 @@ pub enum ConfigError {
 
     #[error("failed to format configuration to TOML.")]
     FormatFailed,
+
+    #[error("cannot read the configuration file.")]
+    ReadPermissionDenied,
+
+    #[error("cannot write to the configuration file.")]
+    WritePermissionDenied,
+
+    #[error("cannot create missing directories.")]
+    DirectoryCreationPermissionDenied,
+
+    #[error("not enough space to write data to configuration file.")]
+    StorageFull,
 
     #[error("cannot find configuration file.")]
     FileNotFound,
@@ -154,17 +167,35 @@ impl Default for GeneralOptions {
 
 impl Config {
     pub fn load(path: impl AsRef<Path>) -> Result<Self, ConfigError> {
-        let content = fs::read_to_string(&path).map_err(|_| ConfigError::FileNotFound)?;
-        toml::from_str::<Config>(&content).map_err(|e| ConfigError::BadConfiguration(e.to_string()))
+        let content = fs::read_to_string(&path);
+        if let Err(e) = content {
+            return match e.kind() {
+                ErrorKind::PermissionDenied => Err(ConfigError::ReadPermissionDenied),
+                ErrorKind::NotFound => Err(ConfigError::FileNotFound),
+                _ => Err(ConfigError::FileSystemError(e)),
+            };
+        }
+        toml::from_str::<Config>(&content.unwrap())
+            .map_err(|e| ConfigError::BadConfiguration(e.to_string()))
     }
 
     pub fn save(&self, path: impl AsRef<Path>) -> Result<(), ConfigError> {
         let path = path.as_ref();
-        if let Some(parent) = path.parent() {
-            fs::create_dir_all(parent).map_err(|_| ConfigError::WriteFailed)?;
+        if let Some(parent) = path.parent()
+            && let Err(e) = fs::create_dir_all(parent)
+        {
+            return match e.kind() {
+                ErrorKind::PermissionDenied => Err(ConfigError::DirectoryCreationPermissionDenied),
+                _ => Err(ConfigError::FileSystemError(e)),
+            };
         }
         let content = toml::to_string(self).map_err(|_| ConfigError::FormatFailed)?;
-        fs::write(path, content).map_err(|_| ConfigError::WriteFailed)
+        fs::write(path, content).map_err(|e| match e.kind() {
+            ErrorKind::PermissionDenied => ConfigError::WritePermissionDenied,
+            ErrorKind::NotFound => ConfigError::FileNotFound,
+            ErrorKind::StorageFull => ConfigError::StorageFull,
+            _ => ConfigError::FileSystemError(e),
+        })
     }
 
     pub fn get_profile(&self, name: &str) -> Result<&Profile, ConfigError> {
