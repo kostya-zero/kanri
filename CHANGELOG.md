@@ -1,6 +1,10 @@
-# Kanri changelog
+# Kanri Changelog
 
 ## Next
+
+TBW
+
+## 0.10.2
 
 - Fixed possible panic in the `open` subcommand if user didn't provide a project name.
 - Fixed typos in some subcommand descriptions.
