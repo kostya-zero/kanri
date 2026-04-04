@@ -49,7 +49,7 @@ pub enum Commands {
         command: TemplatesCommands,
     },
 
-    /// Manage your configuraticlion.
+    /// Manage your configuration.
     Config {
         #[command(subcommand)]
         command: ConfigCommands,
@@ -218,7 +218,7 @@ pub enum ProfilesCommands {
     /// Set profile as default.
     Set(ProfilesSetArgs),
 
-    /// Get infomation about profile.
+    /// Get information about profile.
     Get(ProfilesGetArgs),
 
     /// List all available profiles.

@@ -3,7 +3,7 @@ use std::{collections::HashMap, fs, path::Path};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-/// Templates sturct represents a store of users templates.
+/// Templates struct represents a store of users templates.
 #[derive(Deserialize, Serialize, Clone, Default)]
 pub struct Templates(HashMap<String, Vec<String>>);
 
