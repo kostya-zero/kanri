@@ -7,6 +7,7 @@ on:
 
 jobs:
   build:
+    name: Build ${{ matrix.target }}
     strategy:
       matrix:
         include:
@@ -31,27 +32,27 @@ jobs:
           - os: windows-latest
             target: x86_64-pc-windows-msvc
             bin: kanri.exe
-    name: Build ${{ matrix.target }}
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v1
+        uses: actions/checkout@v4
       - name: Setup Rust Toolchain
-        uses: actions-rs/toolchain@v1.0.6
+        uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
-          target: ${{ matrix.target }}
-          override: true
-          components: clippy
+          targets: ${{ matrix.target }}
+      - name: Cache dependencies
+        uses: swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
       - name: Install musl tools
         if: contains(matrix.target, 'musl')
         run: |
           sudo apt-get update
           sudo apt-get install -y musl-tools
       - name: Build Release Binary
-        run: cargo build --release
+        run: cargo build --release --target ${{ matrix.target }}
       - name: Upload as Artifact
         uses: actions/upload-artifact@v4
         with:
           name: kanri-${{ matrix.target }}
-          path: target/release/${{ matrix.bin }}
+          path: target/${{ matrix.target }}/release/${{ matrix.bin }}
