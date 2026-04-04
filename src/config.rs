@@ -41,6 +41,7 @@ pub struct Config {
 impl Default for Config {
     fn default() -> Self {
         // Getting default editor
+        #[allow(unused_mut)]
         let mut editor = platform::default_editor().to_string();
         let mut editor_args: Vec<String> = Vec::new();
         let mut editor_fork_mode = false;
@@ -49,8 +50,11 @@ impl Default for Config {
             "code" | "code-insiders" | "codium" | "code-oss" | "cursor" | "windsurf" | "zed"
             | "code.cmd" | "code-insiders.cmd" | "codium.cmd" | "code-oss.cmd" | "windsurf.cmd"
             | "cursor.cmd" => {
-                if editor != "zed" && !editor.ends_with(".cmd") {
-                    editor.push_str(".cmd");
+                #[cfg(target_os = "windows")]
+                {
+                    if editor != "zed" && !editor.ends_with(".cmd") {
+                        editor.push_str(".cmd");
+                    }
                 }
                 editor_args.push(".".to_string());
                 editor_fork_mode = true;
