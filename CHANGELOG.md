@@ -2,7 +2,10 @@
 
 ## Next
 
-TBW
+- Fixed possible panic in the `open` subcommand if user didn't provide a project name.
+- Fixed typos in some subcommand descriptions.
+- Fixed an issue where for non-Windows users executable names for editors like `code` could be appended with `.cmd`. Now this only works on Windows.
+- Kanri will display more verbose errors when loading and saving configuration data.
 
 ## 0.10.1
 
