@@ -57,6 +57,10 @@ pub fn ask_select(items: &Vec<String>, report: bool) -> usize {
         .unwrap()
 }
 
+pub fn is_terminal() -> bool {
+    atty::is(atty::Stream::Stdout)
+}
+
 pub fn generate_progress() -> ProgressBar {
     ProgressBar::new_spinner().with_style(
         indicatif::ProgressStyle::with_template(" {spinner:.green} {msg}")

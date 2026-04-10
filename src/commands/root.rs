@@ -15,8 +15,8 @@ use crate::{
     program::{LaunchOptions, launch_program},
     templates::Templates,
     terminal::{
-        ask_dialog, ask_select, ask_string_dialog, generate_progress, print_done, print_error,
-        print_title,
+        ask_dialog, ask_select, ask_string_dialog, generate_progress, is_terminal, print_done,
+        print_error, print_title,
     },
 };
 
@@ -40,7 +40,7 @@ pub fn handle_new(args: NewArgs) -> Result<()> {
     let config = Config::load(platform::config_file())?;
     let projects_dir = &config.options.projects_directory;
     let mut projects = Library::new(projects_dir, config.options.display_hidden)?;
-    let is_terminal = atty::is(atty::Stream::Stdout);
+    let is_terminal = is_terminal();
 
     let project_name: String;
     let mut template_name: Option<String> = None;
@@ -158,6 +158,12 @@ pub fn handle_clone(args: CloneArgs) -> Result<()> {
 }
 
 pub fn handle_open(args: OpenArgs) -> Result<()> {
+    if !is_terminal() {
+        return Err(anyhow!(
+            "Opening projects in non-interactive mode is not supported"
+        ));
+    }
+
     let config_path = platform::config_file();
     let mut config = Config::load(&config_path)?;
     let projects = Library::new(
@@ -166,12 +172,11 @@ pub fn handle_open(args: OpenArgs) -> Result<()> {
     )?;
 
     let name = resolve_project_name(&args.name, &config, &projects, args.skip_autocomplete)
-        .ok_or_else(|| anyhow!("project not found."))?;
+        .ok_or_else(|| anyhow!("Project not found."))?;
 
     let project = projects.get(&name);
     if project.is_none() {
-        print_error("Project not found.");
-        exit(1);
+        return Err(anyhow!("Project not found."));
     }
     let path = project.unwrap();
 
@@ -209,9 +214,6 @@ pub fn handle_open(args: OpenArgs) -> Result<()> {
     if args.shell {
         let env_map = Vec::from([(String::from("KANRI_SESSION"), "1".to_string())]);
         launch_options.env = Some(env_map);
-    }
-
-    if args.shell {
         println!(
             "{}",
             "======== STARTING SHELL SESSION ========".bold().white()
@@ -301,21 +303,33 @@ pub fn handle_remove(args: RemoveArgs) -> Result<()> {
     let project_name = resolve_project_name(&args.name, &config, &projects, false)
         .ok_or_else(|| anyhow!("Project not found."))?;
 
-    if !args.yes
-        && !ask_dialog(
-            &format!("Do you want to delete '{}'?", project_name),
-            false,
-            false,
-        )
-    {
-        print_done("Canceled.");
-        return Ok(());
+    if is_terminal() {
+        if !args.yes
+            && !ask_dialog(
+                &format!("Do you want to delete '{}'?", project_name),
+                false,
+                false,
+            )
+        {
+            print_done("Canceled.");
+            return Ok(());
+        }
+    } else {
+        if !args.yes {
+            return Err(anyhow!(
+                "Confirmation with `--yes` is required for non-interactive sessions"
+            ));
+        }
     }
 
     let spinner = generate_progress().with_message("Removing project...");
 
     spinner.enable_steady_tick(Duration::from_millis(100));
-    projects.delete(&project_name)?;
+    let result = projects.delete(&project_name);
+    if let Err(e) = result {
+        spinner.finish_and_clear();
+        return Err(anyhow!(e));
+    }
     spinner.finish_and_clear();
 
     print_done(&format!("Project '{project_name}' has been removed."));
