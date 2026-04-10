@@ -1,3 +1,5 @@
+use std::io::IsTerminal;
+
 use colored::Colorize;
 use dialoguer::{
     Confirm, Input, Select,
@@ -58,7 +60,7 @@ pub fn ask_select(items: &Vec<String>, report: bool) -> usize {
 }
 
 pub fn is_terminal() -> bool {
-    atty::is(atty::Stream::Stdout)
+    std::io::stdin().is_terminal()
 }
 
 pub fn generate_progress() -> ProgressBar {
