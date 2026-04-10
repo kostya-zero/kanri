@@ -74,7 +74,7 @@ pub enum Commands {
 #[derive(Args)]
 pub struct NewArgs {
     /// Name for a new project.
-    pub name: String,
+    pub name: Option<String>,
 
     /// Template to use for a new project.
     #[arg(short, long)]

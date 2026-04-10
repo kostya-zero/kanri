@@ -1,6 +1,6 @@
 use colored::Colorize;
 use dialoguer::{
-    Confirm, Input,
+    Confirm, Input, Select,
     console::{Style, style},
     theme::{ColorfulTheme, Theme},
 };
@@ -44,6 +44,16 @@ pub fn ask_string_dialog(question: &str, report: bool) -> String {
         .default(String::new())
         .report(report)
         .interact_text()
+        .unwrap()
+}
+
+pub fn ask_select(items: &Vec<String>, report: bool) -> usize {
+    Select::with_theme(&get_dialog_theme())
+        .with_prompt("Which template to use?")
+        .default(0)
+        .items(items)
+        .report(report)
+        .interact()
         .unwrap()
 }
 

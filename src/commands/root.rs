@@ -14,7 +14,10 @@ use crate::{
     platform,
     program::{LaunchOptions, launch_program},
     templates::Templates,
-    terminal::{ask_dialog, generate_progress, print_done, print_error, print_title},
+    terminal::{
+        ask_dialog, ask_select, ask_string_dialog, generate_progress, print_done, print_error,
+        print_title,
+    },
 };
 
 fn resolve_project_name(
@@ -37,11 +40,45 @@ pub fn handle_new(args: NewArgs) -> Result<()> {
     let config = Config::load(platform::config_file())?;
     let projects_dir = &config.options.projects_directory;
     let mut projects = Library::new(projects_dir, config.options.display_hidden)?;
+    let is_terminal = atty::is(atty::Stream::Stdout);
 
-    projects.create(&args.name)?;
+    let project_name: String;
+    let mut template_name: Option<String> = None;
 
-    if let Some(template_name) = args.template {
-        let templates = Templates::load(platform::templates_file())?;
+    if let Some(name) = args.name.clone() {
+        project_name = name;
+    } else {
+        if is_terminal {
+            let name = ask_string_dialog("Name for new project?", true);
+            if name.is_empty() {
+                return Err(anyhow!("Project name cannot be empty"));
+            }
+            project_name = name;
+        } else {
+            return Err(anyhow!("Project name is required"));
+        }
+    }
+
+    validate_project_name(&project_name)?;
+
+    if let Some(name) = args.template {
+        template_name = Some(name);
+    }
+
+    let templates = Templates::load(platform::templates_file())?;
+    if template_name.is_none() && !templates.is_empty() && args.name.is_none() && is_terminal {
+        let mut items = vec!["none".to_string()];
+        let mut keys = templates.get_names();
+        items.append(&mut keys);
+        let selected = ask_select(&items, true);
+        if selected != 0 {
+            template_name = Some(items[selected].clone());
+        }
+    }
+
+    projects.create(&project_name)?;
+
+    if let Some(template_name) = template_name {
         let template = templates
             .get_template(&template_name)
             .ok_or_else(|| anyhow!("Template '{template_name}' not found."))?;
@@ -55,11 +92,11 @@ pub fn handle_new(args: NewArgs) -> Result<()> {
 
         println!(
             "Generating project '{}' from '{}' template...",
-            &args.name, &template_name
+            &project_name, &template_name
         );
 
-        let project_path = projects_dir.join(&args.name);
-        let env_map = vec![(String::from("KANRI_PROJECT"), args.name.clone())];
+        let project_path = projects_dir.join(&project_name);
+        let env_map = vec![(String::from("KANRI_PROJECT"), project_name.clone())];
         let started_time = Instant::now();
         for command in template {
             println!("{} {}", "=>>".bright_blue().bold(), command.bold().white());
@@ -79,16 +116,22 @@ pub fn handle_new(args: NewArgs) -> Result<()> {
             if let Err(e) = launch_program(launch_options) {
                 print_error("failed to apply template. Cleaning up...");
                 projects
-                    .delete(&args.name)
+                    .delete(&project_name)
                     .map_err(|err| anyhow!("additionally, cleanup failed: {}", err))?;
                 return Err(anyhow!("template command '{}' failed: {}", command, e));
             }
         }
 
         let elapsed_time = started_time.elapsed().as_millis();
-        print_done(&format!("Generated '{}' in {elapsed_time} ms.", args.name));
+        print_done(&format!(
+            "Generated '{}' in {elapsed_time} ms.",
+            project_name
+        ));
     } else {
-        print_done("Created.");
+        print_done(&format!(
+            "Created an empty project with name '{}'.",
+            project_name
+        ));
     }
 
     Ok(())

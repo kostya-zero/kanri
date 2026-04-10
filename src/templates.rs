@@ -87,4 +87,8 @@ impl Templates {
             serde_json::to_string_pretty(self).map_err(|_| TemplatesError::SerializationError)?;
         fs::write(path, content).map_err(|_| TemplatesError::FileSystemError)
     }
+
+    pub fn get_names(&self) -> Vec<String> {
+        self.0.keys().map(|k| k.to_string()).collect()
+    }
 }
