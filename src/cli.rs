@@ -7,8 +7,8 @@ use std::env;
     name = "kanri",
     about = env!("CARGO_PKG_DESCRIPTION"),
     version = env!("CARGO_PKG_VERSION"),
-    subcommand_required = false,
-    arg_required_else_help = false,
+    subcommand_required = true,
+    arg_required_else_help = true,
     disable_version_flag = true
 )]
 pub struct Cli {

@@ -57,11 +57,6 @@ fn main() {
         exit(1);
     }
 
-    if cli.cmd.is_none() {
-        println!("Nothing to do. Use `kanri --help` to see available commands.");
-        return;
-    }
-
     let result = match cli.cmd.unwrap() {
         Commands::New(args) => root::handle_new(args),
         Commands::Clone(args) => root::handle_clone(args),

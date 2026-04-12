@@ -1,9 +1,6 @@
 use anyhow::{Result, anyhow, ensure};
 use colored::Colorize;
-use std::{
-    process::exit,
-    time::{Duration, Instant},
-};
+use std::time::{Duration, Instant};
 
 use crate::{
     autocomplete,
