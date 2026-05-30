@@ -12,7 +12,7 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum TerminalError {
-    #[error("CLI interaction failed")]
+    #[error("CLI interaction failed.")]
     InteractionFailed,
 }
 

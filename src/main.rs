@@ -57,7 +57,7 @@ fn main() {
         exit(1);
     }
 
-    let result = match cli.cmd.unwrap() {
+    let result = match cli.cmd.expect("clap guarantees subcommand") {
         Commands::New(args) => root::handle_new(args),
         Commands::Clone(args) => root::handle_clone(args),
         Commands::Open(args) => root::handle_open(args),

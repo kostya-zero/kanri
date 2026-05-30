@@ -6,7 +6,7 @@ use std::{
 };
 
 use crate::program::{LaunchOptions, ProgramError, launch_program};
-use anyhow::{Result, anyhow};
+use anyhow::Result;
 use indexmap::IndexMap;
 use thiserror::Error;
 
@@ -37,6 +37,18 @@ pub enum LibraryError {
     #[error("This name is not allowed.")]
     InvalidProjectName,
 
+    #[error("Project name cannot be empty.")]
+    NameIsEmpty,
+
+    #[error("Project name contains invalid characters.")]
+    IllegalCharacter,
+
+    #[error("This name is not allowed.")]
+    IllegalName,
+
+    #[error("Project name cannot be a reserved name on Windows.")]
+    WindowsReservedName,
+
     #[error("{0}")]
     CustomError(String),
 
@@ -57,17 +69,17 @@ const IGNORED_NAMES: [&str; 7] = [
     "-",
 ];
 
-pub fn validate_project_name(name: &str) -> Result<()> {
+pub fn validate_project_name(name: &str) -> Result<(), LibraryError> {
     if name.is_empty() {
-        return Err(anyhow!("Project name cannot be empty."));
+        return Err(LibraryError::NameIsEmpty);
     }
 
     if name.contains(['/', '\\', ':', '*', '?', '"', '<', '>', '|']) {
-        return Err(anyhow!("Project name contains invalid characters."));
+        return Err(LibraryError::IllegalCharacter);
     }
 
     if IGNORED_NAMES.iter().any(|r| name.eq_ignore_ascii_case(r)) {
-        return Err(anyhow!("This name is not allowed."));
+        return Err(LibraryError::IllegalName);
     }
 
     // One more check for Windows
@@ -78,9 +90,7 @@ pub fn validate_project_name(name: &str) -> Result<()> {
             "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9",
         ];
         if reserved.iter().any(|r| name.eq_ignore_ascii_case(r)) {
-            return Err(anyhow!(
-                "Project name cannot be a reserved name on Windows."
-            ));
+            return Err(LibraryError::WindowsReservedName);
         }
     }
 

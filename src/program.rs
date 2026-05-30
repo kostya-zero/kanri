@@ -1,7 +1,7 @@
 use anyhow::Result;
 use std::{
     io::ErrorKind,
-    path::PathBuf,
+    path::Path,
     process::{Command, Stdio},
 };
 use thiserror::Error;
@@ -28,7 +28,7 @@ pub enum ProgramError {
 pub struct LaunchOptions<'a> {
     pub program: &'a str,
     pub args: Vec<String>,
-    pub cwd: Option<&'a PathBuf>,
+    pub cwd: Option<&'a Path>,
     pub fork_mode: bool,
     pub quiet: bool,
     pub env: Option<Vec<(String, String)>>,
