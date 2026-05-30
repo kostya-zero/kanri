@@ -1,29 +1,9 @@
 use std::{borrow::Cow, env, path::PathBuf};
 
 pub fn config_dir() -> PathBuf {
-    #[cfg(target_os = "windows")]
-    {
-        let base = env::var("LOCALAPPDATA")
-            .map(PathBuf::from)
-            .or_else(|_| env::var("USERPROFILE").map(|u| PathBuf::from(u).join("AppData\\Local")))
-            .unwrap_or_else(|_| PathBuf::from(r"C:\"));
-        base.join("kanri")
-    }
-
-    #[cfg(target_os = "macos")]
-    {
-        let home = dirs_next::home_dir().unwrap_or_else(|| PathBuf::from("/"));
-        home.join("Library/Application Support/kanri")
-    }
-
-    #[cfg(all(not(target_os = "windows"), not(target_os = "macos")))]
-    {
-        if let Ok(xdg) = env::var("XDG_CONFIG_HOME") {
-            return PathBuf::from(xdg).join("kanri");
-        }
-        let home = dirs_next::home_dir().unwrap_or_else(|| PathBuf::from("/"));
-        home.join(".config/kanri")
-    }
+    dir_spec::config_home()
+        .unwrap_or_else(|| PathBuf::from(".config"))
+        .join("kanri")
 }
 
 pub fn config_file() -> PathBuf {
@@ -57,38 +37,29 @@ pub fn default_shell() -> Cow<'static, str> {
     }
     #[cfg(target_os = "windows")]
     {
+        if let Ok(v) = env::var("COMSPEC") {
+            return Cow::Owned(v);
+        }
+
         Cow::Borrowed("powershell.exe")
     }
-    #[cfg(target_os = "macos")]
+
+    #[cfg(not(target_os = "windows"))]
     {
-        Cow::Borrowed("zsh")
-    }
-    #[cfg(all(not(target_os = "windows"), not(target_os = "macos")))]
-    {
-        Cow::Borrowed("bash")
+        #[cfg(target_os = "macos")]
+        {
+            Cow::Borrowed("zsh");
+        }
+
+        #[cfg(not(target_os = "macos"))]
+        {
+            Cow::Borrowed("bash");
+        }
     }
 }
 
 pub fn default_projects_dir() -> PathBuf {
-    #[cfg(target_os = "windows")]
-    {
-        if let Ok(up) = env::var("USERPROFILE") {
-            return PathBuf::from(up).join("Projects");
-        }
-        PathBuf::from(r"C:\Projects")
-    }
-
-    #[cfg(target_os = "macos")]
-    {
-        dirs_next::home_dir()
-            .unwrap_or_else(|| PathBuf::from("/"))
-            .join("Projects")
-    }
-
-    #[cfg(all(not(target_os = "windows"), not(target_os = "macos")))]
-    {
-        dirs_next::home_dir()
-            .unwrap_or_else(|| PathBuf::from("/"))
-            .join("Projects")
-    }
+    dir_spec::home()
+        .unwrap_or_else(|| PathBuf::from("."))
+        .join("Projects")
 }
