@@ -130,6 +130,10 @@ pub fn handle_remove(args: ProfilesRemoveArgs) -> Result<()> {
         bail!("Profile {} not found.", args.name)
     }
 
+    if config.options.current_profile == args.name {
+        bail!("Select another profile first before you can delete current one.")
+    }
+
     let confirmation = ask_dialog("Do you want to delete this profile?", false, false)?;
 
     if !confirmation {
