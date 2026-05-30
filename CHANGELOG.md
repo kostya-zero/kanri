@@ -1,8 +1,19 @@
 # Kanri Changelog
 
-## Next
+# Next 
 
 TBW
+
+## 0.10.3
+
+- Added `--yes` flag for `profiles remove` to support forced profile removal.
+- Added interactive dialogs for `kanri new` when project name not passed. 
+- Show help when no subcommand provided.
+- Kanri now respects XDG environment variables for configuration directory path.
+- Fixed profile removal to persist config changes.
+- Prevent deleting current active profile.
+- Fixed profile removal flow to stop after abort confirmation.
+- Improved handling of non-interactive sessions in `open`.
 
 ## 0.10.2
 
