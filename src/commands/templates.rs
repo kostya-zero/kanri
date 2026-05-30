@@ -128,7 +128,7 @@ pub fn handle_get(args: TemplatesGetArgs) -> Result<()> {
 pub fn handle_clear() -> Result<()> {
     let templates_path = platform::templates_file();
     let mut templates = Templates::load(&templates_path)?;
-    if ask_dialog("Clear all templates?", false, true) {
+    if ask_dialog("Clear all templates?", false, true)? {
         templates.clear();
         templates.save(templates_path)?;
         print_done("Templates storage has been cleared.");

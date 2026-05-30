@@ -16,7 +16,8 @@ pub fn autocomplete(word: &str, words_list: &[&str], config: &Config) -> Option<
             if config.autocomplete.always_accept {
                 return Some(name);
             }
-            let answer = ask_dialog(&format!("Did you mean '{name}'?"), true, false);
+            let answer =
+                ask_dialog(&format!("Did you mean '{name}'?"), true, false).unwrap_or(false);
             if answer { Some(name) } else { None }
         }
         CompletionResult::Nothing => None,

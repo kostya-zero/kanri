@@ -12,13 +12,13 @@ pub fn handle_new() -> Result<()> {
     let config_path = platform::config_file();
     let mut config = Config::load(&config_path)?;
 
-    let profile_name = ask_string_dialog("Name for new profile?", true);
+    let profile_name = ask_string_dialog("Name for new profile?", true)?;
 
     if config.is_profile_exist(&profile_name) {
         bail!("Profile with the same name already exists.")
     }
 
-    let mut editor = ask_string_dialog("Which editor you want to assign (program name)?", true);
+    let mut editor = ask_string_dialog("Which editor you want to assign (program name)?", true)?;
 
     if editor.is_empty() {
         bail!("Editor name is empty.")
@@ -39,11 +39,11 @@ pub fn handle_new() -> Result<()> {
             editor_args.push(".".to_string());
         }
         _ => {
-            editor_fork_mode = ask_dialog("Do you want to run your editor forked?", false, true);
+            editor_fork_mode = ask_dialog("Do you want to run your editor forked?", false, true)?;
         }
     }
 
-    let shell = ask_string_dialog("Which shell you want to assign (program name)?", true);
+    let shell = ask_string_dialog("Which shell you want to assign (program name)?", true)?;
 
     if shell.is_empty() {
         bail!("Shell name is empty.")
@@ -130,7 +130,7 @@ pub fn handle_remove(args: ProfilesRemoveArgs) -> Result<()> {
         bail!("Profile {} not found.", args.name)
     }
 
-    let confirmation = ask_dialog("Do you want to delete this profile?", false, false);
+    let confirmation = ask_dialog("Do you want to delete this profile?", false, false)?;
 
     if !confirmation {
         print_done("Aborted");

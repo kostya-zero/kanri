@@ -46,7 +46,7 @@ pub fn handle_new(args: NewArgs) -> Result<()> {
         project_name = name;
     } else {
         if is_terminal {
-            let name = ask_string_dialog("Name for new project?", true);
+            let name = ask_string_dialog("Name for new project?", true)?;
             if name.is_empty() {
                 return Err(anyhow!("Project name cannot be empty"));
             }
@@ -67,7 +67,7 @@ pub fn handle_new(args: NewArgs) -> Result<()> {
         let mut items = vec!["none".to_string()];
         let mut keys = templates.get_names();
         items.append(&mut keys);
-        let selected = ask_select(&items, true);
+        let selected = ask_select(&items, true)?;
         if selected != 0 {
             template_name = Some(items[selected].clone());
         }
@@ -306,7 +306,7 @@ pub fn handle_remove(args: RemoveArgs) -> Result<()> {
                 &format!("Do you want to delete '{}'?", project_name),
                 false,
                 false,
-            )
+            )?
         {
             print_done("Canceled.");
             return Ok(());

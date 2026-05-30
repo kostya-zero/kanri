@@ -1,5 +1,6 @@
 use std::io::IsTerminal;
 
+use anyhow::Result;
 use colored::Colorize;
 use dialoguer::{
     Confirm, Input, Select,
@@ -7,6 +8,13 @@ use dialoguer::{
     theme::{ColorfulTheme, Theme},
 };
 use indicatif::ProgressBar;
+use thiserror::Error;
+
+#[derive(Error, Debug)]
+pub enum TerminalError {
+    #[error("CLI interaction failed")]
+    InteractionFailed,
+}
 
 pub fn print_error(msg: &str) {
     eprintln!(" {}: {msg}", "Error".bright_red().bold());
@@ -30,33 +38,33 @@ fn get_dialog_theme() -> impl Theme {
     }
 }
 
-pub fn ask_dialog(question: &str, default: bool, report: bool) -> bool {
+pub fn ask_dialog(question: &str, default: bool, report: bool) -> Result<bool, TerminalError> {
     Confirm::with_theme(&get_dialog_theme())
         .with_prompt(question)
         .default(default)
         .show_default(true)
         .report(report)
         .interact()
-        .unwrap()
+        .map_err(|_| TerminalError::InteractionFailed)
 }
 
-pub fn ask_string_dialog(question: &str, report: bool) -> String {
+pub fn ask_string_dialog(question: &str, report: bool) -> Result<String, TerminalError> {
     Input::<String>::with_theme(&get_dialog_theme())
         .with_prompt(question)
         .default(String::new())
         .report(report)
         .interact_text()
-        .unwrap()
+        .map_err(|_| TerminalError::InteractionFailed)
 }
 
-pub fn ask_select(items: &Vec<String>, report: bool) -> usize {
+pub fn ask_select(items: &Vec<String>, report: bool) -> Result<usize, TerminalError> {
     Select::with_theme(&get_dialog_theme())
         .with_prompt("Which template to use?")
         .default(0)
         .items(items)
         .report(report)
         .interact()
-        .unwrap()
+        .map_err(|_| TerminalError::InteractionFailed)
 }
 
 pub fn is_terminal() -> bool {
