@@ -136,6 +136,7 @@ pub fn handle_remove(args: ProfilesRemoveArgs) -> Result<()> {
         print_done("Aborted");
     } else {
         config.profiles.shift_remove(&args.name).unwrap();
+        config.save(&config_path)?;
         print_done("Profile has been removed.");
     }
 
