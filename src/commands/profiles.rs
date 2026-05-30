@@ -134,15 +134,13 @@ pub fn handle_remove(args: ProfilesRemoveArgs) -> Result<()> {
         bail!("Select another profile first before you can delete current one.")
     }
 
-    let confirmation = ask_dialog("Do you want to delete this profile?", false, false)?;
-
-    if !confirmation {
+    if !args.yes && !ask_dialog("Do you want to delete this profile?", false, false)? {
         print_done("Aborted");
-    } else {
-        config.profiles.shift_remove(&args.name).unwrap();
-        config.save(&config_path)?;
-        print_done("Profile has been removed.");
     }
+
+    config.profiles.shift_remove(&args.name).unwrap();
+    config.save(&config_path)?;
+    print_done("Profile has been removed.");
 
     Ok(())
 }

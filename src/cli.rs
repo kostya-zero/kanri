@@ -244,6 +244,10 @@ pub struct ProfilesGetArgs {
 pub struct ProfilesRemoveArgs {
     /// Name of profile to remove.
     pub name: String,
+
+    /// Force removal of profile
+    #[arg(short, long, action = ArgAction::SetTrue)]
+    pub yes: bool,
 }
 
 #[derive(Args)]
