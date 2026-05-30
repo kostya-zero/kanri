@@ -48,12 +48,12 @@ pub fn default_shell() -> Cow<'static, str> {
     {
         #[cfg(target_os = "macos")]
         {
-            Cow::Borrowed("zsh");
+            Cow::Borrowed("zsh")
         }
 
         #[cfg(not(target_os = "macos"))]
         {
-            Cow::Borrowed("bash");
+            Cow::Borrowed("bash")
         }
     }
 }
