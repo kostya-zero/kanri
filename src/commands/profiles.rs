@@ -136,6 +136,7 @@ pub fn handle_remove(args: ProfilesRemoveArgs) -> Result<()> {
 
     if !args.yes && !ask_dialog("Do you want to delete this profile?", false, false)? {
         print_done("Aborted");
+        return Ok(());
     }
 
     config.profiles.shift_remove(&args.name).unwrap();
