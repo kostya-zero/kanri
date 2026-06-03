@@ -1,5 +1,6 @@
 pub mod autocomplete;
 pub mod backup;
+pub mod blueprints;
 pub mod cli;
 pub mod commands;
 pub mod config;

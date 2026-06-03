@@ -13,6 +13,10 @@ pub fn templates_file() -> PathBuf {
     config_dir().join("templates.json")
 }
 
+pub fn blueprints_dir() -> PathBuf {
+    config_dir().join("blueprints")
+}
+
 pub fn default_editor() -> Cow<'static, str> {
     if let Ok(v) = env::var("VISUAL").or_else(|_| env::var("EDITOR")) {
         return Cow::Owned(v);

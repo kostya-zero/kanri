@@ -7,7 +7,7 @@ homepage = "https://github.com/kostya-zero/kanri"
 keywords = ["workspace", "projects", "manager", "cli"]
 readme = "README.md"
 license = "MIT"
-version = "0.10.3"
+version = "0.11.0-dev"
 edition = "2024"
 
 [dependencies]
@@ -23,6 +23,7 @@ thiserror = "2.0.17"
 tempfile = "3.20.0"
 toml = "1.0.1"
 dir_spec = "0.5.2"
+mlua = { version = "0.11.6", features = ["lua54", "vendored"] }
 
 [target.'cfg(windows)'.dependencies]
 ctrlc = "3.4.7"
