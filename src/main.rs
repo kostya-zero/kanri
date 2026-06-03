@@ -1,10 +1,10 @@
-use std::process::exit;
+use std::{fs, process::exit};
 
 use anyhow::{Result, anyhow};
 use clap::Parser;
 use kanri::{
     cli::{Cli, Commands, ConfigCommands, ProfilesCommands, TemplatesCommands},
-    commands::{config, profiles, root, templates},
+    commands::{blueprints, config, profiles, root, templates},
     config::Config,
     platform,
     templates::Templates,
@@ -26,6 +26,11 @@ fn check_env() -> Result<()> {
         templates
             .save(templates_path)
             .map_err(|e| anyhow!(e.to_string()))?;
+    }
+
+    let blueprints_dir = platform::blueprints_dir();
+    if !blueprints_dir.exists() {
+        fs::create_dir_all(&blueprints_dir).map_err(|e| anyhow!(e.to_string()))?;
     }
 
     Ok(())
@@ -73,6 +78,7 @@ fn main() {
             TemplatesCommands::Clear => templates::handle_clear(),
             TemplatesCommands::Remove(args) => templates::handle_remove(args),
         },
+        Commands::Blueprints { command } => blueprints::handle(command),
         Commands::Config { command } => match command {
             ConfigCommands::Path => config::handle_path(),
             ConfigCommands::Edit => config::handle_edit(),

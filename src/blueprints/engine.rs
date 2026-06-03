@@ -26,4 +26,12 @@ impl BlueprintEngine {
 
         BlueprintEngine { lua, current_dir }
     }
+
+    pub fn run(&self, source: &str) -> LuaResult<()> {
+        self.lua.load(source).exec()
+    }
+
+    pub fn current_dir(&self) -> &PathBuf {
+        &self.current_dir
+    }
 }
