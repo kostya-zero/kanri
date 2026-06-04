@@ -24,6 +24,10 @@ impl BlueprintEngine {
             .set("fs", create_fs_module(&lua, current_dir.clone()))
             .unwrap();
 
+        lua.globals()
+            .set("os", create_fs_module(&lua, current_dir.clone()))
+            .unwrap();
+
         BlueprintEngine { lua, current_dir }
     }
 
