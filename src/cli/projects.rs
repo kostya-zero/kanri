@@ -5,6 +5,10 @@ pub struct NewArgs {
     /// Name for a new project.
     pub name: String,
 
+    // Blueprint to use for a new project.
+    #[arg(short, long)]
+    pub blueprint: Option<String>,
+
     /// Template to use for a new project.
     #[arg(short, long)]
     pub template: Option<String>,

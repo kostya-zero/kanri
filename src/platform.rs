@@ -9,6 +9,7 @@ pub fn config_dir() -> PathBuf {
 pub fn config_file() -> PathBuf {
     config_dir().join("config.toml")
 }
+
 pub fn templates_file() -> PathBuf {
     config_dir().join("templates.json")
 }

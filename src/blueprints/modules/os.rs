@@ -1,10 +1,9 @@
-use dir_spec::runtime;
 use mlua::prelude::*;
 use std::{env, io::ErrorKind, path::PathBuf, process::Command};
 
 use crate::runtime_error;
 
-pub fn create_fs_module<I: Into<PathBuf>>(lua: &Lua, current_dir: I) -> LuaTable {
+pub fn create_os_module<I: Into<PathBuf>>(lua: &Lua, current_dir: I) -> LuaTable {
     let os_table = lua.create_table().unwrap();
     let current_dir = current_dir.into();
 

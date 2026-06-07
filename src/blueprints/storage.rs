@@ -119,9 +119,10 @@ impl Blueprints {
         if !self.blueprints.iter().any(|i| i == &name) {
             return Err(BlueprintsError::NotFound);
         }
-        let blueprint_path = Path::new(&name).with_extension(".lua");
-        let content =
-            fs::read_to_string(blueprint_path).map_err(|_| BlueprintsError::ReadFailed)?;
+        let blueprint_path = Path::new(&self.path).join(&name).with_extension("lua");
+        println!("{:?}", blueprint_path);
+        let content = fs::read_to_string(blueprint_path)
+            .map_err(|e| BlueprintsError::IoError { source: e })?;
         Ok(content)
     }
 }

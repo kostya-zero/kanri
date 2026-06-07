@@ -1,17 +1,18 @@
-use anyhow::{Result, anyhow, ensure};
+use anyhow::{Result, anyhow, bail, ensure};
 use colored::Colorize;
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 use crate::{
     autocomplete,
     backup::{Backup, load_backup, save_backup},
+    blueprints::{engine::BlueprintEngine, storage::Blueprints},
     cli::{BackupArgs, CloneArgs, ImportArgs, ListArgs, NewArgs, OpenArgs, RemoveArgs, RenameArgs},
     config::Config,
     library::{CloneOptions, Library, validate_project_name},
     platform,
     program::{LaunchOptions, launch_program},
     templates::Templates,
-    terminal::{ask_dialog, generate_progress, is_terminal, print_done, print_error, print_title},
+    terminal::{ask_dialog, generate_progress, is_terminal, print_done, print_title},
 };
 
 fn resolve_project_name(
@@ -31,6 +32,12 @@ fn resolve_project_name(
 }
 
 pub fn handle_new(args: NewArgs) -> Result<()> {
+    if args.template.is_some() {
+        bail!(
+            "Templates are no longer supported and has been replaced with blueprints. If you want to migrate your templates, use `kanri templates migrate`."
+        );
+    }
+
     let config = Config::load(platform::config_file())?;
     let projects_dir = &config.options.projects_directory;
     let mut projects = Library::new(projects_dir, config.options.display_hidden)?;
@@ -38,59 +45,33 @@ pub fn handle_new(args: NewArgs) -> Result<()> {
     validate_project_name(&args.name)?;
     projects.create(&args.name)?;
 
-    if let Some(template_name) = args.template {
-        let templates = Templates::load(platform::templates_file())?;
-        let template = templates
-            .get_template(&template_name)
-            .ok_or_else(|| anyhow!("Template '{template_name}' not found."))?;
+    if let Some(blueprint) = args.blueprint {
+        let blueprints_dir = platform::blueprints_dir();
+        let blueprints = Blueprints::load_from_path(&blueprints_dir)?;
+        let blueprint_code = blueprints.get_blueprint(blueprint.clone())?;
 
-        let profile = config.get_profile(&config.options.current_profile)?;
-        let program = &profile.shell;
-        ensure!(
-            !program.is_empty(),
-            "shell is not configured in the configuration file."
-        );
+        let project_dir = projects_dir.join(&args.name);
+        let engine = BlueprintEngine::init(project_dir);
 
-        println!(
-            "Generating project '{}' from '{}' template...",
-            &args.name, &template_name
-        );
-
-        let project_path = projects_dir.join(&args.name);
-        let env_map = vec![(String::from("KANRI_PROJECT"), args.name.clone())];
-        let started_time = Instant::now();
-        for command in template {
-            println!("{} {}", "=>>".bright_blue().bold(), command.bold().white());
-
-            let mut args_vec = profile.shell_args.clone();
-            args_vec.push(command.clone());
-
-            let launch_options = LaunchOptions {
-                program,
-                args: args_vec,
-                cwd: Some(&project_path),
-                fork_mode: false,
-                quiet: args.quiet,
-                env: Some(env_map.clone()),
-            };
-
-            if let Err(e) = launch_program(launch_options) {
-                print_error("failed to apply template. Cleaning up...");
-                projects
-                    .delete(&args.name)
-                    .map_err(|err| anyhow!("additionally, cleanup failed: {}", err))?;
-                return Err(anyhow!("template command '{}' failed: {}", command, e));
-            }
+        println!("Running blueprint engine for '{}' blueprint...", &blueprint);
+        if let mlua::Result::Err(e) = engine.run(&blueprint_code) {
+            bail!("an error occurred in Lua engine: {}", e);
         }
 
-        let elapsed_time = started_time.elapsed().as_millis();
-        print_done(&format!("Generated '{}' in {elapsed_time} ms.", args.name));
-    } else {
-        print_done(&format!(
-            "Created an empty project with name '{}'.",
-            args.name
-        ));
+        print_done(
+            format!(
+                "Generated '{}' from blueprint '{}'.",
+                &args.name, &blueprint,
+            )
+            .as_str(),
+        );
+        return Ok(());
     }
+
+    print_done(&format!(
+        "Created an empty project with name '{}'.",
+        args.name
+    ));
 
     Ok(())
 }

@@ -4,6 +4,7 @@ use mlua::prelude::*;
 use mlua::{LuaOptions, StdLib};
 
 use crate::blueprints::modules::fs::create_fs_module;
+use crate::blueprints::modules::os::create_os_module;
 
 pub struct BlueprintEngine {
     lua: Lua,
@@ -25,7 +26,7 @@ impl BlueprintEngine {
             .unwrap();
 
         lua.globals()
-            .set("os", create_fs_module(&lua, current_dir.clone()))
+            .set("os", create_os_module(&lua, current_dir.clone()))
             .unwrap();
 
         BlueprintEngine { lua, current_dir }
