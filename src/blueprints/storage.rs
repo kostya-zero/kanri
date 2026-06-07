@@ -1,5 +1,9 @@
 use anyhow::Result;
-use std::{fs, io::ErrorKind, path::Path};
+use std::{
+    fs,
+    io::ErrorKind,
+    path::{Path, PathBuf},
+};
 
 use thiserror::Error;
 
@@ -17,6 +21,9 @@ pub enum BlueprintsError {
     #[error("Failed to read blueprint.")]
     ReadFailed,
 
+    #[error("Blueprint with this name already exists.")]
+    AlreadyExists,
+
     #[error("An unexpected I/O error occurred: {source}.")]
     IoError {
         #[from]
@@ -25,14 +32,24 @@ pub enum BlueprintsError {
 }
 
 #[derive(Default)]
-pub struct Blueprints(Vec<String>);
+pub struct Blueprints {
+    blueprints: Vec<String>,
+    path: PathBuf,
+}
 
 impl Blueprints {
+    /// Loads all blueprints from given path.
     pub fn load_from_path(path: &Path) -> Result<Blueprints, BlueprintsError> {
         let collected_files = Self::collect_lua_files(path)?;
-        Ok(Blueprints(collected_files))
+        let storage = Blueprints {
+            blueprints: collected_files,
+            path: path.to_path_buf(),
+        };
+        Ok(storage)
     }
 
+    /// Collects all lua files from directory and returns a vector with their filenames without
+    /// extension.
     fn collect_lua_files(path: &Path) -> Result<Vec<String>, BlueprintsError> {
         let dir_entries = match fs::read_dir(path) {
             Ok(d) => d,
@@ -70,12 +87,36 @@ impl Blueprints {
         Ok(files)
     }
 
-    pub fn get_blueprints(&self) -> &Vec<String> {
-        &self.0
+    /// Creates a new file in blueprints directory.
+    pub fn create(&self, name: String) -> Result<PathBuf, BlueprintsError> {
+        if self.blueprints.contains(&name) {
+            return Err(BlueprintsError::AlreadyExists);
+        }
+
+        let new_blueprint_path = self.path.join(format!("{}.lua", name));
+        fs::write(&new_blueprint_path, "").map_err(|e| BlueprintsError::IoError { source: e })?;
+        Ok(new_blueprint_path)
     }
 
+    /// Removes blueprint from blueprints directory.
+    pub fn remove(&self, name: String) -> Result<(), BlueprintsError> {
+        if !self.blueprints.contains(&name) {
+            return Err(BlueprintsError::NotFound);
+        }
+
+        let blueprint_path = self.path.join(format!("{}.lua", name));
+        fs::remove_file(blueprint_path).map_err(|e| BlueprintsError::IoError { source: e })?;
+        Ok(())
+    }
+
+    /// Get all blueprints.
+    pub fn get_blueprints(&self) -> &Vec<String> {
+        &self.blueprints
+    }
+
+    /// Get content of a blueprint.
     pub fn get_blueprint(&self, name: String) -> Result<String, BlueprintsError> {
-        if !self.0.iter().any(|i| i == &name) {
+        if !self.blueprints.iter().any(|i| i == &name) {
             return Err(BlueprintsError::NotFound);
         }
         let blueprint_path = Path::new(&name).with_extension(".lua");
