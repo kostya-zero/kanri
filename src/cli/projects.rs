@@ -3,7 +3,7 @@ use clap::{ArgAction, Args};
 #[derive(Args)]
 pub struct NewArgs {
     /// Name for a new project.
-    pub name: Option<String>,
+    pub name: String,
 
     /// Template to use for a new project.
     #[arg(short, long)]
