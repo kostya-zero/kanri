@@ -11,10 +11,7 @@ use crate::{
     platform,
     program::{LaunchOptions, launch_program},
     templates::Templates,
-    terminal::{
-        ask_dialog, ask_select, ask_string_dialog, generate_progress, is_terminal, print_done,
-        print_error, print_title,
-    },
+    terminal::{ask_dialog, generate_progress, is_terminal, print_done, print_error, print_title},
 };
 
 fn resolve_project_name(
@@ -37,18 +34,12 @@ pub fn handle_new(args: NewArgs) -> Result<()> {
     let config = Config::load(platform::config_file())?;
     let projects_dir = &config.options.projects_directory;
     let mut projects = Library::new(projects_dir, config.options.display_hidden)?;
-    let mut template_name: Option<String> = None;
 
     validate_project_name(&args.name)?;
-
-    if let Some(name) = args.template {
-        template_name = Some(name);
-    }
-
-    let templates = Templates::load(platform::templates_file())?;
     projects.create(&args.name)?;
 
-    if let Some(template_name) = template_name {
+    if let Some(template_name) = args.template {
+        let templates = Templates::load(platform::templates_file())?;
         let template = templates
             .get_template(&template_name)
             .ok_or_else(|| anyhow!("Template '{template_name}' not found."))?;
