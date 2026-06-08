@@ -8,11 +8,12 @@ use crate::blueprints::modules::os::create_os_module;
 
 pub struct BlueprintEngine {
     lua: Lua,
+    file_name: String,
     current_dir: PathBuf,
 }
 
 impl BlueprintEngine {
-    pub fn init<I: Into<PathBuf> + Clone>(current_dir: I) -> BlueprintEngine {
+    pub fn init<I: Into<PathBuf> + Clone>(current_dir: I, file_name: String) -> BlueprintEngine {
         let lua = Lua::new_with(
             StdLib::ALL_SAFE | StdLib::MATH | StdLib::TABLE | StdLib::STRING | StdLib::UTF8,
             LuaOptions::default(),
@@ -29,11 +30,15 @@ impl BlueprintEngine {
             .set("os", create_os_module(&lua, current_dir.clone()))
             .unwrap();
 
-        BlueprintEngine { lua, current_dir }
+        BlueprintEngine {
+            lua,
+            current_dir,
+            file_name,
+        }
     }
 
     pub fn run(&self, source: &str) -> LuaResult<()> {
-        self.lua.load(source).exec()
+        self.lua.load(source).set_name(&self.file_name).exec()
     }
 
     pub fn current_dir(&self) -> &PathBuf {
