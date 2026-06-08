@@ -12,7 +12,7 @@ use crate::{
     platform,
     program::{LaunchOptions, launch_program},
     templates::Templates,
-    terminal::{ask_dialog, generate_progress, is_terminal, print_done, print_title},
+    terminal::{ask_dialog, generate_progress, is_terminal, print_done, print_error, print_title},
 };
 
 fn resolve_project_name(
@@ -55,7 +55,9 @@ pub fn handle_new(args: NewArgs) -> Result<()> {
 
         println!("Running blueprint engine for '{}' blueprint...", &blueprint);
         if let mlua::Result::Err(e) = engine.run(&blueprint_code) {
-            bail!("an error occurred in Lua engine: {}", e);
+            print_error(&format!("An error occurred in Lua engine: {}", e));
+            projects.delete(&args.name)?;
+            bail!("Failed to generate project from blueprint. See Lua error above.")
         }
 
         print_done(
