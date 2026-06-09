@@ -2,8 +2,8 @@ use anyhow::{Result, anyhow, bail, ensure};
 use std::{fs, path::Path};
 
 use crate::{
-    blueprints::storage::Blueprints,
-    cli::{BlueprintsCommands, BlueprintsNewArgs, BlueprintsRemoveArgs},
+    blueprints::{engine::BlueprintEngine, storage::Blueprints},
+    cli::{BlueprintsCommands, BlueprintsNewArgs, BlueprintsRemoveArgs, CheckArgs},
     config::Config,
     platform,
     program::{LaunchOptions, launch_program},
@@ -14,6 +14,7 @@ pub fn handle(command: BlueprintsCommands) -> Result<()> {
     match command {
         BlueprintsCommands::New(args) => handle_new(args),
         BlueprintsCommands::List => handle_list(),
+        BlueprintsCommands::BlueprintsCheckArgs(args) => handle_check(args),
         BlueprintsCommands::Remove(args) => handle_remove(args),
     }
 }
@@ -67,6 +68,21 @@ fn handle_list() -> Result<()> {
     for blueprint in blueprints_vec {
         println!(" {blueprint}");
     }
+    Ok(())
+}
+
+fn handle_check(args: CheckArgs) -> Result<()> {
+    let blueprints_dir = platform::blueprints_dir();
+    let blueprints = Blueprints::load_from_path(&blueprints_dir)?;
+    let blueprint_code = blueprints.get_blueprint(args.name.clone())?;
+
+    let engine = BlueprintEngine::init(Path::new("."), format!("{}.lua", args.name));
+    if let mlua::Result::Err(e) = engine.check(&blueprint_code) {
+        bail!("Check failed: {}", e);
+    }
+
+    print_done("Blueprint is valid.");
+
     Ok(())
 }
 

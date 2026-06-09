@@ -6,7 +6,7 @@ mod projects;
 mod root;
 mod templates;
 
-pub use blueprints::{BlueprintsCommands, BlueprintsNewArgs, BlueprintsRemoveArgs};
+pub use blueprints::{BlueprintsCommands, BlueprintsNewArgs, BlueprintsRemoveArgs, CheckArgs};
 pub use commands::Commands;
 pub use config::{ConfigCommands, RecentArgs};
 pub use profiles::{ProfilesCommands, ProfilesGetArgs, ProfilesRemoveArgs, ProfilesSetArgs};

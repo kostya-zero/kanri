@@ -41,6 +41,14 @@ impl BlueprintEngine {
         self.lua.load(source).set_name(&self.file_name).exec()
     }
 
+    pub fn check(&self, source: &str) -> LuaResult<()> {
+        self.lua
+            .load(source)
+            .set_name(&self.file_name)
+            .into_function()
+            .map(|_| ())
+    }
+
     pub fn current_dir(&self) -> &PathBuf {
         &self.current_dir
     }

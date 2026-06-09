@@ -8,6 +8,9 @@ pub enum BlueprintsCommands {
     /// List available blueprints.
     List,
 
+    /// Check blueprint on syntax errors.
+    BlueprintsCheckArgs(CheckArgs),
+
     /// Remove blueprint.
     Remove(BlueprintsRemoveArgs),
 }
@@ -15,6 +18,12 @@ pub enum BlueprintsCommands {
 #[derive(Args)]
 pub struct BlueprintsNewArgs {
     /// Name of new blueprint.
+    pub name: String,
+}
+
+#[derive(Args)]
+pub struct CheckArgs {
+    /// Name of blueprint to check.
     pub name: String,
 }
 
