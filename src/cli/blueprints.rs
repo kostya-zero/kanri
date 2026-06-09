@@ -8,7 +8,7 @@ pub enum BlueprintsCommands {
     /// List available blueprints.
     List,
 
-    /// Check blueprint on syntax errors.
+    /// Check blueprint on syntax errors. It doesn't execute the code.
     BlueprintsCheckArgs(CheckArgs),
 
     /// Remove blueprint.
