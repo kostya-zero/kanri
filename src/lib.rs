@@ -5,6 +5,7 @@ pub mod cli;
 pub mod commands;
 pub mod config;
 pub mod library;
+pub mod migrations;
 pub mod platform;
 pub mod program;
 pub mod templates;

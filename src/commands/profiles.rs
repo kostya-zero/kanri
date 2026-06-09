@@ -49,24 +49,11 @@ pub fn handle_new() -> Result<()> {
         bail!("Shell name is empty.")
     }
 
-    let mut shell_args: Vec<String> = Vec::with_capacity(3);
-
-    match shell.as_str() {
-        "pwsh" | "pwsh.exe" | "powershell" | "powershell.exe" => {
-            shell_args.push("-NoLogo".to_string());
-            shell_args.push("-Command".to_string());
-        }
-        _ => {
-            shell_args.push("-c".to_string());
-        }
-    }
-
     let profile = Profile {
         editor,
         editor_fork_mode,
         editor_args,
         shell,
-        shell_args,
     };
 
     config.profiles.insert(profile_name, profile);

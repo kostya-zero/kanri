@@ -1,4 +1,4 @@
-use crate::platform;
+use crate::{migrations, platform};
 use indexmap::{IndexMap, indexmap};
 use serde::{Deserialize, Serialize};
 use std::{
@@ -7,6 +7,8 @@ use std::{
     path::{Path, PathBuf},
 };
 use thiserror::Error;
+
+const CONFIG_VERSION: &str = "2";
 
 #[derive(Debug, Error)]
 pub enum ConfigError {
@@ -31,7 +33,7 @@ pub enum ConfigError {
     #[error("cannot find configuration file.")]
     FileNotFound,
 
-    #[error("configuration bad syntax: {0}.")]
+    #[error("configuration error: {0}.")]
     BadConfiguration(String),
 
     #[error("profile '{0}' was not found.")]
@@ -77,13 +79,6 @@ impl Default for Config {
 
         // Getting default shell
         let shell = platform::default_shell().to_string();
-        let shell_args = match shell.as_str() {
-            "powershell.exe" | "powershell" | "pwsh.exe" | "pwsh" => {
-                vec!["-NoLogo".into(), "-Command".into()]
-            }
-            "cmd" | "cmd.exe" => vec!["/C".into()],
-            _ => vec!["-c".into()],
-        };
 
         let profiles = indexmap! {
             String::from("default") => Profile {
@@ -91,12 +86,11 @@ impl Default for Config {
                 editor_args,
                 editor_fork_mode,
                 shell,
-                shell_args
             }
         };
 
         Self {
-            version: "1".to_string(),
+            version: CONFIG_VERSION.to_string(),
             options: GeneralOptions::default(),
             profiles,
             recent: RecentOptions::default(),
@@ -112,7 +106,6 @@ pub struct Profile {
     pub editor_args: Vec<String>,
     pub editor_fork_mode: bool,
     pub shell: String,
-    pub shell_args: Vec<String>,
 }
 
 #[derive(Deserialize, Serialize, Clone)]
@@ -167,16 +160,26 @@ impl Default for GeneralOptions {
 
 impl Config {
     pub fn load(path: impl AsRef<Path>) -> Result<Self, ConfigError> {
-        let content = fs::read_to_string(&path);
-        if let Err(e) = content {
-            return match e.kind() {
-                ErrorKind::PermissionDenied => Err(ConfigError::ReadPermissionDenied),
-                ErrorKind::NotFound => Err(ConfigError::FileNotFound),
-                _ => Err(ConfigError::FileSystemError(e)),
-            };
+        let content = fs::read_to_string(&path).map_err(|e| match e.kind() {
+            ErrorKind::PermissionDenied => ConfigError::ReadPermissionDenied,
+            ErrorKind::NotFound => ConfigError::FileNotFound,
+            _ => ConfigError::FileSystemError(e),
+        })?;
+
+        let mut value: toml::Value = toml::from_str(&content)
+            .map_err(|e: toml::de::Error| ConfigError::BadConfiguration(e.to_string()))?;
+
+        let was_migrated = migrations::migrate_config(&mut value)?;
+
+        let config: Config = value
+            .try_into()
+            .map_err(|e: toml::de::Error| ConfigError::BadConfiguration(e.to_string()))?;
+
+        if was_migrated {
+            config.save(path)?;
         }
-        toml::from_str::<Config>(&content.unwrap())
-            .map_err(|e| ConfigError::BadConfiguration(e.to_string()))
+
+        Ok(config)
     }
 
     pub fn save(&self, path: impl AsRef<Path>) -> Result<(), ConfigError> {
