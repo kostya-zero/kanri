@@ -5,6 +5,7 @@ use mlua::{LuaOptions, StdLib};
 
 use crate::blueprints::modules::fs::create_fs_module;
 use crate::blueprints::modules::os::create_os_module;
+use crate::blueprints::modules::project::create_project_module;
 
 pub struct BlueprintEngine {
     lua: Lua,
@@ -13,7 +14,11 @@ pub struct BlueprintEngine {
 }
 
 impl BlueprintEngine {
-    pub fn init<I: Into<PathBuf> + Clone>(current_dir: I, file_name: String) -> BlueprintEngine {
+    pub fn init<I: Into<PathBuf> + Clone>(
+        current_dir: I,
+        file_name: String,
+        project_name: String,
+    ) -> BlueprintEngine {
         let lua = Lua::new_with(
             StdLib::ALL_SAFE | StdLib::MATH | StdLib::TABLE | StdLib::STRING | StdLib::UTF8,
             LuaOptions::default(),
@@ -28,6 +33,13 @@ impl BlueprintEngine {
 
         lua.globals()
             .set("os", create_os_module(&lua, current_dir.clone()))
+            .unwrap();
+
+        lua.globals()
+            .set(
+                "project",
+                create_project_module(&lua, &current_dir, project_name),
+            )
             .unwrap();
 
         BlueprintEngine {

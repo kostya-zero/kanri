@@ -51,7 +51,8 @@ pub fn handle_new(args: NewArgs) -> Result<()> {
         let blueprint_code = blueprints.get_blueprint(blueprint.clone())?;
 
         let project_dir = projects_dir.join(&args.name);
-        let engine = BlueprintEngine::init(project_dir, format!("{}.lua", blueprint));
+        let engine =
+            BlueprintEngine::init(project_dir, format!("{}.lua", blueprint), args.name.clone());
 
         println!("Running blueprint engine for '{}' blueprint...", &blueprint);
         if let mlua::Result::Err(e) = engine.run(&blueprint_code) {

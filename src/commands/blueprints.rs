@@ -76,7 +76,11 @@ fn handle_check(args: CheckArgs) -> Result<()> {
     let blueprints = Blueprints::load_from_path(&blueprints_dir)?;
     let blueprint_code = blueprints.get_blueprint(args.name.clone())?;
 
-    let engine = BlueprintEngine::init(Path::new("."), format!("{}.lua", args.name));
+    let engine = BlueprintEngine::init(
+        Path::new("."),
+        format!("{}.lua", args.name),
+        "check".to_string(),
+    );
     if let mlua::Result::Err(e) = engine.check(&blueprint_code) {
         bail!("Check failed: {}", e);
     }
