@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use mlua::prelude::*;
 use mlua::{LuaOptions, StdLib};
@@ -14,39 +14,32 @@ pub struct BlueprintEngine {
 }
 
 impl BlueprintEngine {
-    pub fn init<I: Into<PathBuf> + Clone>(
-        current_dir: I,
-        file_name: String,
-        project_name: String,
-    ) -> BlueprintEngine {
+    pub fn init(
+        current_dir: impl Into<PathBuf>,
+        file_name: impl Into<String>,
+        project_name: impl Into<String>,
+    ) -> LuaResult<Self> {
         let lua = Lua::new_with(
             StdLib::ALL_SAFE | StdLib::MATH | StdLib::TABLE | StdLib::STRING | StdLib::UTF8,
             LuaOptions::default(),
-        )
-        .unwrap();
+        )?;
 
         let current_dir = current_dir.into();
 
         lua.globals()
-            .set("fs", create_fs_module(&lua, current_dir.clone()))
-            .unwrap();
-
+            .set("fs", create_fs_module(&lua, current_dir.clone())?)?;
         lua.globals()
-            .set("os", create_os_module(&lua, current_dir.clone()))
-            .unwrap();
+            .set("os", create_os_module(&lua, current_dir.clone())?)?;
+        lua.globals().set(
+            "project",
+            create_project_module(&lua, current_dir.clone(), project_name.into())?,
+        )?;
 
-        lua.globals()
-            .set(
-                "project",
-                create_project_module(&lua, &current_dir, project_name),
-            )
-            .unwrap();
-
-        BlueprintEngine {
+        Ok(Self {
             lua,
             current_dir,
-            file_name,
-        }
+            file_name: file_name.into(),
+        })
     }
 
     pub fn run(&self, source: &str) -> LuaResult<()> {
@@ -61,7 +54,7 @@ impl BlueprintEngine {
             .map(|_| ())
     }
 
-    pub fn current_dir(&self) -> &PathBuf {
+    pub fn current_dir(&self) -> &Path {
         &self.current_dir
     }
 }

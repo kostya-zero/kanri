@@ -1,4 +1,3 @@
-use anyhow::Result;
 use std::{
     fs,
     io::ErrorKind,
@@ -10,7 +9,7 @@ use thiserror::Error;
 #[derive(Debug, Error)]
 pub enum BlueprintsError {
     #[error("Not enough permission to access directory with blueprints")]
-    PersmissionDenied,
+    PermissionDenied,
 
     #[error("Failed to list files in directory.")]
     CannotReadDirectory,
@@ -18,17 +17,11 @@ pub enum BlueprintsError {
     #[error("Blueprint not found.")]
     NotFound,
 
-    #[error("Failed to read blueprint.")]
-    ReadFailed,
-
     #[error("Blueprint with this name already exists.")]
     AlreadyExists,
 
     #[error("An unexpected I/O error occurred: {source}.")]
-    IoError {
-        #[from]
-        source: std::io::Error,
-    },
+    IoError { source: std::io::Error },
 }
 
 #[derive(Default)]
@@ -39,48 +32,30 @@ pub struct Blueprints {
 
 impl Blueprints {
     /// Loads all blueprints from given path.
-    pub fn load_from_path(path: &Path) -> Result<Blueprints, BlueprintsError> {
-        let collected_files = Self::collect_lua_files(path)?;
-        let storage = Blueprints {
-            blueprints: collected_files,
+    pub fn load_from_path(path: &Path) -> Result<Self, BlueprintsError> {
+        Ok(Self {
+            blueprints: Self::collect_lua_files(path)?,
             path: path.to_path_buf(),
-        };
-        Ok(storage)
+        })
     }
 
     /// Collects all lua files from directory and returns a vector with their filenames without
     /// extension.
     fn collect_lua_files(path: &Path) -> Result<Vec<String>, BlueprintsError> {
-        let dir_entries = match fs::read_dir(path) {
-            Ok(d) => d,
-            Err(_) => return Err(BlueprintsError::CannotReadDirectory),
-        };
+        let mut files = Vec::new();
 
-        let mut files: Vec<String> = Vec::new();
+        for entry in read_dir(path)? {
+            let entry = entry?;
+            let path = entry.path();
 
-        for entry_result in dir_entries {
-            let entry = match entry_result {
-                Ok(e) => e,
-                Err(error) => match error.kind() {
-                    ErrorKind::PermissionDenied => return Err(BlueprintsError::PersmissionDenied),
-                    _ => return Err(BlueprintsError::IoError { source: error }),
-                },
-            };
-
-            let name = entry.file_name();
-            let name_string = name.to_string_lossy().to_string();
-            if !name_string.ends_with(".lua") {
+            if path.extension().and_then(|extension| extension.to_str()) != Some("lua") {
                 continue;
             }
 
-            // Name without extension
-            let name_final = Path::new(&name_string)
-                .file_stem()
-                .unwrap_or_default()
-                .to_string_lossy();
-
-            if !name_final.is_empty() {
-                files.push(name_final.to_string());
+            if let Some(stem) = path.file_stem().and_then(|stem| stem.to_str())
+                && !stem.is_empty()
+            {
+                files.push(stem.to_string());
             }
         }
 
@@ -88,40 +63,65 @@ impl Blueprints {
     }
 
     /// Creates a new file in blueprints directory.
-    pub fn create(&self, name: String) -> Result<PathBuf, BlueprintsError> {
-        if self.blueprints.contains(&name) {
+    pub fn create(&self, name: impl AsRef<str>) -> Result<PathBuf, BlueprintsError> {
+        let name = name.as_ref();
+        if self.contains(name) {
             return Err(BlueprintsError::AlreadyExists);
         }
 
-        let new_blueprint_path = self.path.join(format!("{}.lua", name));
-        fs::write(&new_blueprint_path, "").map_err(|e| BlueprintsError::IoError { source: e })?;
+        let new_blueprint_path = self.blueprint_path(name);
+        fs::write(&new_blueprint_path, "")?;
         Ok(new_blueprint_path)
     }
 
     /// Removes blueprint from blueprints directory.
-    pub fn remove(&self, name: String) -> Result<(), BlueprintsError> {
-        if !self.blueprints.contains(&name) {
+    pub fn remove(&self, name: impl AsRef<str>) -> Result<(), BlueprintsError> {
+        let name = name.as_ref();
+        if !self.contains(name) {
             return Err(BlueprintsError::NotFound);
         }
 
-        let blueprint_path = self.path.join(format!("{}.lua", name));
-        fs::remove_file(blueprint_path).map_err(|e| BlueprintsError::IoError { source: e })?;
+        fs::remove_file(self.blueprint_path(name))?;
         Ok(())
     }
 
     /// Get all blueprints.
-    pub fn get_blueprints(&self) -> &Vec<String> {
+    pub fn get_blueprints(&self) -> &[String] {
         &self.blueprints
     }
 
     /// Get content of a blueprint.
-    pub fn get_blueprint(&self, name: String) -> Result<String, BlueprintsError> {
-        if !self.blueprints.iter().any(|i| i == &name) {
+    pub fn get_blueprint(&self, name: impl AsRef<str>) -> Result<String, BlueprintsError> {
+        let name = name.as_ref();
+        if !self.contains(name) {
             return Err(BlueprintsError::NotFound);
         }
-        let blueprint_path = Path::new(&self.path).join(&name).with_extension("lua");
-        let content = fs::read_to_string(blueprint_path)
-            .map_err(|e| BlueprintsError::IoError { source: e })?;
-        Ok(content)
+
+        Ok(fs::read_to_string(self.blueprint_path(name))?)
+    }
+
+    fn contains(&self, name: &str) -> bool {
+        self.blueprints.iter().any(|blueprint| blueprint == name)
+    }
+
+    fn blueprint_path(&self, name: &str) -> PathBuf {
+        self.path.join(name).with_extension("lua")
+    }
+}
+
+fn read_dir(path: &Path) -> Result<fs::ReadDir, BlueprintsError> {
+    fs::read_dir(path).map_err(|error| match error.kind() {
+        ErrorKind::PermissionDenied => BlueprintsError::PermissionDenied,
+        ErrorKind::NotFound => BlueprintsError::CannotReadDirectory,
+        _ => BlueprintsError::IoError { source: error },
+    })
+}
+
+impl From<std::io::Error> for BlueprintsError {
+    fn from(error: std::io::Error) -> Self {
+        match error.kind() {
+            ErrorKind::PermissionDenied => Self::PermissionDenied,
+            _ => Self::IoError { source: error },
+        }
     }
 }

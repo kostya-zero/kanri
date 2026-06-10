@@ -2,27 +2,23 @@ use std::path::PathBuf;
 
 use mlua::prelude::*;
 
-pub fn create_project_module<I: Into<PathBuf>>(
+pub fn create_project_module(
     lua: &Lua,
-    current_dir: I,
-    project_name: String,
-) -> LuaTable {
-    let project_table = lua.create_table().unwrap();
+    current_dir: impl Into<PathBuf>,
+    project_name: impl Into<String>,
+) -> LuaResult<LuaTable> {
+    let project_table = lua.create_table()?;
     let current_dir = current_dir.into();
+    let project_name = project_name.into();
 
-    {
-        let current_dir = current_dir.clone();
-        let project_path = lua
-            .create_function(move |_, ()| Ok(current_dir.clone()))
-            .unwrap();
-        project_table.set("path", project_path).unwrap();
-    }
+    project_table.set(
+        "path",
+        lua.create_function(move |_, ()| Ok(current_dir.clone()))?,
+    )?;
+    project_table.set(
+        "name",
+        lua.create_function(move |_, ()| Ok(project_name.clone()))?,
+    )?;
 
-    {
-        let name = project_name.clone();
-        let project_name = lua.create_function(move |_, ()| Ok(name.clone())).unwrap();
-        project_table.set("name", project_name).unwrap();
-    }
-
-    project_table
+    Ok(project_table)
 }

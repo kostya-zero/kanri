@@ -1,50 +1,33 @@
 use mlua::prelude::*;
 use std::{env, io::ErrorKind, path::PathBuf, process::Command};
 
-use crate::runtime_error;
+fn command_error(error: std::io::Error) -> mlua::Error {
+    let message = match error.kind() {
+        ErrorKind::NotFound => "program not found",
+        ErrorKind::Interrupted => "program was interrupted",
+        ErrorKind::PermissionDenied => "not enough permissions to execute program",
+        _ => "unknown error occurred",
+    };
+    mlua::Error::runtime(message)
+}
 
-pub fn create_os_module<I: Into<PathBuf>>(lua: &Lua, current_dir: I) -> LuaTable {
-    let os_table = lua.create_table().unwrap();
+pub fn create_os_module(lua: &Lua, current_dir: impl Into<PathBuf>) -> LuaResult<LuaTable> {
+    let os_table = lua.create_table()?;
     let current_dir = current_dir.into();
 
-    {
-        let os_system = lua.create_function(|_, ()| Ok(env::consts::OS)).unwrap();
-        os_table.set("system", os_system).unwrap();
-    }
+    os_table.set("system", lua.create_function(|_, ()| Ok(env::consts::OS))?)?;
+    os_table.set("arch", lua.create_function(|_, ()| Ok(env::consts::ARCH))?)?;
 
-    {
-        let os_arch = lua.create_function(|_, ()| Ok(env::consts::ARCH)).unwrap();
-        os_table.set("arch", os_arch).unwrap();
-    }
+    let os_exec = lua.create_function(move |_, (cmd, args): (String, Vec<String>)| {
+        if cmd.is_empty() {
+            return Err(mlua::Error::runtime("program cannot be empty"));
+        }
 
-    {
-        let current_dir = current_dir.clone();
-        let os_exec = lua
-            .create_function(move |_, (cmd, args): (String, Vec<String>)| {
-                if cmd.is_empty() {
-                    return Err(mlua::Error::runtime("program cannot be empty"));
-                }
-                let mut command = Command::new(cmd);
-                if !args.is_empty() {
-                    command.args(args);
-                }
-                command.current_dir(current_dir.clone());
-                let result = command.status();
-                match result {
-                    Ok(_) => Ok(()),
-                    Err(e) => match e.kind() {
-                        ErrorKind::NotFound => runtime_error!("program not found"),
-                        ErrorKind::Interrupted => runtime_error!("program was interrupted"),
-                        ErrorKind::PermissionDenied => {
-                            runtime_error!("not enough permissions to execute program")
-                        }
-                        _ => runtime_error!("unknown error occurred"),
-                    },
-                }
-            })
-            .unwrap();
-        os_table.set("exec", os_exec).unwrap();
-    }
+        let mut command = Command::new(cmd);
+        command.args(args).current_dir(&current_dir);
+        command.status().map(|_| ()).map_err(command_error)
+    })?;
+    os_table.set("exec", os_exec)?;
 
-    os_table
+    Ok(os_table)
 }

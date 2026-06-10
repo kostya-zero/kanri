@@ -58,7 +58,7 @@ fn handle_new(args: BlueprintsNewArgs) -> Result<()> {
 
 fn handle_list() -> Result<()> {
     let blueprints = Blueprints::load_from_path(&platform::blueprints_dir())?;
-    let mut blueprints_vec = blueprints.get_blueprints().clone();
+    let mut blueprints_vec = blueprints.get_blueprints().to_vec();
     blueprints_vec.sort();
 
     if blueprints_vec.is_empty() {
@@ -78,11 +78,8 @@ fn handle_check(args: BlueprintsCheckArgs) -> Result<()> {
     let blueprints = Blueprints::load_from_path(&blueprints_dir)?;
     let blueprint_code = blueprints.get_blueprint(args.name.clone())?;
 
-    let engine = BlueprintEngine::init(
-        Path::new("."),
-        format!("{}.lua", args.name),
-        "check".to_string(),
-    );
+    let engine = BlueprintEngine::init(Path::new("."), format!("{}.lua", args.name), "check")
+        .map_err(|e| anyhow!(e.to_string()))?;
     if let mlua::Result::Err(e) = engine.check(&blueprint_code) {
         bail!("Check failed: {}", e);
     }

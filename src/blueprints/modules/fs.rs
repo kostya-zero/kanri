@@ -2,43 +2,22 @@ use std::{fs, path::PathBuf};
 
 use mlua::prelude::*;
 
-pub fn create_fs_module<I: Into<PathBuf>>(lua: &Lua, current_dir: I) -> LuaTable {
-    let fs_table = lua.create_table().unwrap();
+pub fn create_fs_module(lua: &Lua, current_dir: impl Into<PathBuf>) -> LuaResult<LuaTable> {
+    let fs_table = lua.create_table()?;
     let current_dir = current_dir.into();
 
-    {
-        let current_dir = current_dir.clone();
+    let write_dir = current_dir.clone();
+    let fs_write = lua.create_function(move |_, (path, content): (String, String)| {
+        fs::write(write_dir.join(path), content)
+            .map_err(|error| mlua::Error::runtime(format!("failed to write a file: {error}")))
+    })?;
+    fs_table.set("write", fs_write)?;
 
-        let fs_write = lua
-            .create_function(move |_, (path, content): (String, String)| {
-                let final_path = current_dir.join(path);
-                let result = fs::write(final_path, content);
-                match result {
-                    Ok(()) => Ok(()),
-                    Err(_) => Err(mlua::Error::runtime("failed to write a file")),
-                }
-            })
-            .unwrap();
+    let fs_read = lua.create_function(move |_, path: String| {
+        fs::read_to_string(current_dir.join(path))
+            .map_err(|error| mlua::Error::runtime(format!("failed to read a file: {error}")))
+    })?;
+    fs_table.set("read", fs_read)?;
 
-        fs_table.set("write", fs_write).unwrap();
-    }
-
-    {
-        let current_dir = current_dir.clone();
-
-        let fs_read = lua
-            .create_function(move |_, path: String| {
-                let final_path = current_dir.join(path);
-                let result = fs::read_to_string(final_path);
-                match result {
-                    Ok(s) => Ok(s),
-                    Err(_) => Err(mlua::Error::runtime("failed to read a file")),
-                }
-            })
-            .unwrap();
-
-        fs_table.set("read", fs_read).unwrap();
-    }
-
-    fs_table
+    Ok(fs_table)
 }
