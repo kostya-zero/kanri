@@ -8,8 +8,11 @@ pub enum BlueprintsCommands {
     /// List available blueprints.
     List,
 
+    /// Perform a migration of templates to blueprints.
+    MigrateTemplates,
+
     /// Check blueprint on syntax errors. It doesn't execute the code.
-    BlueprintsCheckArgs(CheckArgs),
+    Check(BlueprintsCheckArgs),
 
     /// Remove blueprint.
     Remove(BlueprintsRemoveArgs),
@@ -22,7 +25,7 @@ pub struct BlueprintsNewArgs {
 }
 
 #[derive(Args)]
-pub struct CheckArgs {
+pub struct BlueprintsCheckArgs {
     /// Name of blueprint to check.
     pub name: String,
 }

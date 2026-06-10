@@ -1,6 +1,7 @@
 use anyhow::{Result, anyhow, bail, ensure};
 use colored::Colorize;
-use std::time::Duration;
+use indexmap::IndexMap;
+use std::{fs, time::Duration};
 
 use crate::{
     autocomplete,
@@ -9,9 +10,8 @@ use crate::{
     cli::{BackupArgs, CloneArgs, ImportArgs, ListArgs, NewArgs, OpenArgs, RemoveArgs, RenameArgs},
     config::Config,
     library::{CloneOptions, Library, validate_project_name},
-    platform,
+    platform::{self},
     program::{LaunchOptions, launch_program},
-    templates::Templates,
     terminal::{ask_dialog, generate_progress, is_terminal, print_done, print_error, print_title},
 };
 
@@ -279,12 +279,35 @@ pub fn handle_remove(args: RemoveArgs) -> Result<()> {
 }
 
 pub fn handle_backup(args: BackupArgs) -> Result<()> {
+    // Load config
     let config = Config::load(platform::config_file())?;
-    let templates = Templates::load(platform::templates_file())?;
+
+    // Load blueprints
+    let blueprints_dir = platform::blueprints_dir();
+    let blueprints_list =
+        fs::read_dir(&blueprints_dir).map_err(|_| anyhow!("failed to read blueprints dir"))?;
+    let mut blueprints_map: IndexMap<String, String> = IndexMap::new();
+
+    for item in blueprints_list {
+        let entry = item.unwrap();
+        let entry_path = entry.path();
+        let entry_name_tmp = entry.file_name();
+        let entry_name = entry_name_tmp.to_string_lossy();
+        if entry_path.is_dir() || entry_path.extension().unwrap_or_default() != "lua" {
+            continue;
+        }
+
+        let blueprint_content = fs::read_to_string(&entry_path)
+            .map_err(|_| anyhow!("failed to read '{}' content", entry_name))?;
+        blueprints_map.insert(entry_name.to_string(), blueprint_content);
+    }
 
     let backup_file_path = args.output_file.unwrap_or("kanri_backup.json".to_string());
 
-    let backup = Backup { config, templates };
+    let backup = Backup {
+        config,
+        blueprints: blueprints_map,
+    };
     save_backup(&backup_file_path, backup)?;
     print_done(&format!("Backup saved to `{backup_file_path}`."));
     Ok(())
@@ -293,8 +316,19 @@ pub fn handle_backup(args: BackupArgs) -> Result<()> {
 pub fn handle_import(args: ImportArgs) -> Result<()> {
     let backup = load_backup(args.file)?;
 
+    // Write config
     backup.config.save(platform::config_file())?;
-    backup.templates.save(platform::templates_file())?;
+
+    // Write blueprints
+    if !backup.blueprints.is_empty() {
+        let blueprints_path = platform::blueprints_dir();
+        for (k, v) in backup.blueprints.iter() {
+            let blueprint_path = blueprints_path.join(k);
+            fs::write(&blueprint_path, v)
+                .map_err(|e| anyhow!("Failed to write blueprint '{}': {}", k, e))?;
+        }
+    }
+
     print_done("Backup has been imported.");
     Ok(())
 }

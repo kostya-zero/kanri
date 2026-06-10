@@ -3,10 +3,11 @@ use std::{fs, path::Path};
 
 use crate::{
     blueprints::{engine::BlueprintEngine, storage::Blueprints},
-    cli::{BlueprintsCommands, BlueprintsNewArgs, BlueprintsRemoveArgs, CheckArgs},
+    cli::{BlueprintsCheckArgs, BlueprintsCommands, BlueprintsNewArgs, BlueprintsRemoveArgs},
     config::Config,
     platform,
     program::{LaunchOptions, launch_program},
+    templates::Templates,
     terminal::{print_done, print_title},
 };
 
@@ -14,7 +15,8 @@ pub fn handle(command: BlueprintsCommands) -> Result<()> {
     match command {
         BlueprintsCommands::New(args) => handle_new(args),
         BlueprintsCommands::List => handle_list(),
-        BlueprintsCommands::BlueprintsCheckArgs(args) => handle_check(args),
+        BlueprintsCommands::Check(args) => handle_check(args),
+        BlueprintsCommands::MigrateTemplates => handle_migrate(),
         BlueprintsCommands::Remove(args) => handle_remove(args),
     }
 }
@@ -71,7 +73,7 @@ fn handle_list() -> Result<()> {
     Ok(())
 }
 
-fn handle_check(args: CheckArgs) -> Result<()> {
+fn handle_check(args: BlueprintsCheckArgs) -> Result<()> {
     let blueprints_dir = platform::blueprints_dir();
     let blueprints = Blueprints::load_from_path(&blueprints_dir)?;
     let blueprint_code = blueprints.get_blueprint(args.name.clone())?;
@@ -86,6 +88,66 @@ fn handle_check(args: CheckArgs) -> Result<()> {
     }
 
     print_done("Blueprint is valid.");
+
+    Ok(())
+}
+
+fn handle_migrate() -> Result<()> {
+    let blueprints_path = platform::blueprints_dir();
+    let templates_path = platform::templates_file();
+
+    if !templates_path.exists() {
+        bail!("Templates file not found. There is no need to migrate.");
+    }
+
+    let templates = Templates::load(&templates_path)?;
+    let templates_list = templates.list_templates();
+
+    for template in templates_list {
+        let template_commands = templates.get_template(&template).unwrap();
+        let mut blueprint_code = String::new();
+        for command in template_commands {
+            if command.is_empty() {
+                continue;
+            }
+            let command_splitted: Vec<&str> = command.split_whitespace().collect();
+
+            blueprint_code.push_str(&format!(
+                "os.exec(\"{}\"",
+                command_splitted.first().unwrap()
+            ));
+
+            if command_splitted.len() == 1 {
+                blueprint_code.push_str(", {})\r\n");
+                continue;
+            }
+
+            blueprint_code.push_str(", {");
+            for (i, c) in command_splitted.iter().enumerate() {
+                if i == 0 {
+                    continue;
+                }
+
+                if i != 1 {
+                    blueprint_code.push(',');
+                }
+
+                blueprint_code.push_str(&format!("\"{}\"", c));
+            }
+
+            blueprint_code.push_str("})\r\n");
+        }
+
+        let blueprint_name = format!("{}.lua", template);
+        let blueprint_path = blueprints_path.join(&blueprint_name);
+        fs::write(blueprint_path, blueprint_code)
+            .map_err(|e| anyhow!("Failed to write blueprint '{}': {}", blueprint_name, e))?;
+    }
+
+    fs::remove_file(templates_path)
+        .map_err(|e| anyhow!("Failed to remove templates file: {}", e))?;
+
+    print_done("Migration completed! Templates file has been deleted.");
 
     Ok(())
 }

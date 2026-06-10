@@ -1,10 +1,11 @@
 use anyhow::Result;
+use indexmap::IndexMap;
 use std::{fs, path::Path};
 use thiserror::Error;
 
 use serde::{Deserialize, Serialize};
 
-use crate::{config::Config, templates::Templates};
+use crate::config::Config;
 
 #[derive(Debug, Error)]
 pub enum BackupError {
@@ -27,7 +28,7 @@ pub enum BackupError {
 #[derive(Serialize, Deserialize)]
 pub struct Backup {
     pub config: Config,
-    pub templates: Templates,
+    pub blueprints: IndexMap<String, String>,
 }
 
 pub fn load_backup(path: impl AsRef<Path>) -> Result<Backup, BackupError> {

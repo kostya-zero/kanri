@@ -2,7 +2,7 @@ use clap::Subcommand;
 
 use super::{
     BackupArgs, BlueprintsCommands, CloneArgs, ConfigCommands, ImportArgs, ListArgs, NewArgs,
-    OpenArgs, ProfilesCommands, RemoveArgs, RenameArgs, TemplatesCommands,
+    OpenArgs, ProfilesCommands, RemoveArgs, RenameArgs,
 };
 
 #[derive(Subcommand)]
@@ -27,12 +27,6 @@ pub enum Commands {
     /// Remove project [alias: rm]
     #[command(alias = "rm")]
     Remove(RemoveArgs),
-
-    /// Manage your templates.
-    Templates {
-        #[command(subcommand)]
-        command: TemplatesCommands,
-    },
 
     /// Manage blueprints
     Blueprints {

@@ -3,11 +3,10 @@ use std::{fs, process::exit};
 use anyhow::{Result, anyhow};
 use clap::Parser;
 use kanri::{
-    cli::{Cli, Commands, ConfigCommands, ProfilesCommands, TemplatesCommands},
-    commands::{blueprints, config, profiles, root, templates},
+    cli::{Cli, Commands, ConfigCommands, ProfilesCommands},
+    commands::{blueprints, config, profiles, root},
     config::Config,
     platform,
-    templates::Templates,
     terminal::print_error,
 };
 
@@ -17,14 +16,6 @@ fn check_env() -> Result<()> {
         let default_config: Config = Config::default();
         default_config
             .save(config_path)
-            .map_err(|e| anyhow!(e.to_string()))?;
-    }
-
-    let templates_path = platform::templates_file();
-    if !templates_path.exists() {
-        let templates = Templates::new();
-        templates
-            .save(templates_path)
             .map_err(|e| anyhow!(e.to_string()))?;
     }
 
@@ -69,15 +60,6 @@ fn main() {
         Commands::List(args) => root::handle_list(args),
         Commands::Rename(args) => root::handle_rename(args),
         Commands::Remove(args) => root::handle_remove(args),
-        Commands::Templates { command } => match command {
-            TemplatesCommands::New(args) => templates::handle_new(args),
-            TemplatesCommands::List(args) => templates::handle_list(args),
-            TemplatesCommands::Edit => templates::handle_edit(),
-            TemplatesCommands::Path => templates::handle_path(),
-            TemplatesCommands::Get(args) => templates::handle_get(args),
-            TemplatesCommands::Clear => templates::handle_clear(),
-            TemplatesCommands::Remove(args) => templates::handle_remove(args),
-        },
         Commands::Blueprints { command } => blueprints::handle(command),
         Commands::Config { command } => match command {
             ConfigCommands::Path => config::handle_path(),
