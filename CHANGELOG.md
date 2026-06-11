@@ -1,13 +1,20 @@
 # Kanri Changelog
 
-# Next 
+## 0.11.0-rc.1
 
-- **Blueprints.** A new system for project initialization that is more flexible than templates. You can write Lua code to program your initialization project stage.
-- **Templates are deprecated.** If you have used it in the past you can run `kanri blueprints migrate-templates` to migrate all of your templates to blueprints. This command will stay until version `0.14.0`.
-- Kanri will display a warning if you will try to create a project with template.
-- Kanri now can automatically migrate your configuration file, so you don't need to do it manually anymore.
-  - Removed `shell_args` field from profiles.
-- Fixed issue where `kanri profiles new` could append `.cmd` on non-Windows machines.
+- **Blueprints.** Added Lua-powered project initialization as a replacement for templates.
+  - Use `kanri new <name> --blueprint <blueprint>` or `-b <blueprint>` to create projects from blueprints.
+  - Added `kanri blueprints new`, `list`, `check`, `remove`, and `migrate-templates` commands.
+  - Added Blueprint Lua APIs: `fs`, `os`, and `project` modules for file generation, platform checks, command execution, and project metadata.
+  - Lua diagnostics now include the blueprint file name.
+  - Kanri removes the newly created project directory if blueprint initialization fails or the blueprint cannot be found.
+- **Templates are deprecated.** Use `kanri blueprints migrate-templates` to migrate existing templates to blueprints. The migration command will stay until version `0.14.0`.
+- **Configuration migration.** Kanri can now automatically migrate configuration files.
+  - Removed the deprecated `shell_args` field from profiles.
+- **Backups now include blueprints** instead of templates.
+- **CLI behavior change:** `kanri new` now always requires the project name argument instead of prompting for it interactively.
+- Added Blueprint and Lua API documentation.
+- Fixed an issue where `kanri profiles new` could append `.cmd` on non-Windows machines.
 
 ## 0.10.3
 

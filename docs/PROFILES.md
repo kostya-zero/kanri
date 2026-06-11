@@ -1,32 +1,76 @@
 # Profiles
 
-Kanri lets you define multiple *profiles* so you can tailor how projects open in different editors and shells without rewriting your configuration every time. Each profile stores launch details, and you can switch between them whenever you need another workflow.
+Kanri profiles let you switch editor and shell settings without rewriting your configuration. The active profile is selected by `options.current_profile` in `config.toml`.
+
+Profiles affect commands that launch external programs, especially:
+
+- `kanri open <project>`
+- `kanri open <project> --shell`
+- `kanri config edit`
+- `kanri blueprints new <name>` when Kanri opens the new blueprint in your editor
 
 ## Profile structure
 
-Profiles live in the configuration file under the `[profiles]` table. Every entry stores:
+Profiles live under the `[profiles]` table in the configuration file:
 
-- `editor`: the program Kanri launches for editor sessions.
-- `editor_args`: extra arguments passed to the editor.
-- `editor_fork_mode`: whether Kanri should fork before returning control (defaults to `true` for Visual Studio Code–style editors).
-- `shell`: the command used when opening a shell session.
+```toml
+[profiles.default]
+editor = "code"
+editor_args = ["."]
+editor_fork_mode = true
+shell = "bash"
+```
 
-These keys map directly to the `Profile` definition in the source code, so any additional keys will be rejected by the configuration loader.
+Each profile has these fields:
+
+- `editor` - Program used for editor sessions.
+- `editor_args` - Extra arguments passed to the editor. Code-family editors usually use `["."]` so the project directory opens as a workspace.
+- `editor_fork_mode` - If `true`, Kanri starts the editor and returns immediately instead of waiting for it to exit.
+- `shell` - Program used for shell sessions.
+
+Unknown profile fields are rejected when the configuration is loaded.
+
+> [!NOTE]
+> Older Kanri versions used `shell_args`. Current Kanri no longer supports that field and can migrate it out of existing configuration files.
 
 ## Default profile
 
-Kanri ships with a `default` profile. On first run Kanri detects a sensible editor and shell for your platform, adding smart defaults such as `-NoLogo` for PowerShell or `-c` for POSIX shells, and enabling fork mode for Code-family editors. You can edit the generated configuration file directly if you want to adjust these defaults.
+Kanri creates a `default` profile on first run. It detects a default editor from `VISUAL` or `EDITOR`, and a default shell from `SHELL` or `COMSPEC` on Windows.
 
-The `current_profile` option under `[options]` selects which profile Kanri uses when running commands like `kanri open` or applying templates. Switching the current profile changes the editor and shell Kanri uses immediately.
+For Code-family editors such as `code`, `code-insiders`, `codium`, `code-oss`, `cursor`, and `windsurf`, Kanri enables fork mode and adds `.` to `editor_args`. On Windows, Kanri also appends `.cmd` where needed.
 
 ## Managing profiles from the CLI
 
-Use the `kanri profiles` subcommands to create and maintain profiles without editing the configuration file manually:
+```shell
+# Create a profile interactively.
+kanri profiles new
 
-- `kanri profiles new`: interactive prompts ask for the profile name, editor, shell, and whether to fork the editor. Kanri pre-populates sensible defaults for Code-family editors and common shells.
-- `kanri profiles list`: prints the names of all configured profiles so you can confirm what is available.
-- `kanri profiles info <name>`: shows the editor and shell assigned to a specific profile.
-- `kanri profiles set <name>`: marks a profile as the current one by updating the configuration’s `current_profile` field.
-- `kanri profiles remove <name>`: confirms before deleting a profile from the configuration to prevent accidental loss.
+# List profiles. The current profile is marked.
+kanri profiles list
 
-Whenever you invoke `kanri open`, the currently selected profile determines whether Kanri launches your editor or shell, which arguments it passes, and whether it forks the process. Use profiles to create dedicated setups for different languages, shells, or workflows, then switch between them with a single command.
+# Show profile details.
+kanri profiles get default
+
+# Set active profile.
+kanri profiles set default
+
+# Remove a profile with confirmation.
+kanri profiles remove old-profile
+
+# Remove without prompting.
+kanri profiles remove old-profile --yes
+```
+
+Kanri prevents removing the current active profile. Switch to another profile first with `kanri profiles set <name>`.
+
+## Opening projects with profiles
+
+```shell
+# Uses the current profile's editor, editor_args, and editor_fork_mode.
+kanri open my-project
+
+# Uses the current profile's shell.
+kanri open my-project --shell
+```
+
+Shell sessions receive `KANRI_SESSION=1` in their environment.

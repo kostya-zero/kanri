@@ -42,11 +42,25 @@ To build Kanri, run:
 ```shell
 cargo build
 ```
-For an optimized release build (recommended for performance), run:
+
+For an optimized release build, run:
 ```shell
 cargo build --release
 ```
+
 The compiled binary will be located in `target/debug/` for a regular build or `target/release/` for a release build.
+
+### Step 4: Run checks
+
+Before submitting changes or creating a release, run:
+
+```shell
+cargo fmt --all -- --check
+cargo clippy --all-targets --all-features -- -D warnings
+cargo test
+```
+
+CI also runs the test suite with `cargo nextest run`.
 
 ### Advanced Configuration & Tweaks
 

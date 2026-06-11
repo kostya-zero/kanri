@@ -6,9 +6,11 @@ Blueprints are Lua scripts that initialize a newly created Kanri project. They r
 
 Blueprints are stored as `.lua` files in Kanri's configuration directory under `blueprints`:
 
-- **Windows**: `%USERPROFILE%\kanri\blueprints`
-- **macOS**: `$HOME/Library/Application Support/kanri/blueprints` or `$HOME/.config/kanri/blueprints`
-- **Linux**: `$HOME/.config/kanri/blueprints`
+```text
+<config directory>/blueprints/*.lua
+```
+
+Use `kanri config path` to find the configuration directory on your machine.
 
 The blueprint name is the file stem. For example, `rust.lua` is used as `rust`.
 
@@ -31,7 +33,7 @@ kanri blueprints remove rust
 kanri blueprints migrate-templates
 ```
 
-Blueprint names must not contain path separators. The `.lua` extension is optional when using Kanri commands.
+Blueprint names must not contain path separators. Use the blueprint stem, such as `rust`, with `kanri new --blueprint` and `kanri blueprints check`.
 
 ## Using a blueprint
 
@@ -42,7 +44,7 @@ kanri new my-app --blueprint rust
 kanri new my-app -b rust
 ```
 
-Kanri first creates the project directory, then runs the blueprint inside that directory. If the Lua script fails, Kanri reports the Lua error and removes the newly created project directory.
+Kanri creates the project directory, then runs the blueprint inside that directory. If the blueprint cannot be found or the Lua script fails, Kanri reports the error and removes the newly created project directory.
 
 ## Lua runtime
 

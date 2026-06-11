@@ -2,85 +2,140 @@
 
 ![Crates.io Version](https://img.shields.io/crates/v/kanri) ![GitHub branch check runs](https://img.shields.io/github/check-runs/kostya-zero/kanri/main)
 
-Yet another manager for your projects.
+Kanri is a cross-platform CLI for managing local project directories. It can create, clone, list, rename, remove, and open projects from a single configured workspace.
 
-Kanri is a command-line tool designed for managing your projects.
-It offers a simple and user-friendly interface for managing your projects using CLI.
-Kanri is available for Windows, Linux, and macOS (compatibility with *BSD systems is not guaranteed).
+Kanri is available for Windows, Linux, and macOS. Compatibility with *BSD systems is not guaranteed.
 
 > [!NOTE]
-> This project is in beta. Some changes in newer version may not be backward compatible with previous versions and may require actions from user for an update.
+> This project is in beta. Some changes in newer versions may not be backward compatible with previous versions.
 
 ## Installation
-
-You can install Kanri with [Cargo](https://doc.rust-lang.org/cargo/) using the following commands:
 
 ```shell
 # Compile and install Kanri.
 cargo install kanri
 
-# Install precompiled binaries (requires cargo-binstall).
+# Install precompiled binaries, if available (requires cargo-binstall).
 cargo binstall kanri
 ```
 
-You can also install Kanri from [GitHub Releases](https://github.com/kostya-zero/kanri/releases). If you prefer to build Kanri from source, please refer to the [Building Kanri](docs/BUILDING.md) guide.
+You can also install Kanri from [GitHub Releases](https://github.com/kostya-zero/kanri/releases). To build from source, see [Building Kanri](docs/BUILDING.md).
+
+## Documentation
+
+- [Configuration Manual](docs/CONFIGURATION.md)
+- [Profiles](docs/PROFILES.md)
+- [Blueprints and Lua API](docs/BLUEPRINTS.md)
+- [Building Kanri](docs/BUILDING.md)
 
 ## Usage
 
-Before using Kanri, configure it according to your workspace setup. Detailed configuration options are available in the [Configuration Manual](docs/CONFIGURATION.md).
+Kanri stores projects in the directory configured by `options.projects_directory`. On first run, Kanri creates a default configuration file based on your environment.
 
-### List Projects
+### Create projects
 
-Kanri simplifies project management. To view a list of your projects, use the `list` subcommand:
+```shell
+# Create an empty project.
+kanri new bookshelf
+
+# Create a project from a Lua blueprint.
+kanri new bookshelf --blueprint rust
+kanri new bookshelf -b rust
+```
+
+Blueprints are Lua scripts for project initialization. See [Blueprints and Lua API](docs/BLUEPRINTS.md).
+
+> [!NOTE]
+> The old template system has been replaced by blueprints. Existing templates can be migrated with:
+>
+> ```shell
+> kanri blueprints migrate-templates
+> ```
+
+### Clone repositories
+
+```shell
+# Clone into the projects directory.
+kanri clone https://github.com/example/project.git
+
+# Clone with a custom directory name or branch.
+kanri clone https://github.com/example/project.git --name my-project --branch main
+```
+
+### List projects
 
 ```shell
 kanri list
+kanri list --pure
 ```
 
-> [!NOTE]
-> By default, Kanri hides projects whose names start with a dot (e.g., `.hidden_project`). You can change this behavior by configuring the `display_hidden` parameter as described in the [Configuration Manual](docs/CONFIGURATION.md).
+By default, Kanri hides projects whose names start with a dot. Configure `options.display_hidden` to change this behavior.
 
-### Managing Projects
-
-Creating and removing projects with Kanri is straightforward:
+### Open projects
 
 ```shell
-# Create a new project.
-kanri new bookshelf
-
-# Create a project from a blueprint.
-kanri new bookshelf --blueprint rust
-
-# Remove an existing project.
-kanri remove bookshelf
-```
-
-Blueprints are Lua scripts for project initialization. See the [Blueprints and Lua API](docs/BLUEPRINTS.md) guide for usage and API details.
-
-### Working with Projects
-
-Open project directly in your configured editor or shell using the `open` subcommand:
-
-```shell
-# Open the project in your editor.
+# Open in the configured editor.
 kanri open bookshelf
 
-# Open the project in your shell.
+# Alias.
+kanri o bookshelf
+
+# Open a shell in the project.
 kanri open bookshelf --shell
+
+# Print the project path instead of opening it.
+kanri open bookshelf --path
 ```
 
-### Quick Help
+Use `kanri open -` to open the most recent project when recent project tracking is enabled.
 
-For assistance with commands, use the `--help` flag:
+### Rename and remove projects
 
 ```shell
-# General help.
-kanri --help
+kanri rename old-name new-name
 
-# Help for a specific subcommand.
+# Prompts for confirmation in interactive terminals.
+kanri remove bookshelf
+
+# Required for non-interactive removal.
+kanri remove bookshelf --yes
+```
+
+### Profiles
+
+Profiles control which editor and shell Kanri uses.
+
+```shell
+kanri profiles new
+kanri profiles list
+kanri profiles get default
+kanri profiles set default
+kanri profiles remove old-profile --yes
+```
+
+See [Profiles](docs/PROFILES.md).
+
+### Backup and import
+
+```shell
+# Save config and blueprints to kanri_backup.json.
+kanri backup
+
+# Save to a custom file.
+kanri backup ./backup.json
+
+# Restore from a backup. This overwrites the current configuration.
+kanri import ./backup.json
+```
+
+### Quick help
+
+```shell
+kanri --help
 kanri config --help
+kanri blueprints --help
 ```
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
