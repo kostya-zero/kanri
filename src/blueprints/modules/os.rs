@@ -17,17 +17,78 @@ pub fn create_os_module(lua: &Lua, current_dir: impl Into<PathBuf>) -> LuaResult
 
     os_table.set("system", lua.create_function(|_, ()| Ok(env::consts::OS))?)?;
     os_table.set("arch", lua.create_function(|_, ()| Ok(env::consts::ARCH))?)?;
+    os_table.set(
+        "family",
+        lua.create_function(|_, ()| Ok(env::consts::FAMILY))?,
+    )?;
+    os_table.set(
+        "exe_suffix",
+        lua.create_function(|_, ()| Ok(env::consts::EXE_SUFFIX))?,
+    )?;
+    os_table.set(
+        "dir_separator",
+        lua.create_function(|_, ()| Ok(std::path::MAIN_SEPARATOR.to_string()))?,
+    )?;
+    os_table.set(
+        "path_separator",
+        lua.create_function(|_, ()| Ok(if cfg!(windows) { ";" } else { ":" }))?,
+    )?;
+    os_table.set(
+        "temp_dir",
+        lua.create_function(|_, ()| Ok(env::temp_dir().to_string_lossy().to_string()))?,
+    )?;
+    os_table.set(
+        "env",
+        lua.create_function(|_, name: String| Ok(env::var(name).ok()))?,
+    )?;
 
+    let cwd = current_dir.clone();
+    os_table.set(
+        "current_dir",
+        lua.create_function(move |_, ()| Ok(cwd.to_string_lossy().to_string()))?,
+    )?;
+
+    let exec_dir = current_dir.clone();
     let os_exec = lua.create_function(move |_, (cmd, args): (String, Vec<String>)| {
         if cmd.is_empty() {
             return Err(mlua::Error::runtime("program cannot be empty"));
         }
 
         let mut command = Command::new(cmd);
-        command.args(args).current_dir(&current_dir);
+        command.args(args).current_dir(&exec_dir);
         command.status().map(|_| ()).map_err(command_error)
     })?;
     os_table.set("exec", os_exec)?;
+
+    let status_dir = current_dir.clone();
+    let os_exec_status = lua.create_function(move |_, (cmd, args): (String, Vec<String>)| {
+        if cmd.is_empty() {
+            return Err(mlua::Error::runtime("program cannot be empty"));
+        }
+
+        let mut command = Command::new(cmd);
+        command.args(args).current_dir(&status_dir);
+        command
+            .status()
+            .map(|status| status.code().unwrap_or(-1))
+            .map_err(command_error)
+    })?;
+    os_table.set("exec_status", os_exec_status)?;
+
+    let output_dir = current_dir.clone();
+    let os_exec_output = lua.create_function(move |_, (cmd, args): (String, Vec<String>)| {
+        if cmd.is_empty() {
+            return Err(mlua::Error::runtime("program cannot be empty"));
+        }
+
+        let mut command = Command::new(cmd);
+        command.args(args).current_dir(&output_dir);
+        command
+            .output()
+            .map(|output| String::from_utf8_lossy(&output.stdout).to_string())
+            .map_err(command_error)
+    })?;
+    os_table.set("exec_output", os_exec_output)?;
 
     Ok(os_table)
 }
