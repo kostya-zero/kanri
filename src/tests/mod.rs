@@ -1,4 +1,5 @@
 mod test_autocomplete;
+mod test_blueprints;
 mod test_library;
 
 use std::path::Path;

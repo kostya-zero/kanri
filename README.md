@@ -48,9 +48,14 @@ Creating and removing projects with Kanri is straightforward:
 # Create a new project.
 kanri new bookshelf
 
+# Create a project from a blueprint.
+kanri new bookshelf --blueprint rust
+
 # Remove an existing project.
 kanri remove bookshelf
 ```
+
+Blueprints are Lua scripts for project initialization. See the [Blueprints and Lua API](docs/BLUEPRINTS.md) guide for usage and API details.
 
 ### Working with Projects
 

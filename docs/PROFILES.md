@@ -10,7 +10,6 @@ Profiles live in the configuration file under the `[profiles]` table. Every entr
 - `editor_args`: extra arguments passed to the editor.
 - `editor_fork_mode`: whether Kanri should fork before returning control (defaults to `true` for Visual Studio Code–style editors).
 - `shell`: the command used when opening a shell session.
-- `shell_args`: the default arguments for that shell.
 
 These keys map directly to the `Profile` definition in the source code, so any additional keys will be rejected by the configuration loader.
 

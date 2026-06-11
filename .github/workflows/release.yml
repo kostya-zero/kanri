@@ -5,6 +5,9 @@ on:
     types: [published]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     name: Build ${{ matrix.target }}
@@ -65,8 +68,24 @@ jobs:
           else
             cargo build --release --target ${{ matrix.target }}
           fi
+      - name: Prepare release asset
+        shell: bash
+        run: |
+          mkdir -p dist
+          if [[ "${{ runner.os }}" == "Windows" ]]; then
+            cp "target/${{ matrix.target }}/release/${{ matrix.bin }}" "dist/kanri-${{ matrix.target }}.exe"
+          else
+            cp "target/${{ matrix.target }}/release/${{ matrix.bin }}" "dist/kanri-${{ matrix.target }}"
+          fi
       - name: Upload as Artifact
         uses: actions/upload-artifact@v4
         with:
           name: kanri-${{ matrix.target }}
-          path: target/${{ matrix.target }}/release/${{ matrix.bin }}
+          path: dist/*
+      - name: Attach binary to release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v3
+        with:
+          files: dist/*
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fail_on_unmatched_files: true

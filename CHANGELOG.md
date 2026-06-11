@@ -2,7 +2,12 @@
 
 # Next 
 
-TBW
+- **Blueprints.** A new system for project initialization that is more flexible than templates. You can write Lua code to program your initialization project stage.
+- **Templates are deprecated.** If you have used it in the past you can run `kanri blueprints migrate-templates` to migrate all of your templates to blueprints. This command will stay until version `0.14.0`.
+- Kanri will display a warning if you will try to create a project with template.
+- Kanri now can automatically migrate your configuration file, so you don't need to do it manually anymore.
+  - Removed `shell_args` field from profiles.
+- Fixed issue where `kanri profiles new` could append `.cmd` on non-Windows machines.
 
 ## 0.10.3
 

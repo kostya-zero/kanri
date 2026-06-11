@@ -34,7 +34,7 @@ fn resolve_project_name(
 pub fn handle_new(args: NewArgs) -> Result<()> {
     if args.template.is_some() {
         bail!(
-            "Templates are no longer supported and has been replaced with blueprints. If you want to migrate your templates, use `kanri templates migrate`."
+            "Templates are no longer supported and has been replaced with blueprints. If you want to migrate your templates, use `kanri blueprints migrate-templates`."
         );
     }
 
@@ -101,12 +101,6 @@ pub fn handle_clone(args: CloneArgs) -> Result<()> {
 }
 
 pub fn handle_open(args: OpenArgs) -> Result<()> {
-    if !is_terminal() {
-        return Err(anyhow!(
-            "Opening projects in non-interactive mode is not supported"
-        ));
-    }
-
     let config_path = platform::config_file();
     let mut config = Config::load(&config_path)?;
     let projects = Library::new(
@@ -126,6 +120,12 @@ pub fn handle_open(args: OpenArgs) -> Result<()> {
     if args.path {
         println!("{}", path.to_string_lossy());
         return Ok(());
+    }
+
+    if !is_terminal() {
+        return Err(anyhow!(
+            "Opening projects in non-interactive mode is not supported"
+        ));
     }
 
     let profile = config.get_profile(&config.options.current_profile)?;
@@ -324,6 +324,17 @@ pub fn handle_import(args: ImportArgs) -> Result<()> {
     if !backup.blueprints.is_empty() {
         let blueprints_path = platform::blueprints_dir();
         for (k, v) in backup.blueprints.iter() {
+            if k.is_empty() {
+                continue;
+            }
+
+            if k.contains('/') || k.contains('\\') {
+                bail!(
+                    "Security error: blueprint '{}' contains path separators in it's name.",
+                    k
+                );
+            }
+
             let blueprint_path = blueprints_path.join(k);
             fs::write(&blueprint_path, v)
                 .map_err(|e| anyhow!("Failed to write blueprint '{}': {}", k, e))?;
@@ -340,7 +351,7 @@ const KANRI_ZEN: [&str; 10] = [
     "Configuration is explicit.",
     "Sensible defaults guide the way.",
     "The shell is a friend.",
-    "Templates accelerate your workflow.",
+    "Blueprints accelerate your workflow.",
     "Cross-platform by design.",
     "Clear messages beat surprises.",
     "Your editor is respected.",

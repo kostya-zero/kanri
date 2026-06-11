@@ -19,10 +19,7 @@ impl BlueprintEngine {
         file_name: impl Into<String>,
         project_name: impl Into<String>,
     ) -> LuaResult<Self> {
-        let lua = Lua::new_with(
-            StdLib::ALL_SAFE | StdLib::MATH | StdLib::TABLE | StdLib::STRING | StdLib::UTF8,
-            LuaOptions::default(),
-        )?;
+        let lua = Lua::new_with(StdLib::ALL_SAFE, LuaOptions::default())?;
 
         let current_dir = current_dir.into();
 

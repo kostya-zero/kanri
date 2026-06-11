@@ -33,7 +33,6 @@ editor = "code"
 editor_args = ["."]
 editor_fork_mode = true
 shell = "bash"
-shell_args = ["-c"]
 
 [recent]
 enabled = true

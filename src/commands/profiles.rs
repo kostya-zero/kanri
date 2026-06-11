@@ -31,8 +31,11 @@ pub fn handle_new() -> Result<()> {
         "code" | "code-insiders" | "codium" | "code-oss" | "cursor" | "windsurf" | "zed"
         | "code.cmd" | "code-insiders.cmd" | "codium.cmd" | "code-oss.cmd" | "windsurf.cmd"
         | "cursor.cmd" => {
-            if editor != "zed" && !editor.ends_with(".cmd") {
-                editor.push_str(".cmd");
+            #[cfg(target_os = "windows")]
+            {
+                if editor != "zed" && !editor.ends_with(".cmd") {
+                    editor.push_str(".cmd");
+                }
             }
 
             editor_fork_mode = true;
