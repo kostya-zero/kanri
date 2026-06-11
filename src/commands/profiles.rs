@@ -18,6 +18,7 @@ pub fn handle_new() -> Result<()> {
         bail!("Profile with the same name already exists.")
     }
 
+    #[allow(unused_mut)]
     let mut editor = ask_string_dialog("Which editor you want to assign (program name)?", true)?;
 
     if editor.is_empty() {
