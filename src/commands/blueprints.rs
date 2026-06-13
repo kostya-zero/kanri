@@ -3,7 +3,10 @@ use std::{fs, path::Path};
 
 use crate::{
     blueprints::{engine::BlueprintEngine, storage::Blueprints},
-    cli::{BlueprintsCheckArgs, BlueprintsCommands, BlueprintsNewArgs, BlueprintsRemoveArgs},
+    cli::{
+        BlueprintsCheckArgs, BlueprintsCommands, BlueprintsEditArgs, BlueprintsNewArgs,
+        BlueprintsRemoveArgs,
+    },
     config::Config,
     platform,
     program::{LaunchOptions, launch_program},
@@ -14,6 +17,7 @@ use crate::{
 pub fn handle(command: BlueprintsCommands) -> Result<()> {
     match command {
         BlueprintsCommands::New(args) => handle_new(args),
+        BlueprintsCommands::Edit(args) => handle_edit(args),
         BlueprintsCommands::List => handle_list(),
         BlueprintsCommands::Check(args) => handle_check(args),
         BlueprintsCommands::MigrateTemplates => handle_migrate(),
@@ -34,25 +38,16 @@ fn handle_new(args: BlueprintsNewArgs) -> Result<()> {
         "-- Write your blueprint here.\n-- Example: fs.write(\"README.md\", \"# New project\\n\")\n",
     )?;
 
-    let config = Config::load(platform::config_file())?;
-    let profile = config.get_profile(&config.options.current_profile)?;
-    if profile.editor.is_empty() {
-        bail!("Editor program name is not set in the configuration file.");
-    }
-
-    let file_path = blueprint_path.to_string_lossy().to_string();
-    let launch_options = LaunchOptions {
-        program: &profile.editor,
-        args: vec![file_path],
-        cwd: None,
-        fork_mode: profile.editor_fork_mode,
-        quiet: false,
-        env: None,
-    };
-
-    println!("The editor will launch with opened file.");
-    launch_program(launch_options).map_err(|e| anyhow!(e.to_string()))?;
+    open_blueprint_in_editor(&blueprint_path)?;
     print_done("Blueprint has been created.");
+    Ok(())
+}
+
+fn handle_edit(args: BlueprintsEditArgs) -> Result<()> {
+    let blueprint_path = blueprint_path(&args.name)?;
+    ensure!(blueprint_path.exists(), "Blueprint not found.");
+
+    open_blueprint_in_editor(&blueprint_path)?;
     Ok(())
 }
 
@@ -156,6 +151,29 @@ fn handle_remove(args: BlueprintsRemoveArgs) -> Result<()> {
     fs::remove_file(blueprint_path)?;
     print_done("Blueprint has been removed.");
     Ok(())
+}
+
+fn open_blueprint_in_editor(blueprint_path: &Path) -> Result<()> {
+    let config = Config::load(platform::config_file())?;
+    let profile = config.get_profile(&config.options.current_profile)?;
+    if profile.editor.is_empty() {
+        bail!("Editor program name is not set in the configuration file.");
+    }
+
+    let mut editor_args = profile.editor_args.clone();
+    editor_args.push(blueprint_path.to_string_lossy().to_string());
+
+    let launch_options = LaunchOptions {
+        program: &profile.editor,
+        args: editor_args,
+        cwd: None,
+        fork_mode: profile.editor_fork_mode,
+        quiet: false,
+        env: None,
+    };
+
+    println!("The editor will launch with opened file.");
+    launch_program(launch_options).map_err(|e| anyhow!(e.to_string()))
 }
 
 fn blueprint_path(name: &str) -> Result<std::path::PathBuf> {

@@ -5,6 +5,9 @@ pub enum BlueprintsCommands {
     /// Create new blueprint.
     New(BlueprintsNewArgs),
 
+    /// Edit an existing blueprint.
+    Edit(BlueprintsEditArgs),
+
     /// List available blueprints.
     List,
 
@@ -21,6 +24,12 @@ pub enum BlueprintsCommands {
 #[derive(Args)]
 pub struct BlueprintsNewArgs {
     /// Name of new blueprint.
+    pub name: String,
+}
+
+#[derive(Args)]
+pub struct BlueprintsEditArgs {
+    /// Name of blueprint to edit.
     pub name: String,
 }
 

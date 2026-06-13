@@ -6,7 +6,8 @@ mod projects;
 mod root;
 
 pub use blueprints::{
-    BlueprintsCheckArgs, BlueprintsCommands, BlueprintsNewArgs, BlueprintsRemoveArgs,
+    BlueprintsCheckArgs, BlueprintsCommands, BlueprintsEditArgs, BlueprintsNewArgs,
+    BlueprintsRemoveArgs,
 };
 pub use commands::Commands;
 pub use config::{ConfigCommands, RecentArgs};

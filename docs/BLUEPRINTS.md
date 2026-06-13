@@ -23,6 +23,9 @@ kanri blueprints new rust
 # List available blueprints.
 kanri blueprints list
 
+# Edit an existing blueprint.
+kanri blueprints edit rust
+
 # Check Lua syntax without running the blueprint.
 kanri blueprints check rust
 
@@ -33,7 +36,7 @@ kanri blueprints remove rust
 kanri blueprints migrate-templates
 ```
 
-Blueprint names must not contain path separators. Use the blueprint stem, such as `rust`, with `kanri new --blueprint` and `kanri blueprints check`.
+Blueprint names must not contain path separators. Use the blueprint stem, such as `rust`, with `kanri new --blueprint`, `kanri blueprints edit`, and `kanri blueprints check`.
 
 ## Using a blueprint
 

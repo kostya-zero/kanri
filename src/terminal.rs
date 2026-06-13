@@ -28,6 +28,18 @@ pub fn print_title(msg: &str) {
     println!("{}:", msg.bold());
 }
 
+pub fn print_action_add(msg: &str) {
+    println!("{} {}", "==>".bright_green().bold(), msg);
+}
+
+pub fn print_action_run(msg: &str) {
+    println!("{} {}", "=>>".bright_blue().bold(), msg);
+}
+
+pub fn print_action_remove(msg: &str) {
+    println!("{} {}", "=>>".bright_red().bold(), msg);
+}
+
 fn get_dialog_theme() -> impl Theme {
     ColorfulTheme {
         prompt_prefix: style(" ?".to_string()).for_stdout().cyan(),

@@ -7,7 +7,7 @@ homepage = "https://github.com/kostya-zero/kanri"
 keywords = ["workspace", "projects", "manager", "cli"]
 readme = "README.md"
 license = "MIT"
-version = "0.11.0-rc.1"
+version = "0.11.0-rc.2"
 edition = "2024"
 
 [dependencies]

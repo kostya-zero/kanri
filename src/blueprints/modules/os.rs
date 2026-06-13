@@ -1,6 +1,8 @@
 use mlua::prelude::*;
 use std::{env, io::ErrorKind, path::PathBuf, process::Command};
 
+use crate::terminal::print_action_run;
+
 fn command_error(error: std::io::Error) -> mlua::Error {
     let message = match error.kind() {
         ErrorKind::NotFound => "program not found",
@@ -9,6 +11,15 @@ fn command_error(error: std::io::Error) -> mlua::Error {
         _ => "unknown error occurred",
     };
     mlua::Error::runtime(message)
+}
+
+fn print_command(cmd: &String, args: &[String]) {
+    let mut command: String = String::from(cmd);
+    for i in args {
+        command.push_str(&format!(" {}", i));
+    }
+
+    print_action_run(&command);
 }
 
 pub fn create_os_module(lua: &Lua, current_dir: impl Into<PathBuf>) -> LuaResult<LuaTable> {
@@ -54,8 +65,9 @@ pub fn create_os_module(lua: &Lua, current_dir: impl Into<PathBuf>) -> LuaResult
             return Err(mlua::Error::runtime("program cannot be empty"));
         }
 
-        let mut command = Command::new(cmd);
-        command.args(args).current_dir(&exec_dir);
+        let mut command = Command::new(&cmd);
+        command.args(&args).current_dir(&exec_dir);
+        print_command(&cmd, &args);
         command.status().map(|_| ()).map_err(command_error)
     })?;
     os_table.set("exec", os_exec)?;
@@ -66,8 +78,8 @@ pub fn create_os_module(lua: &Lua, current_dir: impl Into<PathBuf>) -> LuaResult
             return Err(mlua::Error::runtime("program cannot be empty"));
         }
 
-        let mut command = Command::new(cmd);
-        command.args(args).current_dir(&status_dir);
+        let mut command = Command::new(&cmd);
+        command.args(&args).current_dir(&status_dir);
         command
             .status()
             .map(|status| status.code().unwrap_or(-1))
@@ -81,8 +93,9 @@ pub fn create_os_module(lua: &Lua, current_dir: impl Into<PathBuf>) -> LuaResult
             return Err(mlua::Error::runtime("program cannot be empty"));
         }
 
-        let mut command = Command::new(cmd);
-        command.args(args).current_dir(&output_dir);
+        let mut command = Command::new(&cmd);
+        command.args(&args).current_dir(&output_dir);
+        print_command(&cmd, &args);
         command
             .output()
             .map(|output| String::from_utf8_lossy(&output.stdout).to_string())

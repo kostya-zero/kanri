@@ -1,10 +1,15 @@
 # Kanri Changelog
 
+## 0.11.0-rc.2
+
+- Kanri now prints logs of actions that it performed while running a blueprint.
+- Added `kanri blueprints edit` to edit blueprint with configured editor.
+
 ## 0.11.0-rc.1
 
 - **Blueprints.** Added Lua-powered project initialization as a replacement for templates.
   - Use `kanri new <name> --blueprint <blueprint>` or `-b <blueprint>` to create projects from blueprints.
-  - Added `kanri blueprints new`, `list`, `check`, `remove`, and `migrate-templates` commands.
+  - Added `kanri blueprints new`, `edit`, `list`, `check`, `remove`, and `migrate-templates` commands.
   - Added Blueprint Lua APIs: `fs`, `os`, and `project` modules for file generation, platform checks, command execution, and project metadata.
   - Lua diagnostics now include the blueprint file name.
   - Kanri removes the newly created project directory if blueprint initialization fails or the blueprint cannot be found.
@@ -19,7 +24,7 @@
 ## 0.10.3
 
 - Added `--yes` flag for `profiles remove` to support forced profile removal.
-- Added interactive dialogs for `kanri new` when project name not passed. 
+- Added interactive dialogs for `kanri new` when project name not passed.
 - Show help when no subcommand provided.
 - Kanri now respects XDG environment variables for configuration directory path.
 - Fixed profile removal to persist config changes.

@@ -8,6 +8,7 @@ Profiles affect commands that launch external programs, especially:
 - `kanri open <project> --shell`
 - `kanri config edit`
 - `kanri blueprints new <name>` when Kanri opens the new blueprint in your editor
+- `kanri blueprints edit <name>` when Kanri opens an existing blueprint in your editor
 
 ## Profile structure
 
