@@ -46,10 +46,10 @@ pub enum Commands {
         command: ProfilesCommands,
     },
 
-    /// Backup configuration and templates into a file.
+    /// Backup configuration and blueprints into a file.
     Backup(BackupArgs),
 
-    /// Import the configuration and templates from backup file. Will overwrite the current ones.
+    /// Import the configuration and blueprints from backup file. Will overwrite the current ones.
     Import(ImportArgs),
 
     /// Display the Zen of Kanri.
