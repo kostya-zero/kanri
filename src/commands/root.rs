@@ -49,7 +49,9 @@ pub fn handle_new(args: NewArgs) -> Result<()> {
         let blueprints_dir = platform::blueprints_dir();
         let blueprints = Blueprints::load_from_path(&blueprints_dir)?;
         let blueprint_code = blueprints.get_blueprint(blueprint.clone()).map_err(|e| {
-            projects.delete(&args.name).unwrap();
+            if let Err(er) = projects.delete(&args.name) {
+                return anyhow!(er.to_string());
+            }
             anyhow!(e.to_string())
         })?;
 
