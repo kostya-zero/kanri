@@ -318,12 +318,23 @@ pub fn handle_backup(args: BackupArgs) -> Result<()> {
 }
 
 pub fn handle_import(args: ImportArgs) -> Result<()> {
+    if !ask_dialog(
+        "This action will overwrite your current configuration and will overwrite existing blueprints. Continue?",
+        false,
+        true,
+    )? {
+        print_done("Aborting.");
+        return Ok(());
+    }
+
     let backup = load_backup(args.file)?;
 
     // Write config
     backup.config.save(platform::config_file())?;
 
     // Write blueprints
+    let mut failed_blueprints: Vec<&str> = Vec::new();
+
     if !backup.blueprints.is_empty() {
         let blueprints_path = platform::blueprints_dir();
         for (k, v) in backup.blueprints.iter() {
@@ -332,15 +343,19 @@ pub fn handle_import(args: ImportArgs) -> Result<()> {
             }
 
             if k.contains('/') || k.contains('\\') {
-                bail!(
-                    "Security error: blueprint '{}' contains path separators in it's name.",
+                print_error(&format!(
+                    "Security error: blueprint '{}' contains path separators in it's name. Skipping it.",
                     k
-                );
+                ));
+                failed_blueprints.push(k);
+                continue;
             }
 
             let blueprint_path = blueprints_path.join(k);
-            fs::write(&blueprint_path, v)
-                .map_err(|e| anyhow!("Failed to write blueprint '{}': {}", k, e))?;
+            if let Err(e) = fs::write(&blueprint_path, v) {
+                print_error(&format!("Failed to write blueprint '{}': {}", k, e));
+                failed_blueprints.push(k);
+            }
         }
     }
 
