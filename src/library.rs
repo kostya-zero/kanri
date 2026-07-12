@@ -246,6 +246,9 @@ impl Library {
 
     /// Deletes a project directory from the library.
     pub fn delete(&mut self, name: &str) -> Result<(), LibraryError> {
+        if !self.projects.contains_key(name) {
+            return Err(LibraryError::ProjectNotFound);
+        }
         fs::remove_dir_all(self.base_path.join(name))?;
         self.projects.retain(|k, _| k != name);
         Ok(())
