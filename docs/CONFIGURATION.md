@@ -23,7 +23,9 @@ Kanri generates defaults from your environment where possible, including `VISUAL
 > [!NOTE]
 > On Windows, Kanri appends `.cmd` to Code-family editor names when needed. This applies to editors such as Visual Studio Code, VS Codium, Cursor, and Windsurf.
 
-## Default configuration structure
+## Configuration structure
+
+The generated values depend on your platform and environment. This example shows the schema; replace the editor and shell values with programs available on your machine.
 
 ```toml
 version = "2"
@@ -77,7 +79,7 @@ Configuration schema version. Kanri uses this to run automatic migrations when p
 
 ### `[options]`
 
-- `projects_directory` - Directory containing your project folders. Defaults to `$HOME/Projects` when the home directory can be detected.
+- `projects_directory` - Directory containing your project folders. By default, Kanri uses the first existing directory named `Projects`, `Code`, `Dev`, `Development`, `Workspace`, `Workspaces`, `Work`, `Repos`, `Repositories`, `Source`, `Sources`, `Git`, or `GitHub` next to your home directory. If none exists, it uses `$HOME/Projects`.
 - `current_profile` - Name of the active profile in `[profiles]`.
 - `display_hidden` - Whether directories whose names start with `.` are listed as projects. Defaults to `false`.
 

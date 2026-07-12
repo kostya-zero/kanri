@@ -36,6 +36,8 @@ kanri blueprints remove rust
 kanri blueprints migrate-templates
 ```
 
+Migration overwrites blueprints with matching names. After a successful migration, Kanri deletes the legacy `templates.json` file.
+
 Blueprint names must not contain path separators. Use the blueprint stem, such as `rust`, with `kanri new --blueprint`, `kanri blueprints edit`, and `kanri blueprints check`.
 
 ## Using a blueprint
@@ -86,7 +88,7 @@ end
 
 ## `fs` module
 
-All relative paths are resolved from the project directory.
+All relative paths are resolved from the project directory. Paths are not sandboxed: an absolute path or `..` can access files outside it. Run only blueprints you trust.
 
 | Function | Returns | Description |
 | --- | --- | --- |
@@ -94,7 +96,7 @@ All relative paths are resolved from the project directory.
 | `fs.read(path)` | `string` | Reads a file as UTF-8 text. |
 | `fs.remove_file(path)` | `nil` | Removes a file. |
 | `fs.remove_dir(path)` | `nil` | Removes a directory and all of its contents. |
-| `fs.move(from, to)` | `nil` | Renames or moves a file or directory. |
+| `fs.move(from, to)` | `nil` | Renames or moves a file or directory on the same filesystem. |
 | `fs.exists(path)` | `boolean` | Returns whether a path exists. |
 | `fs.is_file(path)` | `boolean` | Returns whether a path is a regular file. |
 | `fs.is_dir(path)` | `boolean` | Returns whether a path is a directory. |

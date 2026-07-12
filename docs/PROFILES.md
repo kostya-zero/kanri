@@ -38,7 +38,7 @@ Unknown profile fields are rejected when the configuration is loaded.
 
 Kanri creates a `default` profile on first run. It detects a default editor from `VISUAL` or `EDITOR`, and a default shell from `SHELL` or `COMSPEC` on Windows.
 
-For Code-family editors such as `code`, `code-insiders`, `codium`, `code-oss`, `cursor`, and `windsurf`, Kanri enables fork mode and adds `.` to `editor_args`. On Windows, Kanri also appends `.cmd` where needed.
+For recognized editors — `code`, `code-insiders`, `codium`, `code-oss`, `cursor`, `windsurf`, and `zed` — Kanri enables fork mode and adds `.` to `editor_args`. On Windows, it also appends `.cmd` where needed.
 
 ## Managing profiles from the CLI
 
