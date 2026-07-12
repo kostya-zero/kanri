@@ -63,15 +63,20 @@ pub fn handle_new(args: NewArgs) -> Result<()> {
             args.quiet,
         )
         .map_err(|e| anyhow!(e.to_string()))?;
-
-        println!("Running blueprint engine for '{}' blueprint...", blueprint);
+        if !args.quiet {
+            println!("Running blueprint engine for '{}' blueprint...", blueprint);
+        }
         if let mlua::Result::Err(e) = engine.run(&blueprint_code) {
             print_error(&format!("An error occurred in Lua engine: {}", e));
             projects.delete(&args.name)?;
             bail!("Failed to generate project from blueprint. See Lua error above.")
         }
 
-        print_done(format!("Generated '{}' from blueprint '{}'.", args.name, blueprint,).as_str());
+        if !args.quiet {
+            print_done(
+                format!("Generated '{}' from blueprint '{}'.", args.name, blueprint,).as_str(),
+            );
+        }
         return Ok(());
     }
 
@@ -318,11 +323,13 @@ pub fn handle_backup(args: BackupArgs) -> Result<()> {
 }
 
 pub fn handle_import(args: ImportArgs) -> Result<()> {
-    if !ask_dialog(
-        "This action will overwrite your current configuration and will overwrite existing blueprints. Continue?",
-        false,
-        true,
-    )? {
+    if !args.yes
+        && !ask_dialog(
+            "This action will overwrite your current configuration and will overwrite existing blueprints. Continue?",
+            false,
+            true,
+        )?
+    {
         print_done("Aborting.");
         return Ok(());
     }

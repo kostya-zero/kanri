@@ -86,4 +86,8 @@ pub struct BackupArgs {
 pub struct ImportArgs {
     /// The path to the backup file.
     pub file: String,
+
+    /// Confirm the import.
+    #[arg(short, long, action = ArgAction::SetTrue)]
+    pub yes: bool,
 }
