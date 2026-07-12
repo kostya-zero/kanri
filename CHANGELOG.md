@@ -1,11 +1,6 @@
 # Kanri Changelog
 
-## 0.11.0-rc.2
-
-- Kanri now prints logs of actions that it performed while running a blueprint.
-- Added `kanri blueprints edit` to edit blueprint with configured editor.
-
-## 0.11.0-rc.1
+## 0.11.0
 
 - **Blueprints.** Added Lua-powered project initialization as a replacement for templates.
   - Use `kanri new <name> --blueprint <blueprint>` or `-b <blueprint>` to create projects from blueprints.
@@ -18,8 +13,11 @@
   - Removed the deprecated `shell_args` field from profiles.
 - **Backups now include blueprints** instead of templates.
 - **CLI behavior change:** `kanri new` now always requires the project name argument instead of prompting for it interactively.
-- Added Blueprint and Lua API documentation.
 - Fixed an issue where `kanri profiles new` could append `.cmd` on non-Windows machines.
+- `kanri import` now asks for confirmation before overwriting configuration and blueprints; pass `--yes` to run it non-interactively.
+- Kanri detects an existing common projects directory, such as `Code`, `Work`, or `GitHub`, when creating default configuration.
+- Fixed deletion of a non-existent project returning an incorrect filesystem error.
+
 
 ## 0.10.3
 
