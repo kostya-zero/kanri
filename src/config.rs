@@ -9,6 +9,35 @@ use std::{
 use thiserror::Error;
 
 const CONFIG_VERSION: &str = "2";
+const PROJECTS_DIRECTORY_NAMES: [&str; 13] = [
+    "Projects",
+    "Code",
+    "Dev",
+    "Development",
+    "Workspace",
+    "Workspaces",
+    "Work",
+    "Repos",
+    "Repositories",
+    "Source",
+    "Sources",
+    "Git",
+    "GitHub",
+];
+
+pub fn find_projects_directory() -> PathBuf {
+    let default_directory = platform::default_projects_dir();
+    let parent_directory = default_directory.parent().unwrap();
+
+    for name in PROJECTS_DIRECTORY_NAMES {
+        let possible_path = parent_directory.join(name);
+        if possible_path.is_dir() {
+            return possible_path;
+        }
+    }
+
+    parent_directory.join("Projects")
+}
 
 #[derive(Debug, Error)]
 pub enum ConfigError {
@@ -151,7 +180,7 @@ impl Default for RecentOptions {
 impl Default for GeneralOptions {
     fn default() -> Self {
         Self {
-            projects_directory: platform::default_projects_dir(),
+            projects_directory: find_projects_directory(),
             current_profile: "default".to_string(),
             display_hidden: false,
         }
