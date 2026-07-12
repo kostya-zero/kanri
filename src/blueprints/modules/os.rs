@@ -1,5 +1,10 @@
 use mlua::prelude::*;
-use std::{env, io::ErrorKind, path::PathBuf, process::Command};
+use std::{
+    env,
+    io::ErrorKind,
+    path::PathBuf,
+    process::{Command, Stdio},
+};
 
 use crate::terminal::print_action_run;
 
@@ -22,7 +27,11 @@ fn print_command(cmd: &String, args: &[String]) {
     print_action_run(&command);
 }
 
-pub fn create_os_module(lua: &Lua, current_dir: impl Into<PathBuf>) -> LuaResult<LuaTable> {
+pub fn create_os_module(
+    lua: &Lua,
+    current_dir: impl Into<PathBuf>,
+    quiet: bool,
+) -> LuaResult<LuaTable> {
     let os_table = lua.create_table()?;
     let current_dir = current_dir.into();
 
@@ -66,8 +75,17 @@ pub fn create_os_module(lua: &Lua, current_dir: impl Into<PathBuf>) -> LuaResult
         }
 
         let mut command = Command::new(&cmd);
+
+        if quiet {
+            command
+                .stdin(Stdio::null())
+                .stdout(Stdio::null())
+                .stderr(Stdio::null());
+        }
         command.args(&args).current_dir(&exec_dir);
-        print_command(&cmd, &args);
+        if !quiet {
+            print_command(&cmd, &args);
+        }
         command.status().map(|_| ()).map_err(command_error)
     })?;
     os_table.set("exec", os_exec)?;
@@ -79,7 +97,16 @@ pub fn create_os_module(lua: &Lua, current_dir: impl Into<PathBuf>) -> LuaResult
         }
 
         let mut command = Command::new(&cmd);
+        if quiet {
+            command
+                .stdin(Stdio::null())
+                .stdout(Stdio::null())
+                .stderr(Stdio::null());
+        }
         command.args(&args).current_dir(&status_dir);
+        if !quiet {
+            print_command(&cmd, &args);
+        }
         command
             .status()
             .map(|status| status.code().unwrap_or(-1))
@@ -94,8 +121,16 @@ pub fn create_os_module(lua: &Lua, current_dir: impl Into<PathBuf>) -> LuaResult
         }
 
         let mut command = Command::new(&cmd);
+        if quiet {
+            command
+                .stdin(Stdio::null())
+                .stdout(Stdio::null())
+                .stderr(Stdio::null());
+        }
         command.args(&args).current_dir(&output_dir);
-        print_command(&cmd, &args);
+        if !quiet {
+            print_command(&cmd, &args);
+        }
         command
             .output()
             .map(|output| String::from_utf8_lossy(&output.stdout).to_string())

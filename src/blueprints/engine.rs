@@ -18,15 +18,16 @@ impl BlueprintEngine {
         current_dir: impl Into<PathBuf>,
         file_name: impl Into<String>,
         project_name: impl Into<String>,
+        quiet: bool,
     ) -> LuaResult<Self> {
         let lua = Lua::new_with(StdLib::ALL_SAFE, LuaOptions::default())?;
 
         let current_dir = current_dir.into();
 
         lua.globals()
-            .set("fs", create_fs_module(&lua, current_dir.clone())?)?;
+            .set("fs", create_fs_module(&lua, current_dir.clone(), quiet)?)?;
         lua.globals()
-            .set("os", create_os_module(&lua, current_dir.clone())?)?;
+            .set("os", create_os_module(&lua, current_dir.clone(), quiet)?)?;
         lua.globals().set(
             "project",
             create_project_module(&lua, current_dir.clone(), project_name.into())?,

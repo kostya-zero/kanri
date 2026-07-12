@@ -13,7 +13,7 @@ pub struct NewArgs {
     #[arg(short, long)]
     pub template: Option<String>,
 
-    /// Hide the output of running commands.
+    /// Hide the logs and the output of running commands.
     #[arg(short, long, action = ArgAction::SetTrue)]
     pub quiet: bool,
 }

@@ -4,13 +4,13 @@ use crate::blueprints::engine::BlueprintEngine;
 
 #[test]
 fn test_engine_initialization() {
-    let engine = BlueprintEngine::init(PathBuf::new(), "test.lua", "test");
+    let engine = BlueprintEngine::init(PathBuf::new(), "test.lua", "test", false);
     assert!(engine.is_ok())
 }
 
 #[test]
 fn test_engine_math() {
-    let engine = BlueprintEngine::init(PathBuf::new(), "test.lua", "test");
+    let engine = BlueprintEngine::init(PathBuf::new(), "test.lua", "test", false);
     assert!(engine.is_ok());
 
     let code = r#"
@@ -22,7 +22,7 @@ fn test_engine_math() {
 
 #[test]
 fn test_engine_string() {
-    let engine = BlueprintEngine::init(PathBuf::new(), "test.lua", "test");
+    let engine = BlueprintEngine::init(PathBuf::new(), "test.lua", "test", false);
     assert!(engine.is_ok());
 
     let code = r#"
@@ -34,7 +34,7 @@ fn test_engine_string() {
 
 #[test]
 fn test_engine_utf8() {
-    let engine = BlueprintEngine::init(PathBuf::new(), "test.lua", "test");
+    let engine = BlueprintEngine::init(PathBuf::new(), "test.lua", "test", false);
     assert!(engine.is_ok());
 
     let code = r#"
@@ -46,7 +46,7 @@ fn test_engine_utf8() {
 
 #[test]
 fn test_engine_table() {
-    let engine = BlueprintEngine::init(PathBuf::new(), "test.lua", "test");
+    let engine = BlueprintEngine::init(PathBuf::new(), "test.lua", "test", false);
     assert!(engine.is_ok());
 
     let code = r#"
@@ -60,7 +60,7 @@ fn test_engine_table() {
 
 #[test]
 fn test_engine_os() {
-    let engine = BlueprintEngine::init(PathBuf::new(), "test.lua", "test");
+    let engine = BlueprintEngine::init(PathBuf::new(), "test.lua", "test", false);
     assert!(engine.is_ok());
 
     let code: &str;
@@ -86,7 +86,7 @@ fn test_engine_os() {
 
 #[test]
 fn test_engine_project() {
-    let engine = BlueprintEngine::init(PathBuf::new(), "test.lua", "test");
+    let engine = BlueprintEngine::init(PathBuf::new(), "test.lua", "test", false);
     assert!(engine.is_ok());
 
     let code = r#"
@@ -98,7 +98,7 @@ fn test_engine_project() {
 
 #[test]
 fn test_engine_fs() {
-    let engine = BlueprintEngine::init(PathBuf::new(), "test.lua", "test");
+    let engine = BlueprintEngine::init(PathBuf::new(), "test.lua", "test", false);
     assert!(engine.is_ok());
 
     let code = r#"

@@ -56,24 +56,22 @@ pub fn handle_new(args: NewArgs) -> Result<()> {
         })?;
 
         let project_dir = projects_dir.join(&args.name);
-        let engine =
-            BlueprintEngine::init(project_dir, format!("{}.lua", blueprint), args.name.clone())
-                .map_err(|e| anyhow!(e.to_string()))?;
+        let engine = BlueprintEngine::init(
+            project_dir,
+            format!("{}.lua", blueprint),
+            args.name.clone(),
+            args.quiet,
+        )
+        .map_err(|e| anyhow!(e.to_string()))?;
 
-        println!("Running blueprint engine for '{}' blueprint...", &blueprint);
+        println!("Running blueprint engine for '{}' blueprint...", blueprint);
         if let mlua::Result::Err(e) = engine.run(&blueprint_code) {
             print_error(&format!("An error occurred in Lua engine: {}", e));
             projects.delete(&args.name)?;
             bail!("Failed to generate project from blueprint. See Lua error above.")
         }
 
-        print_done(
-            format!(
-                "Generated '{}' from blueprint '{}'.",
-                &args.name, &blueprint,
-            )
-            .as_str(),
-        );
+        print_done(format!("Generated '{}' from blueprint '{}'.", args.name, blueprint,).as_str());
         return Ok(());
     }
 
