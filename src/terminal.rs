@@ -3,7 +3,7 @@ use std::io::IsTerminal;
 use anyhow::Result;
 use colored::Colorize;
 use dialoguer::{
-    Confirm, Input, Select,
+    Confirm, Input,
     console::{Style, style},
     theme::{ColorfulTheme, Theme},
 };
@@ -66,16 +66,6 @@ pub fn ask_string_dialog(question: &str, report: bool) -> Result<String, Termina
         .default(String::new())
         .report(report)
         .interact_text()
-        .map_err(|_| TerminalError::InteractionFailed)
-}
-
-pub fn ask_select(items: &Vec<String>, report: bool) -> Result<usize, TerminalError> {
-    Select::with_theme(&get_dialog_theme())
-        .with_prompt("Which template to use?")
-        .default(0)
-        .items(items)
-        .report(report)
-        .interact()
         .map_err(|_| TerminalError::InteractionFailed)
 }
 

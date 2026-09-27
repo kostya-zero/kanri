@@ -1,5 +1,9 @@
 # Kanri Changelog
 
+## Unreleased
+
+- Removed the legacy templates system, including `kanri new --template` and `kanri blueprints migrate-templates`.
+
 ## 0.11.0
 
 - **Blueprints.** Added Lua-powered project initialization as a replacement for templates.

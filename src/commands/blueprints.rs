@@ -7,7 +7,6 @@ use crate::{
     config::Config,
     platform,
     program::{LaunchOptions, launch_program},
-    templates::Templates,
     terminal::{print_done, print_title},
 };
 
@@ -17,7 +16,6 @@ pub fn handle(command: BlueprintsCommands) -> Result<()> {
         BlueprintsCommands::Edit { name } => handle_edit(&name),
         BlueprintsCommands::List => handle_list(),
         BlueprintsCommands::Check { name } => handle_check(&name),
-        BlueprintsCommands::MigrateTemplates => handle_migrate(),
         BlueprintsCommands::Remove { name } => handle_remove(&name),
     }
 }
@@ -79,154 +77,6 @@ fn handle_check(name: &str) -> Result<()> {
     print_done("Blueprint is valid.");
 
     Ok(())
-}
-
-fn handle_migrate() -> Result<()> {
-    let blueprints_path = platform::blueprints_dir();
-    let templates_path = platform::templates_file();
-
-    if !templates_path.exists() {
-        bail!("Templates file not found. There is no need to migrate.");
-    }
-
-    let templates = Templates::load(&templates_path)?;
-    let templates_list = templates.list_templates();
-
-    for template in templates_list {
-        let template_commands = templates
-            .get_template(&template)
-            .ok_or_else(|| anyhow!("Template '{}' not found during migration.", template))?;
-        let mut blueprint_code = String::new();
-        for command in template_commands {
-            if let Some(line) = template_command_to_blueprint_line(command)? {
-                blueprint_code.push_str(&line);
-            }
-        }
-
-        let blueprint_name = format!("{}.lua", template);
-        let blueprint_path = blueprints_path.join(&blueprint_name);
-        fs::write(blueprint_path, blueprint_code)
-            .map_err(|e| anyhow!("Failed to write blueprint '{}': {}", blueprint_name, e))?;
-    }
-
-    fs::remove_file(templates_path)
-        .map_err(|e| anyhow!("Failed to remove templates file: {}", e))?;
-
-    print_done("Migration completed! Templates file has been deleted.");
-
-    Ok(())
-}
-
-fn template_command_to_blueprint_line(command: &str) -> Result<Option<String>> {
-    if command.trim().is_empty() {
-        return Ok(None);
-    }
-
-    let parts = split_template_command(command)?;
-    ensure!(!parts.is_empty(), "Template command cannot be empty.");
-
-    let program = lua_string(&parts[0]);
-    let args = parts
-        .iter()
-        .skip(1)
-        .map(|arg| lua_string(arg))
-        .collect::<Vec<_>>()
-        .join(", ");
-
-    Ok(Some(format!("os.exec({program}, {{{args}}})\n")))
-}
-
-fn split_template_command(command: &str) -> Result<Vec<String>> {
-    let mut parts = Vec::new();
-    let mut current = String::new();
-    let mut quote: Option<char> = None;
-    let mut escaped = false;
-    let mut in_token = false;
-
-    for ch in command.chars() {
-        if escaped {
-            current.push(ch);
-            escaped = false;
-            in_token = true;
-            continue;
-        }
-
-        match (quote, ch) {
-            (Some('\''), '\'') => {
-                quote = None;
-                in_token = true;
-            }
-            (Some('\''), _) => {
-                current.push(ch);
-                in_token = true;
-            }
-            (Some('"'), '"') => {
-                quote = None;
-                in_token = true;
-            }
-            (Some('"'), '\\') => {
-                escaped = true;
-                in_token = true;
-            }
-            (Some('"'), _) => {
-                current.push(ch);
-                in_token = true;
-            }
-            (None, '\'' | '"') => {
-                quote = Some(ch);
-                in_token = true;
-            }
-            (None, '\\') => {
-                escaped = true;
-                in_token = true;
-            }
-            (None, ch) if ch.is_whitespace() => {
-                if in_token {
-                    parts.push(std::mem::take(&mut current));
-                    in_token = false;
-                }
-            }
-            (None, _) => {
-                current.push(ch);
-                in_token = true;
-            }
-            (Some(_), _) => unreachable!("only single and double quotes are supported"),
-        }
-    }
-
-    if escaped {
-        bail!("Template command ends with an unfinished escape sequence.");
-    }
-
-    if let Some(quote) = quote {
-        bail!("Template command contains an unclosed {quote} quote.");
-    }
-
-    if in_token {
-        parts.push(current);
-    }
-
-    Ok(parts)
-}
-
-fn lua_string(value: &str) -> String {
-    let mut output = String::with_capacity(value.len() + 2);
-    output.push('"');
-
-    for ch in value.chars() {
-        match ch {
-            '\\' => output.push_str("\\\\"),
-            '"' => output.push_str("\\\""),
-            '\n' => output.push_str("\\n"),
-            '\r' => output.push_str("\\r"),
-            '\t' => output.push_str("\\t"),
-            ch if ch.is_control() => output.push_str(&format!("\\{}", ch as u32)),
-            ch => output.push(ch),
-        }
-    }
-
-    output.push('"');
-    output
 }
 
 fn handle_remove(name: &str) -> Result<()> {

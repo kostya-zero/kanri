@@ -1,6 +1,6 @@
 # Blueprints and Lua API
 
-Blueprints are Lua scripts that initialize a newly created Kanri project. They replace the older templates system and are useful when a project needs more than a fixed list of shell commands: file generation, conditional logic, OS-specific setup, or command output handling.
+Blueprints are Lua scripts that initialize a newly created Kanri project. They support file generation, conditional logic, OS-specific setup, and command output handling.
 
 ## Storage location
 
@@ -31,12 +31,7 @@ kanri blueprints check rust
 
 # Remove a blueprint.
 kanri blueprints remove rust
-
-# Migrate old templates to Lua blueprints.
-kanri blueprints migrate-templates
 ```
-
-Migration overwrites blueprints with matching names. After a successful migration, Kanri deletes the legacy `templates.json` file.
 
 Blueprint names must not contain path separators. Use the blueprint stem, such as `rust`, with `kanri new --blueprint`, `kanri blueprints edit`, and `kanri blueprints check`.
 

@@ -45,13 +45,6 @@ kanri new bookshelf -b rust
 
 Blueprints are Lua scripts for project initialization. See [Blueprints and Lua API](docs/BLUEPRINTS.md).
 
-> [!NOTE]
-> The old template system has been replaced by blueprints. Existing templates can be migrated with:
->
-> ```shell
-> kanri blueprints migrate-templates
-> ```
-
 ### Clone repositories
 
 ```shell

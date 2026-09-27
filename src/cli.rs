@@ -78,10 +78,6 @@ pub struct NewArgs {
     #[arg(short, long)]
     pub blueprint: Option<String>,
 
-    /// Template to use for a new project.
-    #[arg(short, long)]
-    pub template: Option<String>,
-
     /// Hide the logs and the output of running commands.
     #[arg(short, long)]
     pub quiet: bool,
@@ -177,9 +173,6 @@ pub enum BlueprintsCommands {
 
     /// List available blueprints.
     List,
-
-    /// Perform a migration of templates to blueprints.
-    MigrateTemplates,
 
     /// Check blueprint on syntax errors. It doesn't execute the code.
     Check {

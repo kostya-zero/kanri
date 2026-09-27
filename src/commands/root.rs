@@ -32,12 +32,6 @@ fn resolve_project_name(
 }
 
 pub fn handle_new(args: NewArgs) -> Result<()> {
-    if args.template.is_some() {
-        bail!(
-            "Templates are no longer supported and has been replaced with blueprints. If you want to migrate your templates, use `kanri blueprints migrate-templates`."
-        );
-    }
-
     let config = Config::load(platform::config_file())?;
     let projects_dir = &config.options.projects_directory;
     let mut projects = Library::new(projects_dir, config.options.display_hidden)?;
