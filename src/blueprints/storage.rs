@@ -105,7 +105,7 @@ impl Blueprints {
     }
 
     fn blueprint_path(&self, name: &str) -> PathBuf {
-        self.path.join(name).with_extension("lua")
+        self.path.join(name).with_added_extension("lua")
     }
 }
 

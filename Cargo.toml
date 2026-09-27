@@ -1,7 +1,7 @@
 [package]
 name = "kanri"
 description = "Manage your projects within the terminal."
-authors = ["Konstantin Zhigaylo <zero@kostyazero.com>"]
+authors = ["Konstantin Zhigaylo <kostyazero@proton.me>"]
 repository = "https://github.com/kostya-zero/kanri"
 homepage = "https://github.com/kostya-zero/kanri"
 keywords = ["workspace", "projects", "manager", "cli"]
