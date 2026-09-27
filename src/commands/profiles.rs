@@ -2,7 +2,7 @@ use anyhow::{Result, bail};
 use colored::Colorize;
 
 use crate::{
-    cli::{ProfilesGetArgs, ProfilesRemoveArgs, ProfilesSetArgs},
+    cli::ProfilesRemoveArgs,
     config::{Config, Profile},
     platform,
     terminal::{ask_dialog, ask_string_dialog, print_done, print_title},
@@ -67,18 +67,18 @@ pub fn handle_new() -> Result<()> {
     Ok(())
 }
 
-pub fn handle_set(args: ProfilesSetArgs) -> Result<()> {
+pub fn handle_set(name: &str) -> Result<()> {
     let config_path = platform::config_file();
     let mut config = Config::load(&config_path)?;
 
-    if !config.is_profile_exist(&args.name) {
-        bail!("Profile {} not found.", args.name)
+    if !config.is_profile_exist(name) {
+        bail!("Profile {name} not found.")
     }
 
-    config.options.current_profile = args.name.clone();
+    config.options.current_profile = name.to_string();
     config.save(config_path)?;
 
-    print_done(&format!("Switched current profile to '{}'.", args.name));
+    print_done(&format!("Switched current profile to '{name}'."));
 
     Ok(())
 }
@@ -102,9 +102,9 @@ pub fn handle_list() -> Result<()> {
     Ok(())
 }
 
-pub fn handle_get(args: ProfilesGetArgs) -> Result<()> {
+pub fn handle_get(name: &str) -> Result<()> {
     let config = Config::load(platform::config_file())?;
-    let profile = config.get_profile(&args.name)?;
+    let profile = config.get_profile(name)?;
 
     print_title("Profile");
     // There should be a better way to display it.

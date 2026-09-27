@@ -3,10 +3,7 @@ use std::{fs, path::Path};
 
 use crate::{
     blueprints::{engine::BlueprintEngine, storage::Blueprints},
-    cli::{
-        BlueprintsCheckArgs, BlueprintsCommands, BlueprintsEditArgs, BlueprintsNewArgs,
-        BlueprintsRemoveArgs,
-    },
+    cli::BlueprintsCommands,
     config::Config,
     platform,
     program::{LaunchOptions, launch_program},
@@ -16,17 +13,17 @@ use crate::{
 
 pub fn handle(command: BlueprintsCommands) -> Result<()> {
     match command {
-        BlueprintsCommands::New(args) => handle_new(args),
-        BlueprintsCommands::Edit(args) => handle_edit(args),
+        BlueprintsCommands::New { name } => handle_new(&name),
+        BlueprintsCommands::Edit { name } => handle_edit(&name),
         BlueprintsCommands::List => handle_list(),
-        BlueprintsCommands::Check(args) => handle_check(args),
+        BlueprintsCommands::Check { name } => handle_check(&name),
         BlueprintsCommands::MigrateTemplates => handle_migrate(),
-        BlueprintsCommands::Remove(args) => handle_remove(args),
+        BlueprintsCommands::Remove { name } => handle_remove(&name),
     }
 }
 
-fn handle_new(args: BlueprintsNewArgs) -> Result<()> {
-    let blueprint_path = blueprint_path(&args.name)?;
+fn handle_new(name: &str) -> Result<()> {
+    let blueprint_path = blueprint_path(name)?;
     ensure!(!blueprint_path.exists(), "Blueprint already exists.");
 
     if let Some(parent) = blueprint_path.parent() {
@@ -43,8 +40,8 @@ fn handle_new(args: BlueprintsNewArgs) -> Result<()> {
     Ok(())
 }
 
-fn handle_edit(args: BlueprintsEditArgs) -> Result<()> {
-    let blueprint_path = blueprint_path(&args.name)?;
+fn handle_edit(name: &str) -> Result<()> {
+    let blueprint_path = blueprint_path(name)?;
     ensure!(blueprint_path.exists(), "Blueprint not found.");
 
     open_blueprint_in_editor(&blueprint_path)?;
@@ -68,12 +65,12 @@ fn handle_list() -> Result<()> {
     Ok(())
 }
 
-fn handle_check(args: BlueprintsCheckArgs) -> Result<()> {
+fn handle_check(name: &str) -> Result<()> {
     let blueprints_dir = platform::blueprints_dir();
     let blueprints = Blueprints::load_from_path(&blueprints_dir)?;
-    let blueprint_code = blueprints.get_blueprint(args.name.clone())?;
+    let blueprint_code = blueprints.get_blueprint(name)?;
 
-    let engine = BlueprintEngine::init(Path::new("."), format!("{}.lua", args.name), "check", true)
+    let engine = BlueprintEngine::init(Path::new("."), format!("{name}.lua"), "check", true)
         .map_err(|e| anyhow!(e.to_string()))?;
     if let mlua::Result::Err(e) = engine.check(&blueprint_code) {
         bail!("Check failed: {}", e);
@@ -232,8 +229,8 @@ fn lua_string(value: &str) -> String {
     output
 }
 
-fn handle_remove(args: BlueprintsRemoveArgs) -> Result<()> {
-    let blueprint_path = blueprint_path(&args.name)?;
+fn handle_remove(name: &str) -> Result<()> {
+    let blueprint_path = blueprint_path(name)?;
     ensure!(blueprint_path.exists(), "Blueprint not found.");
 
     fs::remove_file(blueprint_path)?;

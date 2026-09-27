@@ -53,7 +53,11 @@ fn main() {
         exit(1);
     }
 
-    let result = match cli.cmd.expect("clap guarantees subcommand") {
+    let Some(command) = cli.cmd else {
+        return;
+    };
+
+    let result = match command {
         Commands::New(args) => root::handle_new(args),
         Commands::Clone(args) => root::handle_clone(args),
         Commands::Open(args) => root::handle_open(args),
@@ -69,8 +73,8 @@ fn main() {
         },
         Commands::Profiles { command } => match command {
             ProfilesCommands::New => profiles::handle_new(),
-            ProfilesCommands::Set(args) => profiles::handle_set(args),
-            ProfilesCommands::Get(args) => profiles::handle_get(args),
+            ProfilesCommands::Set { name } => profiles::handle_set(&name),
+            ProfilesCommands::Get { name } => profiles::handle_get(&name),
             ProfilesCommands::List => profiles::handle_list(),
             ProfilesCommands::Remove(args) => profiles::handle_remove(args),
         },
