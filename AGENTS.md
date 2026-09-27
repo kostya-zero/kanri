@@ -1,77 +1,31 @@
-# AGENTS.md
+# Repository Guidelines
 
-## Project
+## Project Structure & Module Organization
 
-Kanri is a Rust CLI for managing local project directories. It uses `clap`, `serde`, TOML/JSON config, Lua-powered blueprints, and platform helpers for paths, shells, and editors.
+Kanri is a Rust 2024 CLI for managing local project directories on Windows, Linux, and macOS. `src/main.rs` dispatches commands defined in `src/cli.rs`; handlers live in `src/commands/`. `src/library.rs` manages projects, while configuration, profiles, backups, migrations, and platform integration have dedicated modules. `src/blueprints/` contains the Lua engine, storage, and exposed API modules. Unit tests live in `src/tests/`. User documentation is in `docs/`; CI and release workflows are in `.github/workflows/`. Build output goes into `target/`.
 
-Current user-facing system:
+## Build, Test, and Development Commands
 
-- Projects are created, cloned, listed, opened, renamed, and removed from a configured workspace.
-- Blueprints are Lua scripts used to initialize new projects.
-- The old templates system is deprecated and remains only for migration via `kanri blueprints migrate-templates`.
-- Backups include config and blueprints.
+Install stable Rust and a C/C++ compiler; see `docs/BUILDING.md` for platform prerequisites.
 
-## Key Files
+- `cargo run -- --help`: run the CLI locally and inspect commands.
+- `cargo build`: compile a debug binary.
+- `cargo build --release`: create an optimized binary in `target/release/`.
+- `cargo fmt --all`: format Rust code; append `-- --check` to verify formatting.
+- `cargo clippy --all-targets --all-features -- -D warnings`: run CI-equivalent lint checks. Prefer Clippy over `cargo check`.
+- `cargo test`: run the test suite.
+- `cargo nextest run`: run tests using the runner used in CI; requires cargo-nextest.
 
-- `src/main.rs` — entry point, environment bootstrap, command dispatch.
-- `src/cli.rs` and `src/cli/` — CLI commands, flags, aliases, help text.
-- `src/commands/` — command handlers.
-- `src/config.rs` — config schema, defaults, load/save.
-- `src/migrations.rs` — config migrations.
-- `src/library.rs` — project directory operations.
-- `src/blueprints/` — Lua blueprint engine, storage, and Lua modules.
-- `src/templates.rs` — legacy templates storage used for migration only.
-- `src/backup.rs` — backup/import data model and persistence.
-- `src/platform.rs` — OS-specific behavior.
-- `src/program.rs` — external program launching.
-- `src/terminal.rs` — terminal output, prompts, progress UI.
-- `src/tests/` — unit tests and helpers.
-- `docs/` — user docs.
+Skip builds and Clippy for small changes that do not affect logic.
 
-## Commands
+## Coding Style & Naming Conventions
 
-Run before handoff:
+Follow rustfmt defaults with four-space indentation. Use `snake_case` for modules and functions, `PascalCase` for types, and `SCREAMING_SNAKE_CASE` for constants. Prefer `anyhow::Result` for application-level fallible operations; preserve existing typed domain errors. Avoid `unwrap()` unless failure is demonstrably impossible. Keep changes focused, follow existing module boundaries, and avoid speculative abstractions. Prefer PowerShell for scripts.
 
-```shell
-cargo fmt --all
-cargo clippy --all-targets --all-features -- -D warnings
-cargo test
-```
+## Testing Guidelines
 
-CI also uses:
+Tests use Rust's built-in `#[test]` framework and `tempfile` for filesystem isolation. Follow `src/tests/test_<module>.rs` and `test_<behavior>` naming; register new test modules in `src/tests/mod.rs`. Add tests only when requested, targeting observable behavior. Run focused tests with `cargo test test_library`. CI tests all three supported operating systems; no coverage threshold is configured.
 
-```shell
-cargo nextest run
-```
+## Commit & Pull Request Guidelines
 
-Build and package checks:
-
-```shell
-cargo build
-cargo build --release
-cargo package --no-verify
-```
-
-## Rules
-
-- Keep Rust idiomatic and `rustfmt` clean.
-- Return `Result`; do not panic for normal user/filesystem errors.
-- Use explicit domain errors with `thiserror`; use `anyhow` near app boundaries.
-- Preserve cross-platform behavior, especially `platform.rs`, shell/editor logic, process launching, and paths.
-- Keep CLI changes synced with README/docs/help text.
-- Preserve config compatibility: structs use `serde(default, deny_unknown_fields)`.
-- Keep config migrations safe and idempotent.
-- Avoid new dependencies unless clearly needed.
-- Treat templates as deprecated legacy migration code; do not add new template features.
-
-## Tests and Docs
-
-- Add tests in `src/tests/` for library/config/blueprint/backup behavior changes.
-- Use `TestContext` and temp dirs; never touch real user config in tests.
-- Update `README.md`, `docs/`, and `CHANGELOG.md` for user-visible changes.
-- Keep blueprint Lua API docs in `docs/BLUEPRINTS.md` synced with implementation.
-- Keep profile/config docs synced with config schema and migrations.
-
-## Safety
-
-Be careful with destructive paths: `remove`, `rename`, config reset, blueprint remove/edit, template migration, backup import, and Lua blueprint filesystem operations. Preserve `NO_COLOR` behavior and terminal output style.
+Use the history's Conventional Commit style: `feat:`, `fix:`, `refactor:`, `docs:`, or `chore:`, optionally scoped, such as `feat(config): ...`. Keep subjects concise and imperative. PRs should explain the problem, resulting behavior, and validation performed; link relevant issues. Update `docs/` when CLI behavior or configuration changes, and note platform-specific effects.
