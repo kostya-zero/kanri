@@ -4,6 +4,7 @@
 
 - Removed the legacy templates system, including `kanri new --template` and `kanri blueprints migrate-templates`.
 - Fixed bug where blueprints storage was overwriting the extension if the name of blueprint was passed in format `foo.bar` to `foo.lua`. Now storage appends the `lua` extension to the blueprint name (e.g., `foo.bar.lua`).
+- Fixed bug where blueprints storage could incorrectly recognize a directory with `.lua` extension in the name as a valid blueprint.
 
 ## 0.11.0
 

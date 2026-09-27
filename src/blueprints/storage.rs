@@ -48,7 +48,9 @@ impl Blueprints {
             let entry = entry?;
             let path = entry.path();
 
-            if path.extension().and_then(|extension| extension.to_str()) != Some("lua") {
+            if path.extension().and_then(|extension| extension.to_str()) != Some("lua")
+                || path.is_dir()
+            {
                 continue;
             }
 
