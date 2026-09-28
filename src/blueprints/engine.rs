@@ -5,6 +5,7 @@ use mlua::{LuaOptions, StdLib};
 
 use crate::blueprints::modules::fs::create_fs_module;
 use crate::blueprints::modules::os::create_os_module;
+use crate::blueprints::modules::path::create_path_module;
 use crate::blueprints::modules::process::create_process_module;
 use crate::blueprints::modules::project::create_project_module;
 
@@ -29,6 +30,7 @@ impl BlueprintEngine {
             .set("fs", create_fs_module(&lua, current_dir.clone(), quiet)?)?;
         lua.globals()
             .set("os", create_os_module(&lua, current_dir.clone())?)?;
+        lua.globals().set("path", create_path_module(&lua)?)?;
         lua.globals().set(
             "project",
             create_project_module(&lua, current_dir.clone(), project_name.into())?,

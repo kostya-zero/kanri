@@ -12,6 +12,7 @@ Blueprints are Lua scripts that initialize a newly created Kanri project. They s
 - [Modules](#modules)
   - [`fs`](#fs-module)
   - [`os`](#os-module)
+  - [`path`](#path-module)
   - [`process`](#process-module)
   - [`project`](#project-module)
 - [Error handling](#error-handling)
@@ -64,10 +65,11 @@ Kanri creates the project directory, then runs the blueprint inside that directo
 
 Blueprints run in an embedded Lua 5.4 runtime. Kanri enables Lua's safe standard libraries plus `math`, `table`, `string`, and `utf8`.
 
-Kanri also injects three global modules:
+Kanri also injects these global modules:
 
 - `fs` for filesystem operations.
 - `os` for platform information and environment variables.
+- `path` for working with paths.
 - `process` for finding and running programs.
 - `project` for information about the project being created.
 
@@ -154,6 +156,26 @@ if git_path then
         error("git init failed with status " .. tostring(status))
     end
 end
+```
+
+### `path` module
+
+Path operations use the host operating system's path syntax. They work on strings without accessing the filesystem. Results use the host's directory separator.
+
+| Function | Returns | Description |
+| --- | --- | --- |
+| `path.join(...)` | `string` | Joins path parts. Empty parts are ignored; an absolute part replaces preceding parts. Returns `.` when no parts remain. Does not normalize `..`. |
+| `path.parent(path)` | `string` or `nil` | Parent directory, or `nil` if there is none. Returns `.` for a file in the current directory. |
+| `path.basename(path)` | `string` or `nil` | Final path component, or `nil` if there is no file name. |
+| `path.extension(path)` | `string` or `nil` | Final extension without the dot, or `nil` if there is none. |
+| `path.stem(path)` | `string` or `nil` | Final file name without its last extension, or `nil` if there is no file name. |
+| `path.is_absolute(path)` | `boolean` | Whether the path is absolute on the host OS. |
+
+```lua
+local source = path.join("src", "main.rs")
+print(path.basename(source))                -- main.rs
+print(path.stem(source))                    -- main
+print(path.extension(source))               -- rs
 ```
 
 ### `process` module

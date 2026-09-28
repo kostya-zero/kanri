@@ -107,3 +107,25 @@ fn test_engine_fs() {
         "#;
     assert!(engine.unwrap().run(code).is_ok())
 }
+
+#[test]
+fn test_engine_path() {
+    let engine = BlueprintEngine::init(PathBuf::new(), "test.lua", "test", false)
+        .expect("blueprint engine should initialize");
+
+    let code = r#"
+        local source = path.join("src", "lib", "main.rs")
+        assert(source == "src" .. os.dir_separator() .. "lib" .. os.dir_separator() .. "main.rs")
+        assert(path.join() == ".")
+        assert(path.parent(source) == path.join("src", "lib"))
+        assert(path.parent("README.md") == ".")
+        assert(path.basename(source) == "main.rs")
+        assert(path.extension(source) == "rs")
+        assert(path.extension("README") == nil)
+        assert(path.stem(source) == "main")
+        assert(path.is_absolute(os.temp_dir()))
+        assert(not path.is_absolute(source))
+    "#;
+
+    engine.run(code).expect("path functions should work in Lua");
+}
