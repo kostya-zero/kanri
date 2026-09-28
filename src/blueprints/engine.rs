@@ -28,7 +28,7 @@ impl BlueprintEngine {
         lua.globals()
             .set("fs", create_fs_module(&lua, current_dir.clone(), quiet)?)?;
         lua.globals()
-            .set("os", create_os_module(&lua, current_dir.clone(), quiet)?)?;
+            .set("os", create_os_module(&lua, current_dir.clone())?)?;
         lua.globals().set(
             "project",
             create_project_module(&lua, current_dir.clone(), project_name.into())?,
