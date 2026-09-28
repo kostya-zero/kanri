@@ -2,6 +2,20 @@
 
 Blueprints are Lua scripts that initialize a newly created Kanri project. They support file generation, conditional logic, OS-specific setup, and command output handling.
 
+## Table of contents
+
+- [Storage location](#storage-location)
+- [Managing blueprints](#managing-blueprints)
+- [Using a blueprint](#using-a-blueprint)
+- [Lua runtime](#lua-runtime)
+- [Example blueprint](#example-blueprint)
+- [Modules](#modules)
+  - [`fs`](#fs-module)
+  - [`os`](#os-module)
+  - [`process`](#process-module)
+  - [`project`](#project-module)
+- [Error handling](#error-handling)
+
 ## Storage location
 
 Blueprints are stored as `.lua` files in Kanri's configuration directory under `blueprints`:
@@ -53,7 +67,8 @@ Blueprints run in an embedded Lua 5.4 runtime. Kanri enables Lua's safe standard
 Kanri also injects three global modules:
 
 - `fs` for filesystem operations.
-- `os` for platform information and process execution.
+- `os` for platform information and environment variables.
+- `process` for finding and running programs.
 - `project` for information about the project being created.
 
 ## Example blueprint
@@ -76,12 +91,14 @@ version = "0.1.0"
 edition = "2024"
 ]], name))
 
-if os.exec_status("git", { "--version" }) == 0 then
-    os.exec("git", { "init" })
+if process.which("git") then
+    process.run("git", { "init" })
 end
 ```
 
-## `fs` module
+## Modules
+
+### `fs` module
 
 All relative paths are resolved from the project directory. Paths are not sandboxed: an absolute path or `..` can access files outside it. Run only blueprints you trust.
 
@@ -107,9 +124,7 @@ end
 fs.write("src/index.js", "console.log('hello')\n")
 ```
 
-## `os` module
-
-Process commands run with the project directory as their working directory.
+### `os` module
 
 | Function | Returns | Description |
 | --- | --- | --- |
@@ -122,9 +137,6 @@ Process commands run with the project directory as their working directory.
 | `os.temp_dir()` | `string` | Path to the system temporary directory. |
 | `os.env(name)` | `string` or `nil` | Environment variable value, or `nil` if it is not set. |
 | `os.current_dir()` | `string` | Project directory used by the blueprint engine. |
-| `os.exec(command, args)` | `nil` | Runs a program with a list of arguments. Does not fail on a non-zero exit code. |
-| `os.exec_status(command, args)` | `number` | Runs a program and returns its exit code. Returns `-1` if the process ended without an exit code. |
-| `os.exec_output(command, args)` | `string` | Runs a program and returns stdout as text. |
 
 Examples:
 
@@ -135,16 +147,34 @@ else
     fs.write("run.sh", "#!/usr/bin/env sh\necho hello\n")
 end
 
-local status = os.exec_status("git", { "init" })
-if status ~= 0 then
-    error("git init failed with status " .. status)
+local git_path = process.which("git")
+if git_path then
+    local status = process.run("git", { "init" })
+    if status ~= 0 then
+        error("git init failed with status " .. tostring(status))
+    end
 end
-
-local rustc_version = os.exec_output("rustc", { "--version" })
-fs.write("RUST_VERSION.txt", rustc_version)
 ```
 
-## `project` module
+### `process` module
+
+Programs run with the project directory as their working directory. `process.run` inherits the terminal streams unless Kanri is running in quiet mode.
+
+| Function | Returns | Description |
+| --- | --- | --- |
+| `process.which(executable)` | `string` | Returns the resolved executable path from `PATH`. |
+| `process.run(program, args)` | `number` or `nil` | Runs a program with a list of arguments and returns its exit code. Returns `nil` if the process ended without an exit code. |
+
+An empty program name or a failure to start the process raises a Lua runtime error. A non-zero exit code is returned and does not itself raise an error.
+
+```lua
+if process.which("git") then
+    local status = process.run("git", { "--version" })
+    print("git exited with status " .. tostring(status))
+end
+```
+
+### `project` module
 
 | Function | Returns | Description |
 | --- | --- | --- |
@@ -168,4 +198,4 @@ if not fs.exists("package.json") then
 end
 ```
 
-Filesystem errors and process launch errors are converted into Lua runtime errors. For external commands, use `os.exec_status` when you need to fail on non-zero exit codes.
+Filesystem errors and process launch errors are converted into Lua runtime errors. Check the value returned by `process.run` when a non-zero exit code should stop blueprint execution.
