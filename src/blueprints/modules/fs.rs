@@ -1,4 +1,8 @@
-use std::{fs, path::PathBuf};
+use std::{
+    fs::{self, File},
+    io::Write,
+    path::PathBuf,
+};
 
 use mlua::prelude::*;
 
@@ -96,6 +100,22 @@ pub fn create_fs_module(
                 if !quiet {
                     print_action_add(&format!("Created a directory: {}", path));
                 }
+                Ok(())
+            })?,
+        ),
+        (
+            "append",
+            lua.create_function(|_, (path, content): (String, String)| {
+                let mut file = File::options()
+                    .append(true)
+                    .create(true)
+                    .open(path)
+                    .map_err(|e| mlua::Error::runtime(format!("failed to open file: {e}")))?;
+
+                writeln!(&mut file, "{content}").map_err(|e| {
+                    mlua::Error::runtime(format!("failed to write content to file: {e}"))
+                })?;
+
                 Ok(())
             })?,
         ),
