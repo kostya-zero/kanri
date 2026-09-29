@@ -102,7 +102,7 @@ pub fn create_fs_module(lua: &Lua, quiet: bool) -> LuaResult<LuaTable> {
                     .create(true)
                     .open(resolve(lua, &path)?)
                     .map_err(|error| fs_error("open a file", error))?;
-                writeln!(file, "{content}").map_err(|error| fs_error("append to a file", error))?;
+                write!(file, "{content}").map_err(|error| fs_error("append to a file", error))?;
                 if !quiet {
                     print_action_add(&format!("Appended to a file: {}", path));
                 }
