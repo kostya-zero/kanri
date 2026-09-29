@@ -9,6 +9,9 @@ use crate::blueprints::modules::path::create_path_module;
 use crate::blueprints::modules::process::create_process_module;
 use crate::blueprints::modules::project::create_project_module;
 
+/// Project directory that blueprint modules resolve relative paths against.
+pub struct ProjectDir(pub PathBuf);
+
 pub struct BlueprintEngine {
     lua: Lua,
     file_name: String,
@@ -25,9 +28,9 @@ impl BlueprintEngine {
         let lua = Lua::new_with(StdLib::ALL_SAFE, LuaOptions::default())?;
 
         let current_dir = current_dir.into();
+        lua.set_app_data(ProjectDir(current_dir.clone()));
 
-        lua.globals()
-            .set("fs", create_fs_module(&lua, current_dir.clone(), quiet)?)?;
+        lua.globals().set("fs", create_fs_module(&lua, quiet)?)?;
         lua.globals()
             .set("os", create_os_module(&lua, current_dir.clone())?)?;
         lua.globals().set("path", create_path_module(&lua)?)?;
