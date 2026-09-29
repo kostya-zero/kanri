@@ -39,7 +39,7 @@ pub fn create_process_module(
             "which",
             lua.create_function(|_, executable: String| match which(executable) {
                 Ok(p) => Ok(p.to_str().unwrap().to_string()),
-                Err(_) => todo!(),
+                Err(e) => Err(mlua::Error::runtime(format!("failed to find program: {e}"))),
             })?,
         ),
         (
