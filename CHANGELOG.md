@@ -3,6 +3,12 @@
 ## Unreleased
 
 - Added the `path` module to blueprints for joining paths, reading path components, and checking whether a path is absolute.
+- Added the `process` module to blueprints. `process.run` replaces `os.exec`, `os.exec_status`, and `os.exec_output`: it prints the running command and returns the exit code. Capturing command output is no longer supported. `process.which` returns the resolved path of an executable and raises an error if it is not found.
+- Added `fs.append` to blueprints for appending a line to a file.
+- **Blueprint API change:** the Kanri `os` module has been renamed to `system`, so the standard Lua `os` library is available in blueprints again.
+  - Removed `os.family`, `os.dir_separator`, and `os.path_separator`.
+  - Removed `os.env`; use the standard `os.getenv` instead.
+  - Removed `os.current_dir`; use `project.path` instead.
 - Removed the legacy templates system, including `kanri new --template` and `kanri blueprints migrate-templates`.
 - Fixed bug where blueprints storage was overwriting the extension if the name of blueprint was passed in format `foo.bar` to `foo.lua`. Now storage appends the `lua` extension to the blueprint name (e.g., `foo.bar.lua`).
 - Fixed bug where blueprints storage could incorrectly recognize a directory with `.lua` extension in the name as a valid blueprint.
