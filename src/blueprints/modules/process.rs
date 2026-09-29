@@ -14,7 +14,7 @@ fn command_error(error: std::io::Error) -> mlua::Error {
         ErrorKind::NotFound => "program not found",
         ErrorKind::Interrupted => "program was interrupted",
         ErrorKind::PermissionDenied => "not enough permissions to execute program",
-        _ => "unknown error occurred",
+        error => &format!("unexpected error occurred: {error}"),
     };
     mlua::Error::runtime(message)
 }
