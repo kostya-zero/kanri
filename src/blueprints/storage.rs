@@ -24,7 +24,6 @@ pub enum BlueprintsError {
     IoError { source: std::io::Error },
 }
 
-#[derive(Default)]
 pub struct Blueprints {
     blueprints: Vec<String>,
     path: PathBuf,
@@ -64,29 +63,6 @@ impl Blueprints {
         Ok(files)
     }
 
-    /// Creates a new file in blueprints directory.
-    pub fn create(&self, name: impl AsRef<str>) -> Result<PathBuf, BlueprintsError> {
-        let name = name.as_ref();
-        if self.contains(name) {
-            return Err(BlueprintsError::AlreadyExists);
-        }
-
-        let new_blueprint_path = self.blueprint_path(name);
-        fs::write(&new_blueprint_path, "")?;
-        Ok(new_blueprint_path)
-    }
-
-    /// Removes blueprint from blueprints directory.
-    pub fn remove(&self, name: impl AsRef<str>) -> Result<(), BlueprintsError> {
-        let name = name.as_ref();
-        if !self.contains(name) {
-            return Err(BlueprintsError::NotFound);
-        }
-
-        fs::remove_file(self.blueprint_path(name))?;
-        Ok(())
-    }
-
     /// Get all blueprints.
     pub fn get_blueprints(&self) -> &[String] {
         &self.blueprints
@@ -99,15 +75,12 @@ impl Blueprints {
             return Err(BlueprintsError::NotFound);
         }
 
-        Ok(fs::read_to_string(self.blueprint_path(name))?)
+        let path = self.path.join(name).with_added_extension("lua");
+        Ok(fs::read_to_string(path)?)
     }
 
     fn contains(&self, name: &str) -> bool {
         self.blueprints.iter().any(|blueprint| blueprint == name)
-    }
-
-    fn blueprint_path(&self, name: &str) -> PathBuf {
-        self.path.join(name).with_added_extension("lua")
     }
 }
 
