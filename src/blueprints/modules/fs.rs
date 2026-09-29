@@ -96,17 +96,16 @@ pub fn create_fs_module(lua: &Lua, quiet: bool) -> LuaResult<LuaTable> {
         ),
         (
             "append",
-            lua.create_function(|_, (path, content): (String, String)| {
+            lua.create_function(move |lua, (path, content): (String, String)| {
                 let mut file = File::options()
                     .append(true)
                     .create(true)
-                    .open(path)
-                    .map_err(|e| mlua::Error::runtime(format!("failed to open file: {e}")))?;
-
-                writeln!(&mut file, "{content}").map_err(|e| {
-                    mlua::Error::runtime(format!("failed to write content to file: {e}"))
-                })?;
-
+                    .open(resolve(lua, &path)?)
+                    .map_err(|error| fs_error("open a file", error))?;
+                writeln!(file, "{content}").map_err(|error| fs_error("append to a file", error))?;
+                if !quiet {
+                    print_action_add(&format!("Appended to a file: {}", path));
+                }
                 Ok(())
             })?,
         ),

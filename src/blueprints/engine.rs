@@ -4,10 +4,10 @@ use mlua::prelude::*;
 use mlua::{AppDataRef, LuaOptions, StdLib};
 
 use crate::blueprints::modules::fs::create_fs_module;
-use crate::blueprints::modules::os::create_os_module;
 use crate::blueprints::modules::path::create_path_module;
 use crate::blueprints::modules::process::create_process_module;
 use crate::blueprints::modules::project::create_project_module;
+use crate::blueprints::modules::system::create_system_module;
 
 /// Project directory that blueprint modules resolve relative paths against.
 pub struct ProjectDir(pub PathBuf);
@@ -37,7 +37,7 @@ impl BlueprintEngine {
         lua.set_app_data(ProjectDir(current_dir.into()));
 
         lua.globals().set("fs", create_fs_module(&lua, quiet)?)?;
-        lua.globals().set("os", create_os_module(&lua)?)?;
+        lua.globals().set("system", create_system_module(&lua)?)?;
         lua.globals().set("path", create_path_module(&lua)?)?;
         lua.globals()
             .set("project", create_project_module(&lua, project_name.into())?)?;

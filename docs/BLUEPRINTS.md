@@ -11,10 +11,10 @@ Blueprints are Lua scripts that initialize a newly created Kanri project. They s
 - [Example blueprint](#example-blueprint)
 - [Modules](#modules)
   - [`fs`](#fs-module)
-  - [`os`](#os-module)
   - [`path`](#path-module)
   - [`process`](#process-module)
   - [`project`](#project-module)
+  - [`system`](#system-module)
 - [Error handling](#error-handling)
 
 ## Storage location
@@ -63,15 +63,17 @@ Kanri creates the project directory, then runs the blueprint inside that directo
 
 ## Lua runtime
 
-Blueprints run in an embedded Lua 5.4 runtime. Kanri enables Lua's safe standard libraries plus `math`, `table`, `string`, and `utf8`.
+Blueprints run in an embedded Lua 5.4 runtime with all standard libraries except `debug`. The standard `os` library is available as usual, for example `os.getenv` for environment variables and `os.date` or `os.time` for dates.
+
+Standard `io` and `os` functions that take paths, such as `io.open`, `os.remove`, and `os.rename`, resolve relative paths from the directory Kanri was started in, not from the project directory. Use the `fs` module to work with project files.
 
 Kanri also injects these global modules:
 
-- `fs` for filesystem operations.
-- `os` for platform information and environment variables.
+- `fs` for filesystem operations in the project directory.
 - `path` for working with paths.
 - `process` for finding and running programs.
 - `project` for information about the project being created.
+- `system` for platform information.
 
 ## Example blueprint
 
@@ -93,7 +95,7 @@ version = "0.1.0"
 edition = "2024"
 ]], name))
 
-if process.which("git") then
+if pcall(process.which, "git") then
     process.run("git", { "init" })
 end
 ```
@@ -115,6 +117,7 @@ All relative paths are resolved from the project directory. Paths are not sandbo
 | `fs.is_file(path)` | `boolean` | Returns whether a path is a regular file. |
 | `fs.is_dir(path)` | `boolean` | Returns whether a path is a directory. |
 | `fs.create_dir(path)` | `nil` | Creates a directory and missing parent directories. |
+| `fs.append(path, content)` | `nil` | Appends `content` and a trailing newline to a file, creating the file if it does not exist. |
 
 Example:
 
@@ -124,38 +127,6 @@ if not fs.exists("src") then
 end
 
 fs.write("src/index.js", "console.log('hello')\n")
-```
-
-### `os` module
-
-| Function | Returns | Description |
-| --- | --- | --- |
-| `os.system()` | `string` | Operating system name, such as `windows`, `linux`, or `macos`. |
-| `os.arch()` | `string` | CPU architecture, such as `x86_64` or `aarch64`. |
-| `os.family()` | `string` | OS family, usually `windows` or `unix`. |
-| `os.exe_suffix()` | `string` | Executable suffix for the platform, such as `.exe` on Windows or an empty string elsewhere. |
-| `os.dir_separator()` | `string` | Directory separator, such as `\` on Windows or `/` on Unix-like systems. |
-| `os.path_separator()` | `string` | PATH separator, `;` on Windows or `:` elsewhere. |
-| `os.temp_dir()` | `string` | Path to the system temporary directory. |
-| `os.env(name)` | `string` or `nil` | Environment variable value, or `nil` if it is not set. |
-| `os.current_dir()` | `string` | Project directory used by the blueprint engine. |
-
-Examples:
-
-```lua
-if os.system() == "windows" then
-    fs.write("run.bat", "@echo off\necho hello\n")
-else
-    fs.write("run.sh", "#!/usr/bin/env sh\necho hello\n")
-end
-
-local git_path = process.which("git")
-if git_path then
-    local status = process.run("git", { "init" })
-    if status ~= 0 then
-        error("git init failed with status " .. tostring(status))
-    end
-end
 ```
 
 ### `path` module
@@ -184,15 +155,19 @@ Programs run with the project directory as their working directory. `process.run
 
 | Function | Returns | Description |
 | --- | --- | --- |
-| `process.which(executable)` | `string` | Returns the resolved executable path from `PATH`. |
+| `process.which(executable)` | `string` | Returns the resolved executable path from `PATH`. Raises a Lua runtime error if the executable is not found. |
 | `process.run(program, args)` | `number` or `nil` | Runs a program with a list of arguments and returns its exit code. Returns `nil` if the process ended without an exit code. |
 
 An empty program name or a failure to start the process raises a Lua runtime error. A non-zero exit code is returned and does not itself raise an error.
 
+Use `pcall` to check whether a program is installed without stopping the blueprint:
+
 ```lua
-if process.which("git") then
-    local status = process.run("git", { "--version" })
-    print("git exited with status " .. tostring(status))
+if pcall(process.which, "git") then
+    local status = process.run("git", { "init" })
+    if status ~= 0 then
+        error("git init failed with status " .. tostring(status))
+    end
 end
 ```
 
@@ -208,6 +183,29 @@ Example:
 ```lua
 fs.write("README.md", "# " .. project.name() .. "\n")
 print("Generating project at " .. tostring(project.path()))
+```
+
+### `system` module
+
+| Function | Returns | Description |
+| --- | --- | --- |
+| `system.system()` | `string` | Operating system name, such as `windows`, `linux`, or `macos`. |
+| `system.arch()` | `string` | CPU architecture, such as `x86_64` or `aarch64`. |
+| `system.exe_suffix()` | `string` | Executable suffix for the platform, such as `.exe` on Windows or an empty string elsewhere. |
+| `system.temp_dir()` | `string` | Path to the system temporary directory. |
+
+Example:
+
+```lua
+if system.system() == "windows" then
+    fs.write("run.bat", "@echo off
+echo hello
+")
+else
+    fs.write("run.sh", "#!/usr/bin/env sh
+echo hello
+")
+end
 ```
 
 ## Error handling
