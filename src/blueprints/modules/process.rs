@@ -1,12 +1,12 @@
 use std::{
     io::ErrorKind,
-    path::PathBuf,
     process::{Command, Stdio},
 };
 
 use mlua::prelude::*;
 use which::which;
 
+use crate::blueprints::engine::ProjectDir;
 use crate::terminal::print_action_run;
 
 fn command_error(error: std::io::Error) -> mlua::Error {
@@ -28,12 +28,7 @@ fn print_command(cmd: &String, args: &[String]) {
     print_action_run(&command);
 }
 
-pub fn create_process_module(
-    lua: &Lua,
-    current_dir: impl Into<PathBuf>,
-    quiet: bool,
-) -> LuaResult<LuaTable> {
-    let current_dir = current_dir.into();
+pub fn create_process_module(lua: &Lua, quiet: bool) -> LuaResult<LuaTable> {
     let process_table = lua.create_table_from([
         (
             "which",
@@ -44,7 +39,7 @@ pub fn create_process_module(
         ),
         (
             "run",
-            lua.create_function(move |_, (program, arguments): (String, Vec<String>)| {
+            lua.create_function(move |lua, (program, arguments): (String, Vec<String>)| {
                 if program.is_empty() {
                     return Err(mlua::Error::runtime("program cannot be empty"));
                 }
@@ -56,7 +51,9 @@ pub fn create_process_module(
                         .stderr(Stdio::null());
                 }
 
-                command.args(&arguments).current_dir(&current_dir);
+                command
+                    .args(&arguments)
+                    .current_dir(&ProjectDir::get(lua)?.0);
                 if !quiet {
                     print_command(&program, &arguments);
                 }

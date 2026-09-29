@@ -1,19 +1,14 @@
-use std::path::PathBuf;
-
 use mlua::prelude::*;
 
-pub fn create_project_module(
-    lua: &Lua,
-    current_dir: impl Into<PathBuf>,
-    project_name: impl Into<String>,
-) -> LuaResult<LuaTable> {
-    let current_dir = current_dir.into();
+use crate::blueprints::engine::ProjectDir;
+
+pub fn create_project_module(lua: &Lua, project_name: impl Into<String>) -> LuaResult<LuaTable> {
     let project_name = project_name.into();
 
     let project_table = lua.create_table_from([
         (
             "path",
-            lua.create_function(move |_, ()| Ok(current_dir.clone()))?,
+            lua.create_function(|lua, ()| Ok(ProjectDir::get(lua)?.0.clone()))?,
         ),
         (
             "name",

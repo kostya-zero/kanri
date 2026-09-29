@@ -1,7 +1,7 @@
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use mlua::prelude::*;
-use mlua::{LuaOptions, StdLib};
+use mlua::{AppDataRef, LuaOptions, StdLib};
 
 use crate::blueprints::modules::fs::create_fs_module;
 use crate::blueprints::modules::os::create_os_module;
@@ -12,10 +12,17 @@ use crate::blueprints::modules::project::create_project_module;
 /// Project directory that blueprint modules resolve relative paths against.
 pub struct ProjectDir(pub PathBuf);
 
+impl ProjectDir {
+    /// Returns the project directory stored in Lua app data.
+    pub fn get(lua: &Lua) -> LuaResult<AppDataRef<'_, Self>> {
+        lua.app_data_ref::<Self>()
+            .ok_or_else(|| mlua::Error::runtime("project directory is not set"))
+    }
+}
+
 pub struct BlueprintEngine {
     lua: Lua,
     file_name: String,
-    current_dir: PathBuf,
 }
 
 impl BlueprintEngine {
@@ -27,25 +34,18 @@ impl BlueprintEngine {
     ) -> LuaResult<Self> {
         let lua = Lua::new_with(StdLib::ALL_SAFE, LuaOptions::default())?;
 
-        let current_dir = current_dir.into();
-        lua.set_app_data(ProjectDir(current_dir.clone()));
+        lua.set_app_data(ProjectDir(current_dir.into()));
 
         lua.globals().set("fs", create_fs_module(&lua, quiet)?)?;
-        lua.globals()
-            .set("os", create_os_module(&lua, current_dir.clone())?)?;
+        lua.globals().set("os", create_os_module(&lua)?)?;
         lua.globals().set("path", create_path_module(&lua)?)?;
-        lua.globals().set(
-            "project",
-            create_project_module(&lua, current_dir.clone(), project_name.into())?,
-        )?;
-        lua.globals().set(
-            "process",
-            create_process_module(&lua, current_dir.clone(), quiet)?,
-        )?;
+        lua.globals()
+            .set("project", create_project_module(&lua, project_name.into())?)?;
+        lua.globals()
+            .set("process", create_process_module(&lua, quiet)?)?;
 
         Ok(Self {
             lua,
-            current_dir,
             file_name: file_name.into(),
         })
     }
@@ -60,9 +60,5 @@ impl BlueprintEngine {
             .set_name(&self.file_name)
             .into_function()
             .map(|_| ())
-    }
-
-    pub fn current_dir(&self) -> &Path {
-        &self.current_dir
     }
 }

@@ -1,10 +1,9 @@
 use mlua::prelude::*;
-use std::{env, path::PathBuf};
+use std::env;
 
-pub fn create_os_module(lua: &Lua, current_dir: impl Into<PathBuf>) -> LuaResult<LuaTable> {
-    let current_dir = current_dir.into();
-    let cwd = current_dir.clone();
+use crate::blueprints::engine::ProjectDir;
 
+pub fn create_os_module(lua: &Lua) -> LuaResult<LuaTable> {
     let os_table = lua.create_table_from([
         ("system", lua.create_function(|_, ()| Ok(env::consts::OS))?),
         ("arch", lua.create_function(|_, ()| Ok(env::consts::ARCH))?),
@@ -34,7 +33,9 @@ pub fn create_os_module(lua: &Lua, current_dir: impl Into<PathBuf>) -> LuaResult
         ),
         (
             "current_dir",
-            lua.create_function(move |_, ()| Ok(cwd.to_string_lossy().to_string()))?,
+            lua.create_function(|lua, ()| {
+                Ok(ProjectDir::get(lua)?.0.to_string_lossy().to_string())
+            })?,
         ),
     ])?;
 

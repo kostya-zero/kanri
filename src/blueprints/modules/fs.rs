@@ -15,10 +15,7 @@ fn fs_error(action: &str, error: std::io::Error) -> mlua::Error {
 
 /// Resolves `path` relative to the project directory stored in Lua app data.
 fn resolve(lua: &Lua, path: &str) -> LuaResult<PathBuf> {
-    let project_dir = lua
-        .app_data_ref::<ProjectDir>()
-        .ok_or_else(|| mlua::Error::runtime("project directory is not set"))?;
-    Ok(project_dir.0.join(path))
+    Ok(ProjectDir::get(lua)?.0.join(path))
 }
 
 pub fn create_fs_module(lua: &Lua, quiet: bool) -> LuaResult<LuaTable> {
