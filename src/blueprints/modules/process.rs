@@ -39,30 +39,31 @@ pub fn create_process_module(lua: &Lua, quiet: bool) -> LuaResult<LuaTable> {
         ),
         (
             "run",
-            lua.create_function(move |lua, (program, arguments): (String, Vec<String>)| {
-                if program.is_empty() {
-                    return Err(mlua::Error::runtime("program cannot be empty"));
-                }
-                let mut command = Command::new(&program);
-                if quiet {
-                    command
-                        .stdin(Stdio::null())
-                        .stdout(Stdio::null())
-                        .stderr(Stdio::null());
-                }
+            lua.create_function(
+                move |lua, (program, arguments): (String, Option<Vec<String>>)| {
+                    if program.is_empty() {
+                        return Err(mlua::Error::runtime("program cannot be empty"));
+                    }
+                    let mut command = Command::new(&program);
+                    if quiet {
+                        command
+                            .stdin(Stdio::null())
+                            .stdout(Stdio::null())
+                            .stderr(Stdio::null());
+                    }
 
-                command
-                    .args(&arguments)
-                    .current_dir(&ProjectDir::get(lua)?.0);
-                if !quiet {
-                    print_command(&program, &arguments);
-                }
+                    let args: Vec<String> = arguments.unwrap_or_default();
+                    command.args(&args).current_dir(&ProjectDir::get(lua)?.0);
+                    if !quiet {
+                        print_command(&program, &args);
+                    }
 
-                match command.status() {
-                    Ok(status) => Ok(status.code()),
-                    Err(e) => Err(command_error(e)),
-                }
-            })?,
+                    match command.status() {
+                        Ok(status) => Ok(status.code()),
+                        Err(e) => Err(command_error(e)),
+                    }
+                },
+            )?,
         ),
     ])?;
 
