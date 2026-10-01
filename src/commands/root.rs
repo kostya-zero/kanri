@@ -36,31 +36,36 @@ pub fn handle_new(args: NewArgs) -> Result<()> {
     let projects_dir = &config.options.projects_directory;
     let mut projects = Library::new(projects_dir, config.options.display_hidden)?;
 
+    let blueprint_obj: Option<(String, String)> = if let Some(blueprint_name) = args.blueprint {
+        let blueprints_dir = platform::blueprints_dir();
+        let blueprints = Blueprints::load_from_path(&blueprints_dir)?;
+        let blueprint_code = blueprints
+            .get_blueprint(blueprint_name.clone())
+            .map_err(|e| anyhow!(e.to_string()))?;
+        Some((blueprint_name, blueprint_code))
+    } else {
+        None
+    };
+
     validate_project_name(&args.name)?;
     projects.create(&args.name)?;
 
-    if let Some(blueprint) = args.blueprint {
-        let blueprints_dir = platform::blueprints_dir();
-        let blueprints = Blueprints::load_from_path(&blueprints_dir)?;
-        let blueprint_code = blueprints.get_blueprint(blueprint.clone()).map_err(|e| {
-            if let Err(er) = projects.delete(&args.name) {
-                return anyhow!(er.to_string());
-            }
-            anyhow!(e.to_string())
-        })?;
-
+    if let Some(blueprint) = blueprint_obj {
         let project_dir = projects_dir.join(&args.name);
         let engine = BlueprintEngine::init(
             project_dir,
-            format!("{}.lua", blueprint),
+            format!("{}.lua", blueprint.0),
             args.name.clone(),
             args.quiet,
         )
         .map_err(|e| anyhow!(e.to_string()))?;
         if !args.quiet {
-            println!("Running blueprint engine for '{}' blueprint...", blueprint);
+            println!(
+                "Running blueprint engine for '{}' blueprint...",
+                blueprint.0
+            );
         }
-        if let mlua::Result::Err(e) = engine.run(&blueprint_code) {
+        if let mlua::Result::Err(e) = engine.run(&blueprint.1) {
             print_error(&format!("An error occurred in Lua engine: {}", e));
             projects.delete(&args.name)?;
             bail!("Failed to generate project from blueprint. See Lua error above.")
@@ -68,7 +73,11 @@ pub fn handle_new(args: NewArgs) -> Result<()> {
 
         if !args.quiet {
             print_done(
-                format!("Generated '{}' from blueprint '{}'.", args.name, blueprint,).as_str(),
+                format!(
+                    "Generated '{}' from blueprint '{}'.",
+                    args.name, blueprint.0
+                )
+                .as_str(),
             );
         }
         return Ok(());
