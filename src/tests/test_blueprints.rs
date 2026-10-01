@@ -80,8 +80,8 @@ fn test_engine_project() {
     assert!(engine.is_ok());
 
     let code = r#"
-            assert(type(project.name) == "function")
-            assert(project.name() == "test")
+            assert(type(project.name) == "string")
+            assert(project.name == "test")
         "#;
     assert!(engine.unwrap().run(code).is_ok())
 }
