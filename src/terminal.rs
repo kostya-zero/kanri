@@ -1,19 +1,12 @@
 use std::io::IsTerminal;
 
-use anyhow::Result;
+use anyhow::{Result, anyhow};
 use dialoguer::{
     Confirm, Input,
     console::{Style, style},
     theme::{ColorfulTheme, Theme},
 };
 use indicatif::ProgressBar;
-use thiserror::Error;
-
-#[derive(Error, Debug)]
-pub enum TerminalError {
-    #[error("CLI interaction failed.")]
-    InteractionFailed,
-}
 
 #[macro_export]
 macro_rules! print_error {
@@ -73,23 +66,23 @@ fn get_dialog_theme() -> impl Theme {
     }
 }
 
-pub fn ask_dialog(question: &str, default: bool, report: bool) -> Result<bool, TerminalError> {
+pub fn ask_dialog(question: &str, default: bool, report: bool) -> Result<bool> {
     Confirm::with_theme(&get_dialog_theme())
         .with_prompt(question)
         .default(default)
         .show_default(true)
         .report(report)
         .interact()
-        .map_err(|_| TerminalError::InteractionFailed)
+        .map_err(|_| anyhow!("CLI interaction failed"))
 }
 
-pub fn ask_string_dialog(question: &str, report: bool) -> Result<String, TerminalError> {
+pub fn ask_string_dialog(question: &str, report: bool) -> Result<String> {
     Input::<String>::with_theme(&get_dialog_theme())
         .with_prompt(question)
         .default(String::new())
         .report(report)
         .interact_text()
-        .map_err(|_| TerminalError::InteractionFailed)
+        .map_err(|_| anyhow!("CLI interaction failed"))
 }
 
 pub fn is_terminal() -> bool {
