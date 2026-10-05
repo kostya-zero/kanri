@@ -175,14 +175,14 @@ end
 
 | Function | Returns | Description |
 | --- | --- | --- |
-| `project.name()` | `string` | Name passed to `kanri new`. |
-| `project.path()` | `string` | Path to the project directory. |
+| `project.name` | `string` | Name passed to `kanri new`. |
+| `project.path` | `string` | Path to the project directory. |
 
 Example:
 
 ```lua
-fs.write("README.md", "# " .. project.name() .. "\n")
-print("Generating project at " .. tostring(project.path()))
+fs.write("README.md", "# " .. project.name .. "\n")
+print("Generating project at " .. tostring(project.path))
 ```
 
 ### `system` module
