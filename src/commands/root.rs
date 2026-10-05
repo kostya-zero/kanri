@@ -66,14 +66,18 @@ pub fn handle_new(args: NewArgs) -> Result<()> {
                 blueprint.0
             );
         }
-        if let mlua::Result::Err(e) = engine.run(&blueprint_code) {
+        if let mlua::Result::Err(e) = engine.run(&blueprint.1) {
             print_error!("An error occurred in Lua engine: {}", e);
             projects.delete(&args.name)?;
             bail!("Failed to generate project from blueprint. See Lua error above.")
         }
 
         if !args.quiet {
-            print_done!("Generated '{}' from blueprint '{}'.", args.name, blueprint);
+            print_done!(
+                "Generated '{}' from blueprint '{}'.",
+                args.name,
+                blueprint.0
+            );
         }
         return Ok(());
     }
