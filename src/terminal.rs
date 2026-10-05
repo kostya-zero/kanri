@@ -1,7 +1,6 @@
 use std::io::IsTerminal;
 
 use anyhow::Result;
-use colored::Colorize;
 use dialoguer::{
     Confirm, Input,
     console::{Style, style},
@@ -16,28 +15,52 @@ pub enum TerminalError {
     InteractionFailed,
 }
 
-pub fn print_error(msg: &str) {
-    eprintln!(" {}: {msg}", "Error".bright_red().bold());
+#[macro_export]
+macro_rules! print_error {
+    ($($arg:tt)*) => {{
+        use ::colored::Colorize;
+        eprintln!(" {}: {}", "Error".bright_red().bold(), format_args!($($arg)*));
+    }};
 }
 
-pub fn print_done(msg: &str) {
-    println!(" {} {msg}", "✓".bold().bright_green())
+#[macro_export]
+macro_rules! print_done {
+    ($($arg:tt)*) => {{
+        use ::colored::Colorize;
+        println!(" {} {}", "✓".bold().bright_green(), format_args!($($arg)*));
+    }};
 }
 
-pub fn print_title(msg: &str) {
-    println!("{}:", msg.bold());
+#[macro_export]
+macro_rules! print_title {
+    ($($arg:tt)*) => {{
+        use ::colored::Colorize;
+        println!("{}:", format!($($arg)*).bold());
+    }};
 }
 
-pub fn print_action_add(msg: &str) {
-    println!("{} {}", "==>".bright_green().bold(), msg);
+#[macro_export]
+macro_rules! print_action_add {
+    ($($arg:tt)*) => {{
+        use ::colored::Colorize;
+        println!("{} {}", "==>".bright_green().bold(), format_args!($($arg)*));
+    }};
 }
 
-pub fn print_action_run(msg: &str) {
-    println!("{} {}", "=>>".bright_blue().bold(), msg);
+#[macro_export]
+macro_rules! print_action_run {
+    ($($arg:tt)*) => {{
+        use ::colored::Colorize;
+        println!("{} {}", "=>>".bright_blue().bold(), format_args!($($arg)*));
+    }};
 }
 
-pub fn print_action_remove(msg: &str) {
-    println!("{} {}", "=>>".bright_red().bold(), msg);
+#[macro_export]
+macro_rules! print_action_remove {
+    ($($arg:tt)*) => {{
+        use ::colored::Colorize;
+        println!("{} {}", "=>>".bright_red().bold(), format_args!($($arg)*));
+    }};
 }
 
 fn get_dialog_theme() -> impl Theme {

@@ -11,8 +11,9 @@ use crate::{
     config::Config,
     library::{CloneOptions, Library, validate_project_name},
     platform::{self},
+    print_done, print_error, print_title,
     program::{LaunchOptions, launch_program},
-    terminal::{ask_dialog, generate_progress, is_terminal, print_done, print_error, print_title},
+    terminal::{ask_dialog, generate_progress, is_terminal},
 };
 
 fn resolve_project_name(
@@ -61,23 +62,18 @@ pub fn handle_new(args: NewArgs) -> Result<()> {
             println!("Running blueprint engine for '{}' blueprint...", blueprint);
         }
         if let mlua::Result::Err(e) = engine.run(&blueprint_code) {
-            print_error(&format!("An error occurred in Lua engine: {}", e));
+            print_error!("An error occurred in Lua engine: {}", e);
             projects.delete(&args.name)?;
             bail!("Failed to generate project from blueprint. See Lua error above.")
         }
 
         if !args.quiet {
-            print_done(
-                format!("Generated '{}' from blueprint '{}'.", args.name, blueprint,).as_str(),
-            );
+            print_done!("Generated '{}' from blueprint '{}'.", args.name, blueprint);
         }
         return Ok(());
     }
 
-    print_done(&format!(
-        "Created an empty project with name '{}'.",
-        args.name
-    ));
+    print_done!("Created an empty project with name '{}'.", args.name);
 
     Ok(())
 }
@@ -98,7 +94,7 @@ pub fn handle_clone(args: CloneArgs) -> Result<()> {
 
     projects.clone(&clone_options)?;
 
-    print_done("Repository has been cloned.");
+    print_done!("Repository has been cloned.");
     Ok(())
 }
 
@@ -181,7 +177,7 @@ pub fn handle_open(args: OpenArgs) -> Result<()> {
 
     if fork_mode {
         // Because only editor could be launched in fork mode.
-        print_done("Editor launched.");
+        print_done!("Editor launched.");
         return Ok(());
     }
 
@@ -203,7 +199,7 @@ pub fn handle_list(args: ListArgs) -> Result<()> {
     let recent = &config.recent.recent_project;
 
     if !args.pure {
-        print_title("Your projects");
+        print_title!("Your projects");
     }
     for name in projects.get_names() {
         if args.pure {
@@ -231,10 +227,11 @@ pub fn handle_rename(args: RenameArgs) -> Result<()> {
     validate_project_name(&args.new_name)?;
 
     projects.rename(&args.old_name, &args.new_name)?;
-    print_done(&format!(
+    print_done!(
         "Project '{}' has been renamed to '{}'.",
-        args.old_name, args.new_name
-    ));
+        args.old_name,
+        args.new_name
+    );
     Ok(())
 }
 
@@ -256,7 +253,7 @@ pub fn handle_remove(args: RemoveArgs) -> Result<()> {
                 false,
             )?
         {
-            print_done("Canceled.");
+            print_done!("Canceled.");
             return Ok(());
         }
     } else {
@@ -277,7 +274,7 @@ pub fn handle_remove(args: RemoveArgs) -> Result<()> {
     }
     spinner.finish_and_clear();
 
-    print_done(&format!("Project '{project_name}' has been removed."));
+    print_done!("Project '{project_name}' has been removed.");
     Ok(())
 }
 
@@ -312,7 +309,7 @@ pub fn handle_backup(args: BackupArgs) -> Result<()> {
         blueprints: blueprints_map,
     };
     save_backup(&backup_file_path, backup)?;
-    print_done(&format!("Backup saved to `{backup_file_path}`."));
+    print_done!("Backup saved to `{backup_file_path}`.");
     Ok(())
 }
 
@@ -324,7 +321,7 @@ pub fn handle_import(args: ImportArgs) -> Result<()> {
             true,
         )?
     {
-        print_done("Aborting.");
+        print_done!("Aborting.");
         return Ok(());
     }
 
@@ -344,23 +341,23 @@ pub fn handle_import(args: ImportArgs) -> Result<()> {
             }
 
             if k.contains('/') || k.contains('\\') {
-                print_error(&format!(
+                print_error!(
                     "Security error: blueprint '{}' contains path separators in it's name. Skipping it.",
                     k
-                ));
+                );
                 failed_blueprints.push(k);
                 continue;
             }
 
             let blueprint_path = blueprints_path.join(k);
             if let Err(e) = fs::write(&blueprint_path, v) {
-                print_error(&format!("Failed to write blueprint '{}': {}", k, e));
+                print_error!("Failed to write blueprint '{}': {}", k, e);
                 failed_blueprints.push(k);
             }
         }
     }
 
-    print_done("Backup has been imported.");
+    print_done!("Backup has been imported.");
     Ok(())
 }
 

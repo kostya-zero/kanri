@@ -7,7 +7,7 @@ use std::{
 use mlua::prelude::*;
 
 use crate::blueprints::engine::ProjectDir;
-use crate::terminal::{print_action_add, print_action_remove, print_action_run};
+use crate::{print_action_add, print_action_remove, print_action_run};
 
 fn fs_error(action: &str, error: std::io::Error) -> mlua::Error {
     mlua::Error::runtime(format!("failed to {action}: {error}"))
@@ -27,9 +27,9 @@ pub fn create_fs_module(lua: &Lua, quiet: bool) -> LuaResult<LuaTable> {
                 let overwrite = path.exists();
                 fs::write(&path, content).map_err(|error| fs_error("write a file", error))?;
                 if !quiet && !overwrite {
-                    print_action_add(&format!("Created a file: {}", path.to_string_lossy()));
+                    print_action_add!("Created a file: {}", path.to_string_lossy());
                 } else if !quiet && overwrite {
-                    print_action_add(&format!("Overwritten a file: {}", path.to_string_lossy()));
+                    print_action_add!("Overwritten a file: {}", path.to_string_lossy());
                 }
                 Ok(())
             })?,
@@ -47,7 +47,7 @@ pub fn create_fs_module(lua: &Lua, quiet: bool) -> LuaResult<LuaTable> {
                 fs::remove_file(resolve(lua, &path)?)
                     .map_err(|error| fs_error("remove a file", error))?;
                 if !quiet {
-                    print_action_remove(&format!("Removed a file: {}", path));
+                    print_action_remove!("Removed a file: {}", path);
                 }
                 Ok(())
             })?,
@@ -58,7 +58,7 @@ pub fn create_fs_module(lua: &Lua, quiet: bool) -> LuaResult<LuaTable> {
                 fs::remove_dir_all(resolve(lua, &path)?)
                     .map_err(|error| fs_error("remove a directory", error))?;
                 if !quiet {
-                    print_action_remove(&format!("Removed a directory: {}", path));
+                    print_action_remove!("Removed a directory: {}", path);
                 }
                 Ok(())
             })?,
@@ -69,7 +69,7 @@ pub fn create_fs_module(lua: &Lua, quiet: bool) -> LuaResult<LuaTable> {
                 fs::rename(resolve(lua, &from)?, resolve(lua, &to)?)
                     .map_err(|error| fs_error("move a path", error))?;
                 if !quiet {
-                    print_action_run(&format!("Moved item from '{}' to '{}'", from, to));
+                    print_action_run!("Moved item from '{}' to '{}'", from, to);
                 }
                 Ok(())
             })?,
@@ -92,7 +92,7 @@ pub fn create_fs_module(lua: &Lua, quiet: bool) -> LuaResult<LuaTable> {
                 fs::create_dir_all(resolve(lua, &path)?)
                     .map_err(|error| fs_error("create a directory", error))?;
                 if !quiet {
-                    print_action_add(&format!("Created a directory: {}", path));
+                    print_action_add!("Created a directory: {}", path);
                 }
                 Ok(())
             })?,
@@ -107,7 +107,7 @@ pub fn create_fs_module(lua: &Lua, quiet: bool) -> LuaResult<LuaTable> {
                     .map_err(|error| fs_error("open a file", error))?;
                 write!(file, "{content}").map_err(|error| fs_error("append to a file", error))?;
                 if !quiet {
-                    print_action_add(&format!("Appended to a file: {}", path));
+                    print_action_add!("Appended to a file: {}", path);
                 }
                 Ok(())
             })?,

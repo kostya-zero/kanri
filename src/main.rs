@@ -6,8 +6,7 @@ use kanri::{
     cli::{Cli, Commands, ConfigCommands, ProfilesCommands},
     commands::{blueprints, config, profiles, root},
     config::Config,
-    platform,
-    terminal::print_error,
+    platform, print_error,
 };
 
 fn check_env() -> Result<()> {
@@ -49,7 +48,7 @@ fn main() {
     }
 
     if let Err(e) = check_env() {
-        print_error(&e.to_string());
+        print_error!("{e}");
         exit(1);
     }
 
@@ -84,7 +83,7 @@ fn main() {
     };
 
     if let Err(e) = result {
-        print_error(&e.to_string());
+        print_error!("{e}");
         exit(1);
     }
 }

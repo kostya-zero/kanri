@@ -3,9 +3,9 @@ use anyhow::{Result, anyhow, bail};
 use crate::{
     cli::RecentArgs,
     config::Config,
-    platform,
+    platform, print_done,
     program::{LaunchOptions, launch_program},
-    terminal::{ask_dialog, print_done},
+    terminal::ask_dialog,
 };
 
 pub fn handle_path() -> Result<()> {
@@ -70,9 +70,9 @@ pub fn handle_reset() -> Result<()> {
     if ask_dialog("Reset your current configuration?", false, true)? {
         config.reset();
         config.save(path)?;
-        print_done("Configuration has been reseted.");
+        print_done!("Configuration has been reseted.");
     } else {
-        print_done("Aborted.");
+        print_done!("Aborted.");
     }
     Ok(())
 }

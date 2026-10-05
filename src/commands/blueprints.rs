@@ -5,9 +5,8 @@ use crate::{
     blueprints::{engine::BlueprintEngine, storage::Blueprints},
     cli::BlueprintsCommands,
     config::Config,
-    platform,
+    platform, print_done, print_title,
     program::{LaunchOptions, launch_program},
-    terminal::{print_done, print_title},
 };
 
 pub fn handle(command: BlueprintsCommands) -> Result<()> {
@@ -34,7 +33,7 @@ fn handle_new(name: &str) -> Result<()> {
     )?;
 
     open_blueprint_in_editor(&blueprint_path)?;
-    print_done("Blueprint has been created.");
+    print_done!("Blueprint has been created.");
     Ok(())
 }
 
@@ -56,7 +55,7 @@ fn handle_list() -> Result<()> {
         return Ok(());
     }
 
-    print_title("Your blueprints");
+    print_title!("Your blueprints");
     for blueprint in blueprints_vec {
         println!(" {blueprint}");
     }
@@ -74,7 +73,7 @@ fn handle_check(name: &str) -> Result<()> {
         bail!("Check failed: {}", e);
     }
 
-    print_done("Blueprint is valid.");
+    print_done!("Blueprint is valid.");
 
     Ok(())
 }
@@ -84,7 +83,7 @@ fn handle_remove(name: &str) -> Result<()> {
     ensure!(blueprint_path.exists(), "Blueprint not found.");
 
     fs::remove_file(blueprint_path)?;
-    print_done("Blueprint has been removed.");
+    print_done!("Blueprint has been removed.");
     Ok(())
 }
 

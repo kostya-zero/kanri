@@ -7,7 +7,7 @@ use mlua::prelude::*;
 use which::which;
 
 use crate::blueprints::engine::ProjectDir;
-use crate::terminal::print_action_run;
+use crate::print_action_run;
 
 fn command_error(error: std::io::Error) -> mlua::Error {
     let message = match error.kind() {
@@ -25,7 +25,7 @@ fn print_command(cmd: &String, args: &[String]) {
         command.push_str(&format!(" {}", i));
     }
 
-    print_action_run(&command);
+    print_action_run!("{command}");
 }
 
 pub fn create_process_module(lua: &Lua, quiet: bool) -> LuaResult<LuaTable> {

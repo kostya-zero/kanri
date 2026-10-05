@@ -4,8 +4,8 @@ use colored::Colorize;
 use crate::{
     cli::ProfilesRemoveArgs,
     config::{Config, Profile},
-    platform,
-    terminal::{ask_dialog, ask_string_dialog, print_done, print_title},
+    platform, print_done, print_title,
+    terminal::{ask_dialog, ask_string_dialog},
 };
 
 pub fn handle_new() -> Result<()> {
@@ -63,7 +63,7 @@ pub fn handle_new() -> Result<()> {
     config.profiles.insert(profile_name, profile);
     config.save(config_path)?;
 
-    print_done("Your profile has been saved. You can edit it in your configuration file.");
+    print_done!("Your profile has been saved. You can edit it in your configuration file.");
     Ok(())
 }
 
@@ -78,7 +78,7 @@ pub fn handle_set(name: &str) -> Result<()> {
     config.options.current_profile = name.to_string();
     config.save(config_path)?;
 
-    print_done(&format!("Switched current profile to '{name}'."));
+    print_done!("Switched current profile to '{name}'.");
 
     Ok(())
 }
@@ -87,7 +87,7 @@ pub fn handle_list() -> Result<()> {
     let config = Config::load(platform::config_file())?;
     let profiles = config.profiles.keys();
 
-    print_title("Your profiles");
+    print_title!("Your profiles");
     for i in profiles {
         println!(
             "  {i} {}",
@@ -106,7 +106,7 @@ pub fn handle_get(name: &str) -> Result<()> {
     let config = Config::load(platform::config_file())?;
     let profile = config.get_profile(name)?;
 
-    print_title("Profile");
+    print_title!("Profile");
     // There should be a better way to display it.
     println!("  {}: {}", "Editor".bold(), profile.editor);
     println!("  {}: {}", "Shell".bold(), profile.shell);
@@ -126,13 +126,13 @@ pub fn handle_remove(args: ProfilesRemoveArgs) -> Result<()> {
     }
 
     if !args.yes && !ask_dialog("Do you want to delete this profile?", false, false)? {
-        print_done("Aborted");
+        print_done!("Aborted");
         return Ok(());
     }
 
     config.profiles.shift_remove(&args.name).unwrap();
     config.save(&config_path)?;
-    print_done("Profile has been removed.");
+    print_done!("Profile has been removed.");
 
     Ok(())
 }
