@@ -113,7 +113,8 @@ pub struct Library {
 
 impl Library {
     /// Makes a new Library instance.
-    pub fn new(path: &Path, display_hidden: bool) -> Result<Self, LibraryError> {
+    pub fn new(path: impl AsRef<Path>, display_hidden: bool) -> Result<Self, LibraryError> {
+        let path = path.as_ref();
         if !path.is_dir() {
             return Err(LibraryError::InvalidPath);
         }

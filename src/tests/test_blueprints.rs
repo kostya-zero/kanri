@@ -1,68 +1,54 @@
+use rstest::*;
 use std::path::PathBuf;
 
 use crate::blueprints::engine::BlueprintEngine;
 
-#[test]
-fn test_engine_initialization() {
-    let engine = BlueprintEngine::init(PathBuf::new(), "test.lua", "test", false);
-    assert!(engine.is_ok())
+#[fixture]
+fn engine() -> BlueprintEngine {
+    BlueprintEngine::init(PathBuf::new(), "test.lua", "test", false)
+        .expect("engine should be initialized")
 }
 
-#[test]
-fn test_engine_math() {
-    let engine = BlueprintEngine::init(PathBuf::new(), "test.lua", "test", false);
-    assert!(engine.is_ok());
-
+#[rstest]
+fn test_engine_math(engine: BlueprintEngine) {
     let code = r#"
             assert(type(math.floor) == "function")
             assert(math.floor(1.9) == 1)
         "#;
-    assert!(engine.unwrap().run(code).is_ok())
+    assert!(engine.run(code).is_ok())
 }
 
-#[test]
-fn test_engine_string() {
-    let engine = BlueprintEngine::init(PathBuf::new(), "test.lua", "test", false);
-    assert!(engine.is_ok());
-
+#[rstest]
+fn test_engine_string(engine: BlueprintEngine) {
     let code = r#"
             assert(type(string.upper) == "function")
             assert(string.upper("kanri") == "KANRI")
         "#;
-    assert!(engine.unwrap().run(code).is_ok())
+    assert!(engine.run(code).is_ok())
 }
 
-#[test]
-fn test_engine_utf8() {
-    let engine = BlueprintEngine::init(PathBuf::new(), "test.lua", "test", false);
-    assert!(engine.is_ok());
-
+#[rstest]
+fn test_engine_utf8(engine: BlueprintEngine) {
     let code = r#"
             assert(type(utf8.len) == "function")
             assert(utf8.len("kanri") == 5)
         "#;
-    assert!(engine.unwrap().run(code).is_ok())
+    assert!(engine.run(code).is_ok())
 }
 
-#[test]
-fn test_engine_table() {
-    let engine = BlueprintEngine::init(PathBuf::new(), "test.lua", "test", false);
-    assert!(engine.is_ok());
-
+#[rstest]
+fn test_engine_table(engine: BlueprintEngine) {
     let code = r#"
             assert(type(table.insert) == "function")
             local t = {}
             table.insert(t, "ok")
             assert(t[1] == "ok")
         "#;
-    assert!(engine.unwrap().run(code).is_ok())
+    assert!(engine.run(code).is_ok())
 }
 
-#[test]
-fn test_engine_system() {
-    let engine = BlueprintEngine::init(PathBuf::new(), "test.lua", "test", false);
-    assert!(engine.is_ok());
-
+#[rstest]
+fn test_engine_system(engine: BlueprintEngine) {
     let code = format!(
         r#"
             assert(type(system.system) == "function")
@@ -71,38 +57,29 @@ fn test_engine_system() {
         "#,
         std::env::consts::OS
     );
-    assert!(engine.unwrap().run(&code).is_ok())
+    assert!(engine.run(&code).is_ok())
 }
 
-#[test]
-fn test_engine_project() {
-    let engine = BlueprintEngine::init(PathBuf::new(), "test.lua", "test", false);
-    assert!(engine.is_ok());
-
+#[rstest]
+fn test_engine_project(engine: BlueprintEngine) {
     let code = r#"
             assert(type(project.name) == "string")
             assert(project.name == "test")
         "#;
-    assert!(engine.unwrap().run(code).is_ok())
+    assert!(engine.run(code).is_ok())
 }
 
-#[test]
-fn test_engine_fs() {
-    let engine = BlueprintEngine::init(PathBuf::new(), "test.lua", "test", false);
-    assert!(engine.is_ok());
-
+#[rstest]
+fn test_engine_fs(engine: BlueprintEngine) {
     let code = r#"
             assert(type(fs.is_file) == "function")
             assert(fs.is_file("Cargo.toml") == true)
         "#;
-    assert!(engine.unwrap().run(code).is_ok())
+    assert!(engine.run(code).is_ok())
 }
 
-#[test]
-fn test_engine_path() {
-    let engine = BlueprintEngine::init(PathBuf::new(), "test.lua", "test", false)
-        .expect("blueprint engine should initialize");
-
+#[rstest]
+fn test_engine_path(engine: BlueprintEngine) {
     let code = r#"
         local separator = package.config:sub(1, 1)
         local source = path.join("src", "lib", "main.rs")

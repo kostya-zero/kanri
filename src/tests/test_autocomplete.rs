@@ -1,28 +1,29 @@
+use rstest::*;
+
 use crate::autocomplete::{CompletionResult, suggest_completion};
 
-#[test]
-pub fn test_autocomplete_found_similar() {
-    let words: Vec<&str> = vec!["apple", "orange", "watermelon"];
+#[fixture]
+fn items() -> [&'static str; 3] {
+    ["apple", "orange", "watermelon"]
+}
 
-    let result = suggest_completion("ap", &words);
+#[rstest]
+pub fn test_autocomplete_found_similar(items: [&str; 3]) {
+    let result = suggest_completion("ap", &items);
     assert_eq!(
         result,
         CompletionResult::FoundSimilar(String::from("apple"))
     )
 }
 
-#[test]
-pub fn test_autocomplete_found() {
-    let words = vec!["apple", "orange", "watermelon"];
-
-    let result = suggest_completion("apple", &words);
+#[rstest]
+pub fn test_autocomplete_found(items: [&str; 3]) {
+    let result = suggest_completion("apple", &items);
     assert_eq!(result, CompletionResult::Found)
 }
 
-#[test]
-pub fn test_autocomplete_nothing() {
-    let words: Vec<&str> = vec!["apple", "orange", "watermelon"];
-
-    let result = suggest_completion("enjo", &words);
+#[rstest]
+pub fn test_autocomplete_nothing(items: [&str; 3]) {
+    let result = suggest_completion("kanri", &items);
     assert_eq!(result, CompletionResult::Nothing)
 }
