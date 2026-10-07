@@ -254,23 +254,21 @@ pub fn handle_remove(args: RemoveArgs) -> Result<()> {
     let project_name = resolve_project_name(&args.name, &config, &projects, false)
         .ok_or_else(|| anyhow!("Project not found."))?;
 
-    if is_terminal() {
-        if !args.yes
-            && !ask_dialog(
-                &format!("Do you want to delete '{}'?", project_name),
-                false,
-                false,
-            )?
-        {
-            print_done!("Canceled.");
-            return Ok(());
-        }
-    } else {
-        if !args.yes {
-            return Err(anyhow!(
-                "Confirmation with `--yes` is required for non-interactive sessions"
-            ));
-        }
+    if !is_terminal() && !args.yes {
+        return Err(anyhow!(
+            "Confirmation with `--yes` is required for non-interactive sessions"
+        ));
+    }
+
+    if !args.yes
+        && !ask_dialog(
+            &format!("Do you want to delete '{}'?", project_name),
+            false,
+            false,
+        )?
+    {
+        print_done!("Canceled.");
+        return Ok(());
     }
 
     let spinner = generate_progress().with_message("Removing project...");
