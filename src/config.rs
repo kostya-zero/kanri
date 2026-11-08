@@ -26,17 +26,16 @@ const PROJECTS_DIRECTORY_NAMES: [&str; 13] = [
 ];
 
 pub fn find_projects_directory() -> PathBuf {
-    let default_directory = platform::default_projects_dir();
-    let parent_directory = default_directory.parent().unwrap();
+    let home_dir = dir_spec::home().unwrap_or_else(|| PathBuf::from("."));
 
     for name in PROJECTS_DIRECTORY_NAMES {
-        let possible_path = parent_directory.join(name);
+        let possible_path = home_dir.join(name);
         if possible_path.is_dir() {
             return possible_path;
         }
     }
 
-    parent_directory.join("Projects")
+    home_dir.join("Projects")
 }
 
 #[derive(Debug, Error)]
