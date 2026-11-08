@@ -84,27 +84,11 @@ pub struct Config {
 
 impl Default for Config {
     fn default() -> Self {
-        // Getting default editor
-        #[allow(unused_mut)]
-        let mut editor = platform::default_editor().to_string();
-        let mut editor_args: Vec<String> = Vec::new();
-        let mut editor_fork_mode = false;
-
-        match editor.as_str() {
-            "code" | "code-insiders" | "codium" | "code-oss" | "cursor" | "windsurf" | "zed"
-            | "code.cmd" | "code-insiders.cmd" | "codium.cmd" | "code-oss.cmd" | "windsurf.cmd"
-            | "cursor.cmd" => {
-                #[cfg(target_os = "windows")]
-                {
-                    if editor != "zed" && !editor.ends_with(".cmd") {
-                        editor.push_str(".cmd");
-                    }
-                }
-                editor_args.push(".".to_string());
-                editor_fork_mode = true;
-            }
-            _ => {}
-        }
+        let default_editor = platform::default_editor();
+        let (editor, editor_args, editor_fork_mode) = match fork_editor_program(&default_editor) {
+            Some(program) => (program, vec![".".to_string()], true),
+            None => (default_editor.to_string(), Vec::new(), false),
+        };
 
         // Getting default shell
         let shell = platform::default_shell().to_string();
@@ -125,6 +109,34 @@ impl Default for Config {
             recent: RecentOptions::default(),
             autocomplete: AutocompleteOptions::default(),
         }
+    }
+}
+
+const VSCODE_LIKE_EDITORS: [&str; 6] = [
+    "code",
+    "code-insiders",
+    "codium",
+    "code-oss",
+    "cursor",
+    "windsurf",
+];
+
+/// Returns the program to launch if `editor` opens a directory via `.` and detaches
+/// from the terminal. On Windows VS Code-like editors are installed as `.cmd` shims.
+pub fn fork_editor_program(editor: &str) -> Option<String> {
+    if editor == "zed" {
+        return Some(editor.to_string());
+    }
+
+    let name = editor.strip_suffix(".cmd").unwrap_or(editor);
+    if !VSCODE_LIKE_EDITORS.contains(&name) {
+        return None;
+    }
+
+    if cfg!(windows) && name == editor {
+        Some(format!("{editor}.cmd"))
+    } else {
+        Some(editor.to_string())
     }
 }
 

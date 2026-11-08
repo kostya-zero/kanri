@@ -3,7 +3,7 @@ use colored::Colorize;
 
 use crate::{
     cli::ProfilesRemoveArgs,
-    config::{Config, Profile},
+    config::{Config, Profile, fork_editor_program},
     platform, print_done, print_title,
     terminal::{ask_dialog, ask_string_dialog},
 };
@@ -18,34 +18,19 @@ pub fn handle_new() -> Result<()> {
         bail!("Profile with the same name already exists.")
     }
 
-    #[allow(unused_mut)]
-    let mut editor = ask_string_dialog("Which editor you want to assign (program name)?", true)?;
+    let editor = ask_string_dialog("Which editor you want to assign (program name)?", true)?;
 
     if editor.is_empty() {
         bail!("Editor name is empty.")
     }
 
-    let editor_fork_mode: bool;
-    let mut editor_args: Vec<String> = Vec::with_capacity(1);
-
-    match editor.as_str() {
-        "code" | "code-insiders" | "codium" | "code-oss" | "cursor" | "windsurf" | "zed"
-        | "code.cmd" | "code-insiders.cmd" | "codium.cmd" | "code-oss.cmd" | "windsurf.cmd"
-        | "cursor.cmd" => {
-            #[cfg(target_os = "windows")]
-            {
-                if editor != "zed" && !editor.ends_with(".cmd") {
-                    editor.push_str(".cmd");
-                }
-            }
-
-            editor_fork_mode = true;
-            editor_args.push(".".to_string());
+    let (editor, editor_args, editor_fork_mode) = match fork_editor_program(&editor) {
+        Some(program) => (program, vec![".".to_string()], true),
+        None => {
+            let fork_mode = ask_dialog("Do you want to run your editor forked?", false, true)?;
+            (editor, Vec::new(), fork_mode)
         }
-        _ => {
-            editor_fork_mode = ask_dialog("Do you want to run your editor forked?", false, true)?;
-        }
-    }
+    };
 
     let shell = ask_string_dialog("Which shell you want to assign (program name)?", true)?;
 
