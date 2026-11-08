@@ -1,4 +1,4 @@
-use anyhow::{Result, anyhow, bail, ensure};
+use anyhow::{Context, Result, anyhow, bail, ensure};
 use colored::Colorize;
 use indexmap::IndexMap;
 use std::{fs, time::Duration};
@@ -292,7 +292,7 @@ pub fn handle_backup(args: BackupArgs) -> Result<()> {
     let backup_file_path = args.output_file.unwrap_or("kanri_backup.json".to_string());
 
     let backup = Backup {
-        config,
+        config: toml::Value::try_from(config)?,
         blueprints: blueprints_map,
     };
     save_backup(&backup_file_path, backup)?;
@@ -314,34 +314,31 @@ pub fn handle_import(args: ImportArgs) -> Result<()> {
 
     let backup = load_backup(args.file)?;
 
-    // Write config
-    backup.config.save(platform::config_file())?;
+    // Validate everything before writing, so a broken backup leaves the current setup untouched.
+    let (config, _) = Config::from_value(backup.config)?;
+    let mut blueprints = Vec::with_capacity(backup.blueprints.len());
+    for (name, content) in &backup.blueprints {
+        let path = Blueprints::path(name)
+            .with_context(|| format!("Invalid blueprint name '{name}' in backup"))?;
+        blueprints.push((name, path, content));
+    }
 
-    // Write blueprints
     let mut failed_blueprints: Vec<&str> = Vec::new();
-
-    for (k, v) in backup.blueprints.iter() {
-        let blueprint_path = match Blueprints::path(k) {
-            Ok(path) => path,
-            Err(e) => {
-                print_error!("Skipping blueprint '{}': {}", k, e);
-                failed_blueprints.push(k);
-                continue;
-            }
-        };
-
-        if let Err(e) = fs::write(&blueprint_path, v) {
-            print_error!("Failed to write blueprint '{}': {}", k, e);
-            failed_blueprints.push(k);
+    for (name, path, content) in blueprints {
+        if let Err(e) = fs::write(&path, content) {
+            print_error!("Failed to write blueprint '{}': {}", name, e);
+            failed_blueprints.push(name);
         }
     }
 
+    // The config goes last so it's only replaced when all blueprints were imported.
     ensure!(
         failed_blueprints.is_empty(),
-        "Backup has been imported, but {} blueprint(s) failed: {}.",
+        "Failed to import {} blueprint(s): {}. Configuration was not changed.",
         failed_blueprints.len(),
         failed_blueprints.join(", ")
     );
+    config.save(platform::config_file())?;
 
     print_done!("Backup has been imported.");
     Ok(())

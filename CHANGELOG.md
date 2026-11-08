@@ -14,7 +14,7 @@
 - Fixed bug where blueprints storage was overwriting the extension if the name of blueprint was passed in format `foo.bar` to `foo.lua`. Now storage appends the `lua` extension to the blueprint name (e.g., `foo.bar.lua`).
 - Fixed bug where blueprints storage could incorrectly recognize a directory with `.lua` extension in the name as a valid blueprint.
 - `kanri blueprints check` and `kanri new --blueprint` now accept blueprint names with the `.lua` extension, like `edit` and `remove` already did.
-- `kanri import` now validates blueprint names from the backup the same way as other blueprint commands and fails with a list of blueprints that could not be written instead of reporting success.
+- `kanri import` now migrates the configuration from older backups and validates the configuration and blueprint names before writing anything. Blueprints are written first and the configuration last, so a failed import leaves the current configuration untouched and lists blueprints that could not be written.
 - `kanri config edit` and `kanri config reset` now work when the configuration file cannot be parsed.
 - `kanri new --quiet` no longer prints a message when creating an empty project.
 - `kanri rename` now refuses to overwrite an existing file or directory that is not listed as a project.

@@ -203,20 +203,27 @@ impl Config {
             _ => ConfigError::FileSystemError(e),
         })?;
 
-        let mut value: toml::Value = toml::from_str(&content)
+        let value: toml::Value = toml::from_str(&content)
             .map_err(|e: toml::de::Error| ConfigError::BadConfiguration(e.to_string()))?;
 
+        let (config, was_migrated) = Self::from_value(value)?;
+        if was_migrated {
+            config.save(path)?;
+        }
+
+        Ok(config)
+    }
+
+    /// Migrates a raw configuration to the current version and parses it.
+    /// Also returns whether a migration was applied.
+    pub fn from_value(mut value: toml::Value) -> Result<(Self, bool), ConfigError> {
         let was_migrated = migrations::migrate_config(&mut value)?;
 
         let config: Config = value
             .try_into()
             .map_err(|e: toml::de::Error| ConfigError::BadConfiguration(e.to_string()))?;
 
-        if was_migrated {
-            config.save(path)?;
-        }
-
-        Ok(config)
+        Ok((config, was_migrated))
     }
 
     pub fn save(&self, path: impl AsRef<Path>) -> Result<(), ConfigError> {

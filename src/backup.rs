@@ -4,8 +4,6 @@ use thiserror::Error;
 
 use serde::{Deserialize, Serialize};
 
-use crate::config::Config;
-
 #[derive(Debug, Error)]
 pub enum BackupError {
     #[error("Failed to format backup to JSON.")]
@@ -20,7 +18,8 @@ pub enum BackupError {
 
 #[derive(Serialize, Deserialize)]
 pub struct Backup {
-    pub config: Config,
+    /// Kept raw so backups from older versions can be migrated with `Config::from_value`.
+    pub config: toml::Value,
     pub blueprints: IndexMap<String, String>,
 }
 
