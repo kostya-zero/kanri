@@ -118,7 +118,12 @@ pub fn handle_remove(args: ProfilesRemoveArgs) -> Result<()> {
         return Ok(());
     }
 
-    config.profiles.shift_remove(&args.name).unwrap();
+    if config.profiles.shift_remove(&args.name).is_none() {
+        bail!(
+            "Internal error while trying to remove '{}' from cached profiles list.",
+            args.name
+        );
+    }
     config.save(&config_path)?;
     print_done!("Profile has been removed.");
 
