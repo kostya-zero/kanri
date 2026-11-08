@@ -49,9 +49,6 @@ pub enum LibraryError {
     #[error("Project name cannot be a reserved name on Windows.")]
     WindowsReservedName,
 
-    #[error("{0}")]
-    CustomError(String),
-
     #[error("An unexpected I/O error occurred: {source}")]
     IoError {
         #[from]
@@ -69,7 +66,7 @@ const IGNORED_NAMES: [&str; 7] = [
     "-",
 ];
 
-pub fn validate_project_name(name: &str) -> Result<(), LibraryError> {
+fn validate_project_name(name: &str) -> Result<(), LibraryError> {
     if name.is_empty() {
         return Err(LibraryError::NameIsEmpty);
     }
@@ -225,12 +222,12 @@ impl Library {
 
     /// Creates a new project directory in the library.
     pub fn create(&mut self, name: &str) -> Result<(), LibraryError> {
+        validate_project_name(name)?;
+
         let path = self.base_path.join(name);
         if path.exists() {
             return Err(LibraryError::AlreadyExists);
         }
-
-        validate_project_name(name).map_err(|e| LibraryError::CustomError(e.to_string()))?;
 
         match fs::create_dir(&path) {
             Ok(()) => {}
@@ -282,7 +279,7 @@ impl Library {
 
     /// Renames a project in the library.
     pub fn rename(&mut self, old_name: &str, new_name: &str) -> Result<(), LibraryError> {
-        validate_project_name(new_name).map_err(|e| LibraryError::CustomError(e.to_string()))?;
+        validate_project_name(new_name)?;
 
         let old_path = self.base_path.join(old_name);
         if !old_path.exists() {

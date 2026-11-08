@@ -9,7 +9,7 @@ use crate::{
     blueprints::{engine::BlueprintEngine, storage::Blueprints},
     cli::{BackupArgs, CloneArgs, ImportArgs, ListArgs, NewArgs, OpenArgs, RemoveArgs, RenameArgs},
     config::Config,
-    library::{CloneOptions, Library, validate_project_name},
+    library::{CloneOptions, Library},
     platform::{self},
     print_done, print_error, print_title,
     program::{LaunchOptions, launch_program},
@@ -48,7 +48,6 @@ pub fn handle_new(args: NewArgs) -> Result<()> {
         None
     };
 
-    validate_project_name(&args.name)?;
     projects.create(&args.name)?;
 
     if let Some(blueprint) = blueprint_obj {
@@ -232,8 +231,6 @@ pub fn handle_rename(args: RenameArgs) -> Result<()> {
         &config.options.projects_directory,
         config.options.display_hidden,
     )?;
-
-    validate_project_name(&args.new_name)?;
 
     projects.rename(&args.old_name, &args.new_name)?;
     print_done!(
