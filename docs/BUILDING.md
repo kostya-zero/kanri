@@ -6,7 +6,7 @@ This guide provides instructions for building Kanri manually from source.
 
 Before you begin, ensure you have the following:
 
-- The latest version of the Rust toolchain.
+- Rust toolchain 1.91 or newer.
 - A C/C++ compiler:
   - **Windows**: The latest version of _Visual Studio Build Tools 2022_ (including the Windows SDK).
   - **Linux** and **macOS**: The latest version of _GCC_ or _Clang_.

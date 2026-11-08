@@ -13,6 +13,18 @@
 - Removed the legacy templates system, including `kanri new --template` and `kanri blueprints migrate-templates`.
 - Fixed bug where blueprints storage was overwriting the extension if the name of blueprint was passed in format `foo.bar` to `foo.lua`. Now storage appends the `lua` extension to the blueprint name (e.g., `foo.bar.lua`).
 - Fixed bug where blueprints storage could incorrectly recognize a directory with `.lua` extension in the name as a valid blueprint.
+- `kanri blueprints check` and `kanri new --blueprint` now accept blueprint names with the `.lua` extension, like `edit` and `remove` already did.
+- `kanri import` now validates blueprint names from the backup the same way as other blueprint commands and fails with a list of blueprints that could not be written instead of reporting success.
+- `kanri config edit` and `kanri config reset` now work when the configuration file cannot be parsed.
+- `kanri new --quiet` no longer prints a message when creating an empty project.
+- `kanri rename` now refuses to overwrite an existing file or directory that is not listed as a project.
+- `kanri profiles new` no longer accepts an empty profile name.
+- Symlinks to directories in the projects directory are now listed as projects.
+- An unreadable entry in the projects directory no longer breaks project listing; it is skipped.
+- Colored output is now disabled automatically when output is not a terminal.
+- Added a description for the `--blueprint` flag in `kanri new --help`.
+- Support for the `.ignore` file in the projects directory has been temporarily removed while it is being reworked.
+- The minimum supported Rust version is now 1.91.
 
 ## 0.11.0
 
