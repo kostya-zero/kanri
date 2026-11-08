@@ -290,7 +290,7 @@ pub fn handle_backup(args: BackupArgs) -> Result<()> {
     let mut blueprints_map: IndexMap<String, String> = IndexMap::new();
 
     for item in blueprints_list {
-        let entry = item.unwrap();
+        let entry = item.map_err(|e| anyhow!("Failed to read metadata of entry: {e}"))?;
         let entry_path = entry.path();
         let entry_name_tmp = entry.file_name();
         let entry_name = entry_name_tmp.to_string_lossy();
