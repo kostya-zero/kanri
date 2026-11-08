@@ -291,8 +291,8 @@ pub fn handle_backup(args: BackupArgs) -> Result<()> {
 
     // Load blueprints
     let blueprints_dir = platform::blueprints_dir();
-    let blueprints_list =
-        fs::read_dir(&blueprints_dir).map_err(|_| anyhow!("Failed to read blueprints directory."))?;
+    let blueprints_list = fs::read_dir(&blueprints_dir)
+        .map_err(|_| anyhow!("Failed to read blueprints directory."))?;
     let mut blueprints_map: IndexMap<String, String> = IndexMap::new();
 
     for item in blueprints_list {
