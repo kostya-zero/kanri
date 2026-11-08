@@ -107,7 +107,7 @@ fn open_blueprint_in_editor(blueprint_path: &Path) -> Result<()> {
     };
 
     println!("The editor will launch with opened file.");
-    launch_program(launch_options).map_err(|e| anyhow!(e.to_string()))
+    Ok(launch_program(launch_options)?)
 }
 
 fn blueprint_path(name: &str) -> Result<std::path::PathBuf> {

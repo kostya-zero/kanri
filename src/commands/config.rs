@@ -1,4 +1,4 @@
-use anyhow::{Result, anyhow, bail};
+use anyhow::{Result, bail};
 
 use crate::{
     cli::RecentArgs,
@@ -34,7 +34,7 @@ pub fn handle_edit() -> Result<()> {
         env: None,
     };
 
-    launch_program(launch_options).map_err(|e| anyhow!(e.to_string()))
+    Ok(launch_program(launch_options)?)
 }
 
 pub fn handle_recent(args: RecentArgs) -> Result<()> {

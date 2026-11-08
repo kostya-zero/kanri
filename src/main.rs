@@ -1,6 +1,6 @@
 use std::{fs, process::exit};
 
-use anyhow::{Result, anyhow};
+use anyhow::Result;
 use clap::Parser;
 use kanri::{
     cli::{Cli, Commands, ConfigCommands, ProfilesCommands},
@@ -13,14 +13,12 @@ fn check_env() -> Result<()> {
     let config_path = platform::config_file();
     if !config_path.exists() {
         let default_config: Config = Config::default();
-        default_config
-            .save(config_path)
-            .map_err(|e| anyhow!(e.to_string()))?;
+        default_config.save(config_path)?;
     }
 
     let blueprints_dir = platform::blueprints_dir();
     if !blueprints_dir.exists() {
-        fs::create_dir_all(&blueprints_dir).map_err(|e| anyhow!(e.to_string()))?;
+        fs::create_dir_all(&blueprints_dir)?;
     }
 
     Ok(())

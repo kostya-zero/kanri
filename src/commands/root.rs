@@ -40,9 +40,7 @@ pub fn handle_new(args: NewArgs) -> Result<()> {
     let blueprint_obj: Option<(String, String)> = if let Some(blueprint_name) = args.blueprint {
         let blueprints_dir = platform::blueprints_dir();
         let blueprints = Blueprints::load_from_path(&blueprints_dir)?;
-        let blueprint_code = blueprints
-            .get_blueprint(blueprint_name.clone())
-            .map_err(|e| anyhow!(e.to_string()))?;
+        let blueprint_code = blueprints.get_blueprint(blueprint_name.clone())?;
         Some((blueprint_name, blueprint_code))
     } else {
         None
