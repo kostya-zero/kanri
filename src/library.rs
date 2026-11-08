@@ -168,7 +168,7 @@ impl Library {
             return false;
         }
 
-        entry.file_type().is_ok_and(|ft| ft.is_dir()) && !IGNORED_NAMES.contains(&name)
+        entry.path().is_dir() && !IGNORED_NAMES.contains(&name)
     }
 
     /// Gets ignored paths from a .ignore file in the base path.
