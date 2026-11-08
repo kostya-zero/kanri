@@ -282,18 +282,17 @@ impl Library {
 
     /// Renames a project in the library.
     pub fn rename(&mut self, old_name: &str, new_name: &str) -> Result<(), LibraryError> {
-        if !self.projects.contains_key(old_name) {
-            return Err(LibraryError::ProjectNotFound);
-        }
-
-        if self.projects.contains_key(new_name) {
-            return Err(LibraryError::AlreadyExists);
-        }
-
         validate_project_name(new_name).map_err(|e| LibraryError::CustomError(e.to_string()))?;
 
         let old_path = self.base_path.join(old_name);
+        if !old_path.exists() {
+            return Err(LibraryError::ProjectNotFound);
+        }
+
         let new_path = self.base_path.join(new_name);
+        if new_path.exists() {
+            return Err(LibraryError::AlreadyExists);
+        }
 
         match fs::rename(old_path, &new_path) {
             Ok(()) => {}
