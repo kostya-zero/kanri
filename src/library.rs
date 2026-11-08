@@ -1,5 +1,4 @@
 use std::{
-    collections::HashSet,
     fs,
     io::ErrorKind,
     path::{Path, PathBuf},
@@ -146,12 +145,6 @@ impl Library {
             }
         }
 
-        // Check if .ignore is present in this directory
-        if path.join(".ignore").exists() {
-            let paths = Self::get_ignored_paths(path)?;
-            projects.retain(|k, _| !paths.contains(k));
-        }
-
         Ok(projects)
     }
 
@@ -162,26 +155,6 @@ impl Library {
         }
 
         entry.path().is_dir() && !IGNORED_NAMES.contains(&name)
-    }
-
-    /// Gets ignored paths from a .ignore file in the base path.
-    fn get_ignored_paths(base_path: &Path) -> Result<HashSet<String>, LibraryError> {
-        let ignore_path = base_path.join(".ignore");
-        let ignore_content = fs::read_to_string(ignore_path)?;
-
-        let paths: HashSet<String> = ignore_content
-            .lines()
-            .filter_map(|line| {
-                let trimmed = line.trim();
-                if !trimmed.is_empty() && !trimmed.starts_with('#') {
-                    Some(trimmed.to_string())
-                } else {
-                    None
-                }
-            })
-            .collect();
-
-        Ok(paths)
     }
 
     /// Clones a Git repository into the library.
