@@ -48,7 +48,7 @@ kanri blueprints check rust
 kanri blueprints remove rust
 ```
 
-Blueprint names must not contain path separators. Use the blueprint stem, such as `rust`, with `kanri new --blueprint`, `kanri blueprints edit`, and `kanri blueprints check`.
+Blueprint names must not contain path separators. All blueprint commands and `kanri new --blueprint` accept either the stem (`rust`) or the file name (`rust.lua`). Kanri appends `.lua` to any other name, so `foo.bar` refers to `foo.bar.lua`.
 
 ## Using a blueprint
 

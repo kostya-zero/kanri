@@ -25,9 +25,6 @@ pub enum BlueprintsError {
     #[error("Blueprint name must not contain path separators.")]
     PathSeparatorInName,
 
-    #[error("Blueprint file extension must be .lua.")]
-    InvalidExtension,
-
     #[error("An unexpected I/O error occurred: {source}")]
     IoError { source: std::io::Error },
 }
@@ -86,29 +83,21 @@ impl Blueprints {
     }
 
     /// Validates the blueprint name and returns the path to its file.
-    /// Accepts names with or without the `.lua` extension.
+    /// `.lua` is appended unless the name already ends with it, so `foo.bar` becomes `foo.bar.lua`.
     pub fn path(name: &str) -> Result<PathBuf, BlueprintsError> {
         let name = name.trim();
         if name.is_empty() {
             return Err(BlueprintsError::EmptyName);
         }
 
-        let path = Path::new(name);
-        if path.file_name().and_then(|v| v.to_str()) != Some(name) {
+        if Path::new(name).file_name().and_then(|v| v.to_str()) != Some(name) {
             return Err(BlueprintsError::PathSeparatorInName);
         }
 
-        if let Some(extension) = path.extension().and_then(|v| v.to_str())
-            && extension != "lua"
-        {
-            return Err(BlueprintsError::InvalidExtension);
+        let stem = name.strip_suffix(".lua").unwrap_or(name);
+        if stem.is_empty() {
+            return Err(BlueprintsError::EmptyName);
         }
-
-        let stem = path
-            .file_stem()
-            .and_then(|v| v.to_str())
-            .filter(|stem| !stem.is_empty())
-            .ok_or(BlueprintsError::EmptyName)?;
 
         Ok(platform::blueprints_dir().join(format!("{stem}.lua")))
     }
