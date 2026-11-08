@@ -41,34 +41,34 @@ pub fn find_projects_directory() -> PathBuf {
 
 #[derive(Debug, Error)]
 pub enum ConfigError {
-    #[error("failed to write configuration file.")]
+    #[error("Failed to write configuration file.")]
     WriteFailed,
 
-    #[error("failed to format configuration to TOML.")]
+    #[error("Failed to format configuration to TOML.")]
     FormatFailed,
 
-    #[error("cannot read the configuration file.")]
+    #[error("Cannot read the configuration file.")]
     ReadPermissionDenied,
 
-    #[error("cannot write to the configuration file.")]
+    #[error("Cannot write to the configuration file.")]
     WritePermissionDenied,
 
-    #[error("cannot create missing directories.")]
+    #[error("Cannot create missing directories.")]
     DirectoryCreationPermissionDenied,
 
-    #[error("not enough space to write data to configuration file.")]
+    #[error("Not enough space to write data to configuration file.")]
     StorageFull,
 
-    #[error("cannot find configuration file.")]
+    #[error("Cannot find configuration file.")]
     FileNotFound,
 
-    #[error("configuration error: {0}.")]
+    #[error("Configuration error: {0}")]
     BadConfiguration(String),
 
-    #[error("profile '{0}' was not found.")]
+    #[error("Profile '{0}' was not found.")]
     ProfileNotFound(String),
 
-    #[error("file system error occurred: {0}.")]
+    #[error("File system error occurred: {0}")]
     FileSystemError(#[from] std::io::Error),
 }
 

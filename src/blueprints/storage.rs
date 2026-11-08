@@ -8,7 +8,7 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum BlueprintsError {
-    #[error("Not enough permission to access directory with blueprints")]
+    #[error("Not enough permission to access directory with blueprints.")]
     PermissionDenied,
 
     #[error("Failed to list files in directory.")]
@@ -20,7 +20,7 @@ pub enum BlueprintsError {
     #[error("Blueprint with this name already exists.")]
     AlreadyExists,
 
-    #[error("An unexpected I/O error occurred: {source}.")]
+    #[error("An unexpected I/O error occurred: {source}")]
     IoError { source: std::io::Error },
 }
 

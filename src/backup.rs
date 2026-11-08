@@ -18,10 +18,10 @@ pub enum BackupError {
     #[error("Cannot find backup file.")]
     FileNotFound,
 
-    #[error("Error parsing backup file: {0}.")]
+    #[error("Error parsing backup file: {0}")]
     BadConfiguration(String),
 
-    #[error("File system error occurred: {0}.")]
+    #[error("File system error occurred: {0}")]
     FileSystemError(#[from] std::io::Error),
 }
 

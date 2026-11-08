@@ -73,7 +73,7 @@ pub fn ask_dialog(question: &str, default: bool, report: bool) -> Result<bool> {
         .show_default(true)
         .report(report)
         .interact()
-        .map_err(|_| anyhow!("CLI interaction failed"))
+        .map_err(|_| anyhow!("CLI interaction failed."))
 }
 
 pub fn ask_string_dialog(question: &str, report: bool) -> Result<String> {
@@ -82,7 +82,7 @@ pub fn ask_string_dialog(question: &str, report: bool) -> Result<String> {
         .default(String::new())
         .report(report)
         .interact_text()
-        .map_err(|_| anyhow!("CLI interaction failed"))
+        .map_err(|_| anyhow!("CLI interaction failed."))
 }
 
 pub fn is_terminal() -> bool {

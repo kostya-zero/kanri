@@ -31,7 +31,7 @@ pub enum LibraryError {
     #[error("Invalid path to the projects directory.")]
     InvalidPath,
 
-    #[error("Failed to clone repository: {source}.")]
+    #[error("Failed to clone repository: {source}")]
     CloneFailed { source: ProgramError },
 
     #[error("This name is not allowed.")]
@@ -52,7 +52,7 @@ pub enum LibraryError {
     #[error("{0}")]
     CustomError(String),
 
-    #[error("An unexpected I/O error occurred: {source}.")]
+    #[error("An unexpected I/O error occurred: {source}")]
     IoError {
         #[from]
         source: std::io::Error,

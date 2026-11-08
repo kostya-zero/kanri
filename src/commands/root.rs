@@ -131,7 +131,7 @@ pub fn handle_open(args: OpenArgs) -> Result<()> {
 
     if !is_terminal() {
         return Err(anyhow!(
-            "Opening projects in non-interactive mode is not supported"
+            "Opening projects in non-interactive mode is not supported."
         ));
     }
 
@@ -256,7 +256,7 @@ pub fn handle_remove(args: RemoveArgs) -> Result<()> {
 
     if !is_terminal() && !args.yes {
         return Err(anyhow!(
-            "Confirmation with `--yes` is required for non-interactive sessions"
+            "Confirmation with `--yes` is required for non-interactive sessions."
         ));
     }
 
@@ -292,7 +292,7 @@ pub fn handle_backup(args: BackupArgs) -> Result<()> {
     // Load blueprints
     let blueprints_dir = platform::blueprints_dir();
     let blueprints_list =
-        fs::read_dir(&blueprints_dir).map_err(|_| anyhow!("failed to read blueprints dir"))?;
+        fs::read_dir(&blueprints_dir).map_err(|_| anyhow!("Failed to read blueprints directory."))?;
     let mut blueprints_map: IndexMap<String, String> = IndexMap::new();
 
     for item in blueprints_list {
@@ -305,7 +305,7 @@ pub fn handle_backup(args: BackupArgs) -> Result<()> {
         }
 
         let blueprint_content = fs::read_to_string(&entry_path)
-            .map_err(|_| anyhow!("failed to read '{}' content", entry_name))?;
+            .map_err(|_| anyhow!("Failed to read '{}' content.", entry_name))?;
         blueprints_map.insert(entry_name.to_string(), blueprint_content);
     }
 

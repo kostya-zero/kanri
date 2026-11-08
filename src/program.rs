@@ -11,10 +11,10 @@ pub enum ProgramError {
     #[error("Program not found: {0}")]
     ProgramNotFound(String),
 
-    #[error("Program was interrupted")]
+    #[error("Program was interrupted.")]
     ProcessInterrupted,
 
-    #[error("You dont have permission to run this program.")]
+    #[error("You don't have permission to run this program.")]
     NoPermission,
 
     #[error("Program exited with non-zero status: {0}")]
