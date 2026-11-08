@@ -270,11 +270,8 @@ pub fn handle_remove(args: RemoveArgs) -> Result<()> {
 
     spinner.enable_steady_tick(Duration::from_millis(100));
     let result = projects.delete(&project_name);
-    if let Err(e) = result {
-        spinner.finish_and_clear();
-        return Err(anyhow!(e));
-    }
     spinner.finish_and_clear();
+    result?;
 
     print_done!("Project '{project_name}' has been removed.");
     Ok(())
