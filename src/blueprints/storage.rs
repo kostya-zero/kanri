@@ -6,6 +6,8 @@ use std::{
 
 use thiserror::Error;
 
+use crate::platform;
+
 #[derive(Debug, Error)]
 pub enum BlueprintsError {
     #[error("Not enough permission to access directory with blueprints.")]
@@ -17,13 +19,21 @@ pub enum BlueprintsError {
     #[error("Blueprint not found.")]
     NotFound,
 
+    #[error("Blueprint name cannot be empty.")]
+    EmptyName,
+
+    #[error("Blueprint name must not contain path separators.")]
+    PathSeparatorInName,
+
+    #[error("Blueprint file extension must be .lua.")]
+    InvalidExtension,
+
     #[error("An unexpected I/O error occurred: {source}")]
     IoError { source: std::io::Error },
 }
 
 pub struct Blueprints {
     blueprints: Vec<String>,
-    path: PathBuf,
 }
 
 impl Blueprints {
@@ -31,7 +41,6 @@ impl Blueprints {
     pub fn load_from_path(path: &Path) -> Result<Self, BlueprintsError> {
         Ok(Self {
             blueprints: Self::collect_lua_files(path)?,
-            path: path.to_path_buf(),
         })
     }
 
@@ -65,19 +74,43 @@ impl Blueprints {
         &self.blueprints
     }
 
-    /// Get content of a blueprint.
-    pub fn get_blueprint(&self, name: impl AsRef<str>) -> Result<String, BlueprintsError> {
-        let name = name.as_ref();
-        if !self.contains(name) {
-            return Err(BlueprintsError::NotFound);
-        }
-
-        let path = self.path.join(name).with_added_extension("lua");
-        Ok(fs::read_to_string(path)?)
+    /// Returns the content of a blueprint
+    pub fn read(name: &str) -> Result<String, BlueprintsError> {
+        fs::read_to_string(Self::path(name)?).map_err(|e| {
+            if e.kind() == ErrorKind::NotFound {
+                BlueprintsError::NotFound
+            } else {
+                e.into()
+            }
+        })
     }
 
-    fn contains(&self, name: &str) -> bool {
-        self.blueprints.iter().any(|blueprint| blueprint == name)
+    /// Validates the blueprint name and returns the path to its file.
+    /// Accepts names with or without the `.lua` extension.
+    pub fn path(name: &str) -> Result<PathBuf, BlueprintsError> {
+        let name = name.trim();
+        if name.is_empty() {
+            return Err(BlueprintsError::EmptyName);
+        }
+
+        let path = Path::new(name);
+        if path.file_name().and_then(|v| v.to_str()) != Some(name) {
+            return Err(BlueprintsError::PathSeparatorInName);
+        }
+
+        if let Some(extension) = path.extension().and_then(|v| v.to_str())
+            && extension != "lua"
+        {
+            return Err(BlueprintsError::InvalidExtension);
+        }
+
+        let stem = path
+            .file_stem()
+            .and_then(|v| v.to_str())
+            .filter(|stem| !stem.is_empty())
+            .ok_or(BlueprintsError::EmptyName)?;
+
+        Ok(platform::blueprints_dir().join(format!("{stem}.lua")))
     }
 }
 

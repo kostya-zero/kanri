@@ -38,9 +38,7 @@ pub fn handle_new(args: NewArgs) -> Result<()> {
     let mut projects = Library::new(projects_dir, config.options.display_hidden)?;
 
     let blueprint_obj: Option<(String, String)> = if let Some(blueprint_name) = args.blueprint {
-        let blueprints_dir = platform::blueprints_dir();
-        let blueprints = Blueprints::load_from_path(&blueprints_dir)?;
-        let blueprint_code = blueprints.get_blueprint(blueprint_name.clone())?;
+        let blueprint_code = Blueprints::read(&blueprint_name)?;
         Some((blueprint_name, blueprint_code))
     } else {
         None
@@ -50,13 +48,13 @@ pub fn handle_new(args: NewArgs) -> Result<()> {
 
     if let Some(blueprint) = blueprint_obj {
         let project_dir = projects_dir.join(&args.name);
-        let engine = BlueprintEngine::init(
-            project_dir,
-            format!("{}.lua", blueprint.0),
-            args.name.clone(),
-            args.quiet,
-        )
-        .map_err(|e| anyhow!(e.to_string()))?;
+        let file_name = Blueprints::path(&blueprint.0)?
+            .file_name()
+            .expect("blueprint path always ends with a file name")
+            .to_string_lossy()
+            .to_string();
+        let engine = BlueprintEngine::init(project_dir, file_name, args.name.clone(), args.quiet)
+            .map_err(|e| anyhow!(e.to_string()))?;
         if !args.quiet {
             println!(
                 "Running blueprint engine for '{}' blueprint...",
@@ -284,23 +282,11 @@ pub fn handle_backup(args: BackupArgs) -> Result<()> {
     let config = Config::load(platform::config_file())?;
 
     // Load blueprints
-    let blueprints_dir = platform::blueprints_dir();
-    let blueprints_list = fs::read_dir(&blueprints_dir)
-        .map_err(|_| anyhow!("Failed to read blueprints directory."))?;
+    let blueprints = Blueprints::load_from_path(&platform::blueprints_dir())?;
     let mut blueprints_map: IndexMap<String, String> = IndexMap::new();
 
-    for item in blueprints_list {
-        let entry = item.map_err(|e| anyhow!("Failed to read metadata of entry: {e}"))?;
-        let entry_path = entry.path();
-        let entry_name_tmp = entry.file_name();
-        let entry_name = entry_name_tmp.to_string_lossy();
-        if entry_path.is_dir() || entry_path.extension().unwrap_or_default() != "lua" {
-            continue;
-        }
-
-        let blueprint_content = fs::read_to_string(&entry_path)
-            .map_err(|_| anyhow!("Failed to read '{}' content.", entry_name))?;
-        blueprints_map.insert(entry_name.to_string(), blueprint_content);
+    for name in blueprints.get_blueprints() {
+        blueprints_map.insert(format!("{name}.lua"), Blueprints::read(name)?);
     }
 
     let backup_file_path = args.output_file.unwrap_or("kanri_backup.json".to_string());
@@ -334,29 +320,28 @@ pub fn handle_import(args: ImportArgs) -> Result<()> {
     // Write blueprints
     let mut failed_blueprints: Vec<&str> = Vec::new();
 
-    if !backup.blueprints.is_empty() {
-        let blueprints_path = platform::blueprints_dir();
-        for (k, v) in backup.blueprints.iter() {
-            if k.is_empty() {
-                continue;
-            }
-
-            if k.contains('/') || k.contains('\\') {
-                print_error!(
-                    "Security error: blueprint '{}' contains path separators in it's name. Skipping it.",
-                    k
-                );
+    for (k, v) in backup.blueprints.iter() {
+        let blueprint_path = match Blueprints::path(k) {
+            Ok(path) => path,
+            Err(e) => {
+                print_error!("Skipping blueprint '{}': {}", k, e);
                 failed_blueprints.push(k);
                 continue;
             }
+        };
 
-            let blueprint_path = blueprints_path.join(k);
-            if let Err(e) = fs::write(&blueprint_path, v) {
-                print_error!("Failed to write blueprint '{}': {}", k, e);
-                failed_blueprints.push(k);
-            }
+        if let Err(e) = fs::write(&blueprint_path, v) {
+            print_error!("Failed to write blueprint '{}': {}", k, e);
+            failed_blueprints.push(k);
         }
     }
+
+    ensure!(
+        failed_blueprints.is_empty(),
+        "Backup has been imported, but {} blueprint(s) failed: {}.",
+        failed_blueprints.len(),
+        failed_blueprints.join(", ")
+    );
 
     print_done!("Backup has been imported.");
     Ok(())

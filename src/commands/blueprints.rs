@@ -20,7 +20,7 @@ pub fn handle(command: BlueprintsCommands) -> Result<()> {
 }
 
 fn handle_new(name: &str) -> Result<()> {
-    let blueprint_path = blueprint_path(name)?;
+    let blueprint_path = Blueprints::path(name)?;
     ensure!(!blueprint_path.exists(), "Blueprint already exists.");
 
     if let Some(parent) = blueprint_path.parent() {
@@ -38,7 +38,7 @@ fn handle_new(name: &str) -> Result<()> {
 }
 
 fn handle_edit(name: &str) -> Result<()> {
-    let blueprint_path = blueprint_path(name)?;
+    let blueprint_path = Blueprints::path(name)?;
     ensure!(blueprint_path.exists(), "Blueprint not found.");
 
     open_blueprint_in_editor(&blueprint_path)?;
@@ -63,11 +63,14 @@ fn handle_list() -> Result<()> {
 }
 
 fn handle_check(name: &str) -> Result<()> {
-    let blueprints_dir = platform::blueprints_dir();
-    let blueprints = Blueprints::load_from_path(&blueprints_dir)?;
-    let blueprint_code = blueprints.get_blueprint(name)?;
+    let blueprint_code = Blueprints::read(name)?;
+    let file_name = Blueprints::path(name)?
+        .file_name()
+        .expect("blueprint path always ends with a file name")
+        .to_string_lossy()
+        .to_string();
 
-    let engine = BlueprintEngine::init(Path::new("."), format!("{name}.lua"), "check", true)
+    let engine = BlueprintEngine::init(Path::new("."), file_name, "check", true)
         .map_err(|e| anyhow!(e.to_string()))?;
     if let mlua::Result::Err(e) = engine.check(&blueprint_code) {
         bail!("Check failed: {}", e);
@@ -79,7 +82,7 @@ fn handle_check(name: &str) -> Result<()> {
 }
 
 fn handle_remove(name: &str) -> Result<()> {
-    let blueprint_path = blueprint_path(name)?;
+    let blueprint_path = Blueprints::path(name)?;
     ensure!(blueprint_path.exists(), "Blueprint not found.");
 
     fs::remove_file(blueprint_path)?;
@@ -108,32 +111,4 @@ fn open_blueprint_in_editor(blueprint_path: &Path) -> Result<()> {
 
     println!("The editor will launch with opened file.");
     Ok(launch_program(launch_options)?)
-}
-
-fn blueprint_path(name: &str) -> Result<std::path::PathBuf> {
-    let file_name = blueprint_file_name(name)?;
-    Ok(platform::blueprints_dir().join(file_name))
-}
-
-fn blueprint_file_name(name: &str) -> Result<String> {
-    let name = name.trim();
-    ensure!(!name.is_empty(), "Blueprint name cannot be empty.");
-
-    let path = Path::new(name);
-    ensure!(
-        path.file_name().and_then(|v| v.to_str()) == Some(name),
-        "Blueprint name must not contain path separators."
-    );
-
-    if let Some(extension) = path.extension().and_then(|v| v.to_str()) {
-        ensure!(extension == "lua", "Blueprint file extension must be .lua.");
-    }
-
-    let stem = path
-        .file_stem()
-        .and_then(|v| v.to_str())
-        .ok_or_else(|| anyhow!("Blueprint name cannot be empty."))?;
-    ensure!(!stem.is_empty(), "Blueprint name cannot be empty.");
-
-    Ok(format!("{stem}.lua"))
 }
