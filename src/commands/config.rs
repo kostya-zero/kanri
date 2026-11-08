@@ -15,7 +15,7 @@ pub fn handle_path() -> Result<()> {
 
 pub fn handle_edit() -> Result<()> {
     let path = platform::config_file();
-    let config = Config::load(&path)?;
+    let config = Config::load(&path).unwrap_or_default();
     let profile = config.get_profile(&config.options.current_profile)?;
     let editor = profile.editor.clone();
     if editor.is_empty() {
@@ -66,7 +66,7 @@ pub fn handle_recent(args: RecentArgs) -> Result<()> {
 
 pub fn handle_reset() -> Result<()> {
     let path = platform::config_file();
-    let mut config = Config::load(&path)?;
+    let mut config = Config::load(&path).unwrap_or_default();
     if ask_dialog("Reset your current configuration?", false, true)? {
         config.reset();
         config.save(path)?;
