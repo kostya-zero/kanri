@@ -79,7 +79,9 @@ pub fn handle_new(args: NewArgs) -> Result<()> {
         return Ok(());
     }
 
-    print_done!("Created an empty project with name '{}'.", args.name);
+    if !args.quiet {
+        print_done!("Created an empty project with name '{}'.", args.name);
+    }
 
     Ok(())
 }
