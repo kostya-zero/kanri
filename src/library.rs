@@ -6,7 +6,6 @@ use std::{
 };
 
 use crate::program::{LaunchOptions, ProgramError, launch_program};
-use anyhow::Result;
 use indexmap::IndexMap;
 use thiserror::Error;
 
@@ -137,14 +136,8 @@ impl Library {
 
         let mut projects: IndexMap<String, PathBuf> = IndexMap::new();
 
-        for entry_result in dir_entries {
-            let entry = match entry_result {
-                Ok(entry) => entry,
-                Err(e) => match e.kind() {
-                    ErrorKind::PermissionDenied => return Err(LibraryError::PermissionDenied),
-                    _ => return Err(LibraryError::IoError { source: e }),
-                },
-            };
+        // A single unreadable entry shouldn't hide every other project.
+        for entry in dir_entries.flatten() {
             let name = entry.file_name();
             let name_string = name.to_string_lossy();
 
