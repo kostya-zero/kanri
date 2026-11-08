@@ -13,6 +13,9 @@ pub fn handle_new() -> Result<()> {
     let mut config = Config::load(&config_path)?;
 
     let profile_name = ask_string_dialog("Name for new profile?", true)?;
+    if profile_name.is_empty() {
+        bail!("Profile name can't be empty.");
+    }
 
     if config.is_profile_exist(&profile_name) {
         bail!("Profile with the same name already exists.")
