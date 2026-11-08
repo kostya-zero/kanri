@@ -1,5 +1,4 @@
 use crate::config::ConfigError;
-use anyhow::Result;
 
 pub fn migrate_config(value: &mut toml::Value) -> Result<bool, ConfigError> {
     let version = value

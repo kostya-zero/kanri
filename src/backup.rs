@@ -1,4 +1,3 @@
-use anyhow::Result;
 use indexmap::IndexMap;
 use std::{fs, path::Path};
 use thiserror::Error;

@@ -1,4 +1,3 @@
-use anyhow::Result;
 use std::{
     io::ErrorKind,
     path::Path,
