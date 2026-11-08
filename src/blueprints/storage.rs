@@ -17,9 +17,6 @@ pub enum BlueprintsError {
     #[error("Blueprint not found.")]
     NotFound,
 
-    #[error("Blueprint with this name already exists.")]
-    AlreadyExists,
-
     #[error("An unexpected I/O error occurred: {source}")]
     IoError { source: std::io::Error },
 }

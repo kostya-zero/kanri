@@ -41,9 +41,6 @@ pub fn find_projects_directory() -> PathBuf {
 
 #[derive(Debug, Error)]
 pub enum ConfigError {
-    #[error("Failed to write configuration file.")]
-    WriteFailed,
-
     #[error("Failed to format configuration to TOML.")]
     FormatFailed,
 

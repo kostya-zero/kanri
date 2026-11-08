@@ -9,14 +9,8 @@ use crate::config::Config;
 
 #[derive(Debug, Error)]
 pub enum BackupError {
-    #[error("Failed to write backup file.")]
-    WriteFailed,
-
     #[error("Failed to format backup to JSON.")]
     FormatFailed,
-
-    #[error("Cannot find backup file.")]
-    FileNotFound,
 
     #[error("Error parsing backup file: {0}")]
     BadConfiguration(String),

@@ -34,9 +34,6 @@ pub enum LibraryError {
     #[error("Failed to clone repository: {source}")]
     CloneFailed { source: ProgramError },
 
-    #[error("This name is not allowed.")]
-    InvalidProjectName,
-
     #[error("Project name cannot be empty.")]
     NameIsEmpty,
 
