@@ -33,8 +33,8 @@ pub fn create_process_module(lua: &Lua, quiet: bool) -> LuaResult<LuaTable> {
         (
             "which",
             lua.create_function(|_, executable: String| match which(executable) {
-                Ok(p) => Ok(p.to_string_lossy().to_string()),
-                Err(e) => Err(mlua::Error::runtime(format!("failed to find program: {e}"))),
+                Ok(p) => Ok(Some(p.to_string_lossy().to_string())),
+                Err(_) => Ok(None),
             })?,
         ),
         (
