@@ -115,11 +115,9 @@ pub fn handle_open(args: OpenArgs) -> Result<()> {
     let name = resolve_project_name(&args.name, &config, &projects, args.skip_autocomplete)
         .ok_or_else(|| anyhow!("Project not found."))?;
 
-    let project = projects.get(&name);
-    if project.is_none() {
+    let Some(path) = projects.get(&name) else {
         return Err(anyhow!("Project not found."));
-    }
-    let path = project.unwrap();
+    };
 
     if args.path {
         println!("{}", path.to_string_lossy());
