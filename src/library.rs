@@ -26,8 +26,8 @@ pub enum LibraryError {
     #[error("Project not found.")]
     ProjectNotFound,
 
-    #[error("Invalid path to the projects directory.")]
-    InvalidPath,
+    #[error("Invalid path to the projects directory: {0}.")]
+    InvalidPath(String),
 
     #[error("Failed to clone repository: {source}")]
     CloneFailed { source: ProgramError },
@@ -108,7 +108,9 @@ impl Library {
     pub fn new(path: impl AsRef<Path>, display_hidden: bool) -> Result<Self, LibraryError> {
         let path = path.as_ref();
         if !path.is_dir() {
-            return Err(LibraryError::InvalidPath);
+            return Err(LibraryError::InvalidPath(
+                path.to_string_lossy().to_string(),
+            ));
         }
         let projects = Self::collect_projects(path, display_hidden)?;
 
