@@ -238,8 +238,12 @@ pub fn handle_remove(args: RemoveArgs) -> Result<()> {
         config.options.display_hidden,
     )?;
 
-    let project_name = resolve_project_name(&args.name, &config, &projects, false)
-        .ok_or_else(|| anyhow!("Project not found."))?;
+    let project_name = if !args.yes {
+        resolve_project_name(&args.name, &config, &projects, false)
+            .ok_or_else(|| anyhow!("Project not found."))?
+    } else {
+        args.name
+    };
 
     if !is_terminal() && !args.yes {
         return Err(anyhow!(
