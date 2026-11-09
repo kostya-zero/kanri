@@ -55,7 +55,11 @@ pub fn create_fs_module(lua: &Lua, quiet: bool) -> LuaResult<LuaTable> {
         (
             "remove_dir",
             lua.create_function(move |lua, path: String| {
-                fs::remove_dir_all(resolve(lua, &path)?)
+                let path = path.trim();
+                if path.is_empty() || path == "." {
+                    return Err(mlua::Error::runtime("can't delete project's directory"));
+                }
+                fs::remove_dir_all(resolve(lua, path)?)
                     .map_err(|error| fs_error("remove a directory", error))?;
                 if !quiet {
                     print_action_remove!("Removed a directory: {}", path);
