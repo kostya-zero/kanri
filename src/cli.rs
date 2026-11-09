@@ -77,10 +77,6 @@ pub struct NewArgs {
     /// Blueprint to use for a new project.
     #[arg(short, long)]
     pub blueprint: Option<String>,
-
-    /// Hide the logs and the output of running commands.
-    #[arg(short, long)]
-    pub quiet: bool,
 }
 
 #[derive(Args)]

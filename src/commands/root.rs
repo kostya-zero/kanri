@@ -53,33 +53,27 @@ pub fn handle_new(args: NewArgs) -> Result<()> {
             .expect("blueprint path always ends with a file name")
             .to_string_lossy()
             .to_string();
-        let engine = BlueprintEngine::init(project_dir, file_name, args.name.clone(), args.quiet)
+        let engine = BlueprintEngine::init(project_dir, file_name, args.name.clone(), false)
             .map_err(|e| anyhow!(e.to_string()))?;
-        if !args.quiet {
-            println!(
-                "Running blueprint engine for '{}' blueprint...",
-                blueprint.0
-            );
-        }
+        println!(
+            "Running blueprint engine for '{}' blueprint...",
+            blueprint.0
+        );
         if let mlua::Result::Err(e) = engine.run(&blueprint.1) {
             print_error!("An error occurred in Lua engine: {}", e);
             projects.delete(&args.name)?;
             bail!("Failed to generate project from blueprint. See Lua error above.")
         }
 
-        if !args.quiet {
-            print_done!(
-                "Generated '{}' from blueprint '{}'.",
-                args.name,
-                blueprint.0
-            );
-        }
+        print_done!(
+            "Generated '{}' from blueprint '{}'.",
+            args.name,
+            blueprint.0
+        );
         return Ok(());
     }
 
-    if !args.quiet {
-        print_done!("Created an empty project with name '{}'.", args.name);
-    }
+    print_done!("Created an empty project with name '{}'.", args.name);
 
     Ok(())
 }

@@ -16,7 +16,7 @@
 - `kanri blueprints check` and `kanri new --blueprint` now accept blueprint names with the `.lua` extension, like `edit` and `remove` already did.
 - `kanri import` now migrates the configuration from older backups and validates the configuration and blueprint names before writing anything. Blueprints are written first and the configuration last, so a failed import leaves the current configuration untouched and lists blueprints that could not be written.
 - `kanri config edit` and `kanri config reset` now work when the configuration file cannot be parsed.
-- `kanri new --quiet` no longer prints a message when creating an empty project.
+- Removed the `--quiet` option from `kanri new`.
 - `kanri rename` now refuses to overwrite an existing file or directory that is not listed as a project.
 - `kanri profiles new` no longer accepts an empty profile name.
 - Symlinks to directories in the projects directory are now listed as projects.
