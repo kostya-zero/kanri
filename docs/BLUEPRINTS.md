@@ -156,13 +156,22 @@ Programs run with the project directory as their working directory. `process.run
 | Function | Returns | Description |
 | --- | --- | --- |
 | `process.which(executable)` | `string` or `nil` | Returns the resolved executable path from `PATH`, or `nil` if the executable is not found. |
-| `process.run(program, args, options)` | result object | Runs a program and waits for it to finish. `args` is an optional list of arguments. `options` is an optional table. |
+| `process.run(program, args, options)` | result | Runs a program and waits for it to finish. `args` is an optional list of arguments. `options` is an optional table. |
 
 `process.run` options:
 
 | Option | Type | Description |
 | --- | --- | --- |
-| `capture` | `boolean` | Captures the output of the program into the result. Defaults to `false`. |
+| `capture` | `boolean` | Captures `stdout` and `stderr` into the result instead of showing them in the terminal. Defaults to `false`. |
+
+The result has these fields:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `code` | `number` or `nil` | Exit code, or `nil` if the process ended without one. |
+| `success` | `boolean` | Whether the process exited successfully. |
+| `stdout` | `string` or `nil` | Captured standard output. Only set when `capture` is `true`. |
+| `stderr` | `string` or `nil` | Captured standard error. Only set when `capture` is `true`. |
 
 An empty program name or a failure to start the process raises a Lua runtime error. A non-zero exit code does not itself raise an error.
 
@@ -170,7 +179,10 @@ Check whether a program is installed before running it:
 
 ```lua
 if process.which("git") then
-    process.run("git", { "init" })
+    local result = process.run("git", { "init" })
+    if not result.success then
+        error("git init failed with code " .. tostring(result.code))
+    end
 end
 ```
 

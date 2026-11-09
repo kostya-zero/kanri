@@ -1,6 +1,6 @@
 use std::{
     io::ErrorKind,
-    process::{Command, Stdio},
+    process::Command,
 };
 
 use mlua::prelude::*;
@@ -27,9 +27,7 @@ impl FromLua for RunOptions {
 
 #[derive(Default)]
 struct RunResult {
-    #[allow(dead_code)]
     code: Option<i32>,
-    #[allow(dead_code)]
     success: bool,
     stdout: Option<String>,
     stderr: Option<String>,
@@ -86,27 +84,28 @@ pub fn create_process_module(lua: &Lua) -> LuaResult<LuaTable> {
                     }
                     let mut command = Command::new(&program);
                     let capture = options.is_some_and(|o| o.capture);
-                    if capture {
-                        command.stdin(Stdio::piped()).stdout(Stdio::piped());
-                    }
-
                     let args: Vec<String> = arguments.unwrap_or_default();
                     command.args(&args).current_dir(&ProjectDir::get(lua)?.0);
                     print_command(&program, &args);
 
-                    let output = command.output().map_err(command_error)?;
-                    let mut result = RunResult {
-                        code: output.status.code(),
-                        success: output.status.success(),
-                        ..Default::default()
-                    };
-
                     if capture {
-                        result.stdout = Some(String::from_utf8(output.stdout).unwrap());
-                        result.stderr = Some(String::from_utf8(output.stderr).unwrap());
+                        let output = command.output().map_err(command_error)?;
+                        let result = RunResult {
+                            code: output.status.code(),
+                            success: output.status.success(),
+                            stdout: Some(String::from_utf8_lossy(&output.stdout).into_owned()),
+                            stderr: Some(String::from_utf8_lossy(&output.stderr).into_owned()),
+                        };
+                        Ok(result)
+                    } else {
+                        let output = command.status().map_err(command_error)?;
+                        let result = RunResult {
+                            code: output.code(),
+                            success: output.success(),
+                            ..Default::default()
+                        };
+                        Ok(result)
                     }
-
-                    Ok(result)
                 },
             )?,
         ),
