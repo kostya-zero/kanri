@@ -95,7 +95,7 @@ version = "0.1.0"
 edition = "2024"
 ]], name))
 
-if pcall(process.which, "git") then
+if process.which("git") then
     process.run("git", { "init" })
 end
 ```
@@ -117,7 +117,7 @@ All relative paths are resolved from the project directory. Paths are not sandbo
 | `fs.is_file(path)` | `boolean` | Returns whether a path is a regular file. |
 | `fs.is_dir(path)` | `boolean` | Returns whether a path is a directory. |
 | `fs.create_dir(path)` | `nil` | Creates a directory and missing parent directories. |
-| `fs.append(path, content)` | `nil` | Appends `content` and a trailing newline to a file, creating the file if it does not exist. |
+| `fs.append(path, content)` | `nil` | Appends `content` to a file without adding a trailing newline, creating the file if it does not exist. |
 
 Example:
 
@@ -151,23 +151,26 @@ print(path.extension(source))               -- rs
 
 ### `process` module
 
-Programs run with the project directory as their working directory. `process.run` inherits the terminal streams unless Kanri is running in quiet mode.
+Programs run with the project directory as their working directory. `process.run` inherits the terminal streams.
 
 | Function | Returns | Description |
 | --- | --- | --- |
-| `process.which(executable)` | `string` | Returns the resolved executable path from `PATH`. Raises a Lua runtime error if the executable is not found. |
-| `process.run(program, args)` | `number` or `nil` | Runs a program with a list of arguments and returns its exit code. Returns `nil` if the process ended without an exit code. |
+| `process.which(executable)` | `string` or `nil` | Returns the resolved executable path from `PATH`, or `nil` if the executable is not found. |
+| `process.run(program, args, options)` | result object | Runs a program and waits for it to finish. `args` is an optional list of arguments. `options` is an optional table. |
 
-An empty program name or a failure to start the process raises a Lua runtime error. A non-zero exit code is returned and does not itself raise an error.
+`process.run` options:
 
-Use `pcall` to check whether a program is installed without stopping the blueprint:
+| Option | Type | Description |
+| --- | --- | --- |
+| `capture` | `boolean` | Captures the output of the program into the result. Defaults to `false`. |
+
+An empty program name or a failure to start the process raises a Lua runtime error. A non-zero exit code does not itself raise an error.
+
+Check whether a program is installed before running it:
 
 ```lua
-if pcall(process.which, "git") then
-    local status = process.run("git", { "init" })
-    if status ~= 0 then
-        error("git init failed with status " .. tostring(status))
-    end
+if process.which("git") then
+    process.run("git", { "init" })
 end
 ```
 
@@ -218,4 +221,4 @@ if not fs.exists("package.json") then
 end
 ```
 
-Filesystem errors and process launch errors are converted into Lua runtime errors. Check the value returned by `process.run` when a non-zero exit code should stop blueprint execution.
+Filesystem errors and process launch errors are converted into Lua runtime errors.
