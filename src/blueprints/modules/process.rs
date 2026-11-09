@@ -1,7 +1,4 @@
-use std::{
-    io::ErrorKind,
-    process::Command,
-};
+use std::{io::ErrorKind, process::Command};
 
 use mlua::prelude::*;
 use which::which;

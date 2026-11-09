@@ -41,8 +41,7 @@ impl BlueprintEngine {
         lua.globals().set("path", create_path_module(&lua)?)?;
         lua.globals()
             .set("project", create_project_module(&lua, project_name.into())?)?;
-        lua.globals()
-            .set("process", create_process_module(&lua)?)?;
+        lua.globals().set("process", create_process_module(&lua)?)?;
 
         Ok(Self {
             lua,
