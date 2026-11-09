@@ -17,7 +17,7 @@ fn test_library_new(context: TestContext) {
     assert!(context.path().exists());
     assert!(matches!(
         Library::new(PathBuf::from("/non/existent/path"), false),
-        Err(LibraryError::InvalidPath)
+        Err(LibraryError::InvalidPath(_))
     ));
 }
 
