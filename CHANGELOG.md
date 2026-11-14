@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+TBW
+
+## 0.12.0
+
 - Added the `path` module to blueprints for joining paths, reading path components, and checking whether a path is absolute.
 - Added the `process` module to blueprints. `process.run` replaces `os.exec`, `os.exec_status`, and `os.exec_output`: it prints the running command and returns a result object with `code`, `success`, `stdout`, and `stderr`. `stdout` and `stderr` are only set when the `capture` option is `true`; otherwise the program inherits the terminal streams. `process.which` returns the resolved path of an executable, or `nil` if it is not found. `process.run` errors now include the underlying error message for unexpected failures.
 - Added `fs.append` to blueprints for appending content to a file. It does not add a trailing newline.
