@@ -111,7 +111,7 @@ All relative paths are resolved from the project directory. Paths are not sandbo
 | `fs.write(path, content)` | `nil` | Writes `content` to a file, replacing it if it exists. |
 | `fs.read(path)` | `string` | Reads a file as UTF-8 text. |
 | `fs.remove_file(path)` | `nil` | Removes a file. |
-| `fs.remove_dir(path)` | `nil` | Removes a directory and all of its contents. |
+| `fs.remove_dir(path)` | `nil` | Removes a directory and all of its contents. An empty path or `.` is rejected so a blueprint cannot delete the project directory itself. |
 | `fs.move(from, to)` | `nil` | Renames or moves a file or directory on the same filesystem. |
 | `fs.exists(path)` | `boolean` | Returns whether a path exists. |
 | `fs.is_file(path)` | `boolean` | Returns whether a path is a regular file. |
@@ -188,7 +188,7 @@ end
 
 ### `project` module
 
-| Function | Returns | Description |
+| Field | Type | Description |
 | --- | --- | --- |
 | `project.name` | `string` | Name passed to `kanri new`. |
 | `project.path` | `string` | Path to the project directory. |
@@ -213,13 +213,9 @@ Example:
 
 ```lua
 if system.system() == "windows" then
-    fs.write("run.bat", "@echo off
-echo hello
-")
+    fs.write("run.bat", "@echo off\necho hello\n")
 else
-    fs.write("run.sh", "#!/usr/bin/env sh
-echo hello
-")
+    fs.write("run.sh", "#!/usr/bin/env sh\necho hello\n")
 end
 ```
 

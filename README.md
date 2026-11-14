@@ -80,7 +80,7 @@ kanri open bookshelf --shell
 kanri open bookshelf --path
 ```
 
-Use `kanri open -` to open the most recent project when recent project tracking is enabled.
+Use `kanri open -` to open the most recent project when recent project tracking is enabled. Pass `--skip-autocomplete` to disable name autocomplete, which is useful for integrations.
 
 ### Rename and remove projects
 
@@ -93,6 +93,8 @@ kanri remove bookshelf
 # Required for non-interactive removal.
 kanri remove bookshelf --yes
 ```
+
+With `--yes`, the name is used as is: recent project (`-`) and autocomplete are not resolved.
 
 ### Profiles
 

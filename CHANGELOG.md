@@ -24,6 +24,8 @@
 - Colored output is now disabled automatically when output is not a terminal.
 - Added a description for the `--blueprint` flag in `kanri new --help`.
 - Support for the `.ignore` file in the projects directory has been temporarily removed while it is being reworked.
+- `fs.remove_dir` in blueprints now rejects an empty path or `.` instead of deleting the project directory.
+- `kanri remove --yes` now skips resolving the project name (recent project and autocomplete) and uses the name as is.
 - The minimum supported Rust version is now 1.91.
 
 ## 0.11.0
