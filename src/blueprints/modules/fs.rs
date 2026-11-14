@@ -107,6 +107,21 @@ pub fn create_fs_module(lua: &Lua, quiet: bool) -> LuaResult<LuaTable> {
             })?,
         ),
         (
+            "list",
+            lua.create_function(|lua, path: String| {
+                let mut names = fs::read_dir(resolve(lua, &path)?)
+                    .map_err(|error| fs_error("list a directory", error))?
+                    .map(|entry| {
+                        entry
+                            .map(|entry| entry.file_name().to_string_lossy().into_owned())
+                            .map_err(|error| fs_error("read a directory entry", error))
+                    })
+                    .collect::<LuaResult<Vec<_>>>()?;
+                names.sort();
+                Ok(names)
+            })?,
+        ),
+        (
             "is_file",
             lua.create_function(|lua, path: String| Ok(resolve(lua, &path)?.is_file()))?,
         ),

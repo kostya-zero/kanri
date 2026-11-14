@@ -114,6 +114,7 @@ All relative paths are resolved from the project directory. Paths are not sandbo
 | `fs.remove_dir(path)` | `nil` | Removes a directory and all of its contents. An empty path or `.` is rejected so a blueprint cannot delete the project directory itself. |
 | `fs.move(from, to)` | `nil` | Renames or moves a file or directory on the same filesystem. |
 | `fs.copy(src, dst)` | `nil` | Copies a file. Errors if `src` is not a file or `dst` already exists. |
+| `fs.list(path)` | `table` | Returns an array of entry names (not paths) in a directory, sorted lexicographically and without `.` and `..`. Errors if `path` is not a readable directory. |
 | `fs.exists(path)` | `boolean` | Returns whether a path exists. |
 | `fs.is_file(path)` | `boolean` | Returns whether a path is a regular file. |
 | `fs.is_dir(path)` | `boolean` | Returns whether a path is a directory. |
