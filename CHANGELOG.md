@@ -5,6 +5,7 @@
 - Added the `path` module to blueprints for joining paths, reading path components, and checking whether a path is absolute.
 - Added the `process` module to blueprints. `process.run` replaces `os.exec`, `os.exec_status`, and `os.exec_output`: it prints the running command and returns a result object with `code`, `success`, `stdout`, and `stderr`. `stdout` and `stderr` are only set when the `capture` option is `true`; otherwise the program inherits the terminal streams. `process.which` returns the resolved path of an executable, or `nil` if it is not found. `process.run` errors now include the underlying error message for unexpected failures.
 - Added `fs.append` to blueprints for appending content to a file. It does not add a trailing newline.
+- Added `fs.copy` to blueprints for copying a file. It fails if the source is not a file or the destination already exists.
 - `fs.write` in blueprints now reports when it overwrites an existing file instead of reporting that it created one.
 - **Blueprint API change:** the Kanri `os` module has been renamed to `system`, so the standard Lua `os` library is available in blueprints again.
   - Removed `os.family`, `os.dir_separator`, and `os.path_separator`.

@@ -83,6 +83,30 @@ pub fn create_fs_module(lua: &Lua, quiet: bool) -> LuaResult<LuaTable> {
             lua.create_function(|lua, path: String| Ok(resolve(lua, &path)?.exists()))?,
         ),
         (
+            "copy",
+            lua.create_function(move |lua, (src, dst): (String, String)| {
+                let src = resolve(lua, &src)?;
+                if !src.is_file() {
+                    return Err(mlua::Error::runtime(format!(
+                        "source is not a file: {}",
+                        src.display()
+                    )));
+                }
+                let dst = resolve(lua, &dst)?;
+                if dst.exists() {
+                    return Err(mlua::Error::runtime(format!(
+                        "destination file exists: {}",
+                        dst.display()
+                    )));
+                }
+                fs::copy(&src, &dst).map_err(|error| fs_error("copy a file", error))?;
+                if !quiet {
+                    print_action_add!("Copied file '{}' to '{}'", src.display(), dst.display());
+                }
+                Ok(())
+            })?,
+        ),
+        (
             "is_file",
             lua.create_function(|lua, path: String| Ok(resolve(lua, &path)?.is_file()))?,
         ),
